@@ -26,36 +26,24 @@ class Code {
     ///> constructors
     ///
     constructor(n: String, f: (Code) -> Unit, im: Boolean) {  ///< built-in words
-        name = n
-        xt = f
-        immd = im
-        token = fence++
+        name = n; xt = f; immd = im; token = fence++
     }
     constructor(n: String) {                                  ///< colon words
-        name = n
-        token = fence++
+        name = n; token = fence++
     }
     constructor(f: (Code) -> Unit, n: String) {               ///< branching nodes
-        name = n
-        xt = f
+        name = n; xt = f
     }
     constructor(f: (Code) -> Unit, n: String, d: Int) {       ///< int literal
-        name = n
-        xt = f
-        qf.add(d)
+        name = n; xt = f; qf.add(d)
     }
     constructor(f: (Code) -> Unit, n: String, s: String) {    ///< string literal
-        name = n
-        xt = f
-        str = s
+        name = n; xt = f; str = s
     }
     ///
     ///> attribute setting
     ///
-    fun immediate(): Code {
-        immd = true
-        return this
-    }
+    fun immediate(): Code { immd = true; return this }
     ///
     ///> variable storage management methods
     ///
@@ -72,9 +60,7 @@ class Code {
             catch (e: ArithmeticException) { break; } /// * capture UNNEST
         }
     }
-    fun nest(pf: FV<Code>) {
-        for (w in pf) { w.nest() }
-    }
+    fun nest(pf: FV<Code>) { for (w in pf) { w.nest() } }
     fun unnest() { throw ArithmeticException() }
     ///
     ///> branching, looping methods
@@ -88,9 +74,9 @@ class Code {
         val b = stage
         while (true) {
             nest(pf)                              /// * begin..
-            if (b == 0 && ss.pop() != 0) break   /// * ..until
+            if (b == 0 && ss.pop() != 0) break    /// * ..until
             if (b == 1) continue                  /// * ..again
-            if (b == 2 && ss.pop() == 0) break   /// * ..while..repeat
+            if (b == 2 && ss.pop() == 0) break    /// * ..while..repeat
             nest(p1)
         }
     }
@@ -112,9 +98,9 @@ class Code {
                 if (i < 0) break
                 nest(p1)
             }
-        }
-        catch (e: Exception) { /* leave */ }
-        finally { rs.pop() }                      ///> pop off index
+        } catch (e: Exception) {
+            /* leave */
+        } finally { rs.pop() }                    ///> pop off index
     }
     fun loop(rs: Stack<Int>) {                    ///> do..loop
         try {
@@ -126,8 +112,8 @@ class Code {
                 rs.push(++i)
                 if (i >= m) break
             }
-        }
-        catch (e: Exception) { /* leave */ }      /// * handle LEAVE
-        finally { rs.pop() }
+        } catch (e: Exception) {                  /// * handle LEAVE
+            /* leave */
+        } finally { rs.pop() }
     }
 }
