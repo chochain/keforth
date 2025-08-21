@@ -11,3 +11,12 @@ I sort of appointed myself to carry the eForth lineage from Bill Munich and Dr. 
 I thought Java has faded quietly into the sunset. But, on one occasion, I saw a statistics on mobile phone market shares where Andriod still owns ~70% and suddenly dawned on me that Java is still alive and kicking in billions of devices. For $20, I can get one that has 64GB memory, 8-cores CPU at 2.0GHz, hi-res display, multiple cameras, WiFi, Bluetooth, GPS, G-seensor.... and the battery to run for a full day. My my my!
 
 Then I bumped into Kotlin. So, here we go again!
+
+Build & Run
+
+    sudo snap install kotlin 
+
+    kotlinc src/Eforth.kt src/eforth/*.kt -include-runtime -d tests/Eforth.jar
+    java -jar tests/Eforth.jar
+
+
