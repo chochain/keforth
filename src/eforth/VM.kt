@@ -23,6 +23,12 @@ class VM(val io: IO) {
     var base = 10                                   ///< numeric radix
     var run = true                                  ///< VM execution flag
     var compile = false                             ///< state: interpreter or compiling
+    
+    init {
+        dict = Dict.getInstance()
+        dictInit()                                  /// * create dictionary
+        allotBase()                                 /// * use dict[0].pf[0] for base
+    }
     ///
     ///> Forth outer interpreter - process one line a time
     ///
@@ -107,17 +113,17 @@ class VM(val io: IO) {
     ///
     ///> MMU macros
     ///
-    private fun GETV(iW: Int): Int = dict[iW and 0x7fff].getVar(iW shr 16)
-    private fun SETV(iW: Int, n: Int) {
-        dict[iW and 0x7fff].setVar(iW shr 16, n)
-        if (iW == 0) base = n                       /// * also update base
+    private fun GETV(iw: Int): Int = dict[iw and 0x7fff].getVar(iw shr 16)
+    private fun SETV(iw: Int, n: Int) {
+        dict[iw and 0x7fff].setVar(iw shr 16, n)
+        if (iw == 0) base = n                       /// * also update base
     }
     private fun IDX(): Int {                        ///< calculate String index
         return ((dict.tail().pf.size - 1) shl 16) or dict.tail().token
     }
-    private fun STR(iW: Int): String? {
-        return if (iW >= 0) {
-            dict[iW and 0x7fff].pf[iW shr 16].str
+    private fun STR(iw: Int): String? {
+        return if (iw >= 0) {
+            dict[iw and 0x7fff].pf[iw shr 16].str
         } else {
             io.pad()
         }
@@ -164,13 +170,15 @@ class VM(val io: IO) {
     ///
     ///> create dictionary - built-in words
     ///
-    init {
-        dict = Dict.getInstance()
-        dictInit()
-        val b = Code(_dolit, "lit", 10)             ///< use dict[0] as base store
+    private var prim = mutableListOf<Code>(
+        Code("bye", { run = false }, false),
+        Code("+",   { ALU { a, b -> a + b } }, false)
+    )
+    private fun allotBase() {
+        val b = Code(_dolit, "lit", base)          ///< use dict[0] as base store
         b.token = 0
         dict[0].pf.add(b)
-    }
+    }        
     private fun dictInit() {
         CODE("bye")    { run = false }
         /// @defgroup ALU ops
@@ -287,8 +295,8 @@ class VM(val io: IO) {
         }
         CODE("type")   {
             ss.pop()                                /// drop len
-            val iW = ss.pop()                       /// get index
-            STR(iW)?.let { io.pstr(it) }
+            val iw = ss.pop()                       /// get index
+            STR(iw)?.let { io.pstr(it) }
         }
         CODE("key")    { ss.push(io.key()) }
         CODE("emit")   { io.dot(IO.OP.EMIT, ss.pop()) }
@@ -467,13 +475,13 @@ class VM(val io: IO) {
         /// @{
         CODE("@")  { ss.push(GETV(ss.pop())) }      /// w -- n
         CODE("!")  {                                /// n w --
-            val iW = ss.pop()
-            SETV(iW, ss.pop())
+            val iw = ss.pop()
+            SETV(iw, ss.pop())
         }
         CODE("+!") {                                /// n w --
-            val iW = ss.pop()
-            val n = GETV(iW) + ss.pop()
-            SETV(iW, n)
+            val iw = ss.pop()
+            val n = GETV(iw) + ss.pop()
+            SETV(iw, n)
         }
         CODE("?")  { io.dot(IO.OP.DOT, GETV(ss.pop())) } /// w --
         CODE(",")  { dict.tail().comma(ss.pop()) }  /// n --
