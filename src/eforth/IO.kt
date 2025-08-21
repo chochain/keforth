@@ -6,7 +6,6 @@ package eforth
 
 import java.io.*
 import java.util.*
-import java.util.function.BooleanSupplier;
 ///
 ///> console input/output
 ///
@@ -20,13 +19,13 @@ class IO(
     }
     enum class OP { CR, BL, EMIT, DOT, UDOT, DOTR, UDOTR, SPCS }
 
-    val `in` = FV<Scanner>()                               ///< input scanner stack
+    val ins = FV<Scanner>()                                ///< input scanner stack
     var tok: Scanner? = null                               ///< tokenizer
     val out: PrintWriter                                   ///< streaming output
     var pad: String? = null                                ///< tmp storage
 
     init {
-        `in`.add(Scanner(i))
+        ins.add(Scanner(i))
         out = PrintWriter(o, true)
     }
     fun mstat() {
@@ -40,8 +39,8 @@ class IO(
     }
     fun readline(): Boolean {
         var tib: String? = null
-        tok = if (`in`.tail().hasNextLine()) {             ///< create tokenizer
-            tib = `in`.tail().nextLine()
+        tok = if (ins.tail().hasNextLine()) {             ///< create tokenizer
+            tib = ins.tail().nextLine()
             Scanner(tib)
         } else null
         
@@ -121,37 +120,33 @@ class IO(
         tab("${if (dp == 0) ": " else ""}${c.name} ")
         c.pf.forEach { w -> see(w, base, dp + 1) }
         if (c.p1.size > 0) {
-            tab("( 1-- )")
-            c.p1.forEach { w -> see(w, base, dp + 1) }
+            tab("( 1-- )"); c.p1.forEach { w -> see(w, base, dp + 1) }
         }
         if (c.p2.size > 0) {
-            tab("( 2-- )")
-            c.p2.forEach { w -> see(w, base, dp + 1) }
+            tab("( 2-- )"); c.p2.forEach { w -> see(w, base, dp + 1) }
         }
         if (c.qf.size > 0) {
-            pstr(" \\ =")
-            c.qf.forEach { i -> pstr("${itoa(i, base)} ") }
+            pstr(" \\ =");  c.qf.forEach { i -> pstr("${itoa(i, base)} ") }
         }
         if (c.str != null) pstr(" \\ =\"${c.str}\" ")
         if (dp == 0) pstr("\n; ")
     }
-    fun loadDepth(): Int = `in`.size - 1                  /// * depth or recursive loading
-    fun load(fn: String, xt: BooleanSupplier): Int {
+    fun loadDepth(): Int = ins.size - 1                    /// * depth or recursive loading
+    fun load(fn: String, xt: () -> Boolean): Int {
         val tok0 = tok                                     /// * backup tokenizer
         var i = 0
         try {
             Scanner(File(fn)).use { sc ->                  ///< auto close scanner
-                `in`.add(sc)                               /// * keep input scanner
+                ins.add(sc)                                /// * keep input scanner
                 while (readline()) {                       /// * load from file now
                     i++
-                    if (!xt.asBoolean) break
+                    if (!xt()) break
                 }
             }
-        } catch (e: IOException) {
-            err(e)                                         /// * just in case 
-        } finally {
-            `in`.drop()                                    /// * restore scanner
         }
+        catch (e: IOException) { err(e) }                  /// * just in case 
+        finally { ins.drop() }                             /// * restore scanner
+        
         tok = tok0                                         /// * restore tokenizer
         return i
     }
