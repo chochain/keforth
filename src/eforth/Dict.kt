@@ -27,11 +27,11 @@ class Dict : FV<Code>() {
     ///    @param  str  input string to be search against dictionary words
     ///    @return      Code found; null - if not found
     ///
-    fun find(n: String, compile: Boolean): Code? {
-        val startIndex = dict.size - (if (compile) 2 else 1)
-        for (i in startIndex downTo 0) {                // search array from tail to head
+    fun find(s: String, compile: Boolean): Code? {
+        val n = dict.size - (if (compile) 2 else 1)
+        for (i in n downTo 0) {                         /// search array from tail to head
             val w = dict[i]
-            if (n == w.name) return w
+            if (s == w.name) return w
         }
         return null
     }
