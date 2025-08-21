@@ -59,11 +59,9 @@ class VM(val io: IO) {
             if (!compile || w.immd) {               ///> in interpreter mode?
                 try { w.nest() }                    ///> * execute immediately
                 catch (e: Exception) { io.err(e) }  ///> * just-in-case it failed
-            }
-            else dict.compile(w)                    ///> add to dictionary if in compile mode
+            } else dict.compile(w)                  ///> add to dictionary if in compile mode
             return
-        }
-        else io.debug(" => not found")
+        } else io.debug(" => not found")
         
         ///> word not found, try as a number
         try {
@@ -71,8 +69,7 @@ class VM(val io: IO) {
             io.debug(" => $n\n")
             if (compile) {                          ///>> in compile mode 
                 dict.compile(Code(_dolit,"lit", n)) ///> add to latest defined word
-            }
-            else ss.push(n)                         ///> or, add number to top of stack
+            } else ss.push(n)                       ///> or, add number to top of stack
         }
         catch (ex: NumberFormatException) {         ///> if it's not a number
             io.pstr("$idiom ?")                     ///> * show not found sign
@@ -85,8 +82,7 @@ class VM(val io: IO) {
         return if (existed) {
             if (w == null) io.pstr("$s?")
             w
-        }
-        else {
+        } else {
             if (w != null) io.pstr("$s reDef?")
             Code(s)                                 ///> create new Code
         }
@@ -99,12 +95,10 @@ class VM(val io: IO) {
     private fun BOOL(f: Boolean): Int = if (f) -1 else 0
     private fun UINT(v: Int): Int = v and 0x7fffffff
     private fun ALU(m: (Int) -> Int) {              ///> TOS = fn(TOS)
-        val n = ss.pop()
-        ss.push(m(n))
+        val n = ss.pop(); ss.push(m(n))
     }
     private fun ALU(m: (Int, Int) -> Int) {         ///> TOS = fn(TOS, NOS)
-        val n = ss.pop()
-        ss.push(m(ss.pop(), n))
+        val n = ss.pop(); ss.push(m(ss.pop(), n))
     }
     ///
     ///> MMU macros
@@ -125,29 +119,29 @@ class VM(val io: IO) {
     ///> built-in words and macros
     ///
     private val _tmp:    (Code) -> Unit = { /* do nothing */ }
-    private val _dolit:  (Code) -> Unit = { c -> ss.push(c.qf.head()) }
-    private val _dostr:  (Code) -> Unit = { c ->
-        ss.push(c.token)
-        ss.push(STR(c.token)?.length ?: 0)
+    private val _dolit:  (Code) -> Unit = { ss.push(it.qf.head()) }
+    private val _dostr:  (Code) -> Unit = { 
+        ss.push(it.token)
+        ss.push(STR(it.token)?.length ?: 0)
     }
-    private val _dotstr: (Code) -> Unit = { c -> c.str?.let { io.pstr(it) } }
-    private val _branch: (Code) -> Unit = { c -> c.branch(ss) }
-    private val _begin:  (Code) -> Unit = { c -> c.begin(ss) }
-    private val _for:    (Code) -> Unit = { c -> c.dofor(rs) }
-    private val _loop:   (Code) -> Unit = { c -> c.loop(rs) }
+    private val _dotstr: (Code) -> Unit = { it.str?.let { io.pstr(it) } }
+    private val _branch: (Code) -> Unit = { it.branch(ss) }
+    private val _begin:  (Code) -> Unit = { it.begin(ss) }
+    private val _for:    (Code) -> Unit = { it.dofor(rs) }
+    private val _loop:   (Code) -> Unit = { it.loop(rs) }
     private val _tor:    (Code) -> Unit = { rs.push(ss.pop()) }
     private val _tor2:   (Code) -> Unit = { 
         rs.push(ss.pop())
         rs.push(ss.pop())
     }
-    private val _dovar:  (Code) -> Unit = { c -> ss.push(c.token) }
-    private val _dodoes: (Code) -> Unit = { c ->
+    private val _dovar:  (Code) -> Unit = { ss.push(it.token) }
+    private val _dodoes: (Code) -> Unit = {
         var hit = false
-        for (w in dict[c.token].pf) {               /// * scan through defining word
-            if (w == c) hit = true                  /// does> ...
+        for (w in dict[it.token].pf) {              /// * scan through defining word
+            if (w == it) hit = true                 /// does> ...
             else if (hit) dict.compile(w)           /// capture words
         }
-        c.unnest()                                  /// exit nest
+        it.unnest()                                 /// exit nest
     }
     private fun ADDW(w: Code) { dict.compile(w) }
     private fun CODE(n: String, f: (Code) -> Unit) { dict.add(Code(n, f, false)) }
@@ -187,23 +181,23 @@ class VM(val io: IO) {
         CODE("and")    { ALU { a, b -> a and b } }
         CODE("or")     { ALU { a, b -> a or b } }
         CODE("xor")    { ALU { a, b -> a xor b } }
-        CODE("abs")    { ALU { a -> kotlin.math.abs(a) } }
-        CODE("negate") { ALU { a -> -a } }
-        CODE("invert") { ALU { a -> UINT(a).inv() } }
+        CODE("abs")    { ALU { kotlin.math.abs(it) } }
+        CODE("negate") { ALU { -it } }
+        CODE("invert") { ALU { UINT(it).inv() } }
         CODE("rshift") { ALU { a, b -> a ushr b } }
         CODE("lshift") { ALU { a, b -> a shl b } }
         CODE("max")    { ALU { a, b -> maxOf(a, b) } }
         CODE("min")    { ALU { a, b -> minOf(a, b) } }
-        CODE("2*")     { ALU { a -> a * 2 } }
-        CODE("2/")     { ALU { a -> a / 2 } }
-        CODE("1+")     { ALU { a -> a + 1 } }
-        CODE("1-")     { ALU { a -> a - 1 } }
+        CODE("2*")     { ALU { it * 2 } }
+        CODE("2/")     { ALU { it / 2 } }
+        CODE("1+")     { ALU { it + 1 } }
+        CODE("1-")     { ALU { it - 1 } }
         /// @}
         /// @defgroup Logic ops
         /// @{
-        CODE("0=")     { ALU { a -> BOOL(a == 0) } }
-        CODE("0<")     { ALU { a -> BOOL(a < 0) } }
-        CODE("0>")     { ALU { a -> BOOL(a > 0) } }
+        CODE("0=")     { ALU { BOOL(it == 0) } }
+        CODE("0<")     { ALU { BOOL(it < 0) } }
+        CODE("0>")     { ALU { BOOL(it > 0) } }
         CODE("=")      { ALU { a, b -> BOOL(a == b) } }
         CODE(">")      { ALU { a, b -> BOOL(a > b) } }
         CODE("<")      { ALU { a, b -> BOOL(a < b) } }
@@ -300,8 +294,7 @@ class VM(val io: IO) {
                 val w = Code(_dostr, "s\"", s)
                 ADDW(w)                             /// literal=s
                 w.token = IDX()
-            }
-            else {
+            } else {
                 ss.push(-1)
                 ss.push(s.length)                   /// use pad
             }
@@ -329,8 +322,7 @@ class VM(val io: IO) {
             if (s == 0) {                           /// * if..{pf}..then
                 BRAN(b.pf)
                 dict.drop()
-            }
-            else {                                /// * else..{p1}..then, or
+            } else {                                /// * else..{p1}..then, or
                 BRAN(b.p1)                          /// * then..{p1}..next
                 if (s == 1) dict.drop()             /// * if..else..then
             }
@@ -482,7 +474,7 @@ class VM(val io: IO) {
         CODE("words") { io.words(dict) }
         CODE("see")   { tick()?.let { io.see(it, base, 0) } }
         CODE("clock") { ss.push(System.currentTimeMillis().toInt()) }
-        CODE("rnd")   { ALU { a -> rnd.nextInt(a) } }
+        CODE("rnd")   { ALU { rnd.nextInt(it) } }
         CODE("depth") { ss.push(ss.size) }
         CODE("r")     { ss.push(rs.size) }
         IMMD("include")  {                          /// include an OS file
