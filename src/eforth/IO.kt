@@ -14,9 +14,7 @@ class IO(
     i: InputStream,
     o: PrintStream
 ) {
-    companion object {
-        private const val DEBUG = false
-    }
+    companion object { private const val DEBUG = false }
     enum class OP { CR, BL, EMIT, DOT, UDOT, DOTR, UDOTR, SPCS }
 
     val ins = FV<Scanner>()                                ///< input scanner stack
@@ -25,7 +23,7 @@ class IO(
     var pad: String? = null                                ///< tmp storage
 
     init {
-        ins.add(Scanner(i))
+        ins.add(Scanner(i))                                ///< keep scanner on stack
         out = PrintWriter(o, true)
     }
     fun mstat() {
@@ -56,11 +54,11 @@ class IO(
     }
     fun scan(delim: String): String? {
         val d = tok?.delimiter()                           ///< keep delimiter (SPC)
-        tok?.useDelimiter(delim)
-        pad = nextToken()                                  /// * read to delimiter (into pad)
-        tok?.useDelimiter(d)
-        nextToken()                                        /// * restore and skip off delim
-        return if (pad == null) null else pad!!.substring(1).also { pad = it } /// * drop first char (a SPC)
+        tok?.useDelimiter(delim); pad = nextToken()        /// * read to delimiter (into pad)
+        tok?.useDelimiter(d);     nextToken()              /// * restore and skip off delim
+        return if (pad != null) {
+            pad!!.substring(1).also { pad = it }           /// * drop first char (a SPC)
+        } else null
     }
     ///
     ///> IO methods
@@ -143,9 +141,9 @@ class IO(
                     if (!xt()) break
                 }
             }
-        }
-        catch (e: IOException) { err(e) }                  /// * just in case 
-        finally { ins.drop() }                             /// * restore scanner
+        } catch (e: IOException) {                         /// * just in case 
+            err(e)
+        } finally { ins.drop() }                           /// * restore scanner
         
         tok = tok0                                         /// * restore tokenizer
         return i
