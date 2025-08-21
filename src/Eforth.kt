@@ -6,7 +6,7 @@ import java.io.*
 import eforth.*
 
 class Eforth(
-    `in`: InputStream,
+    ins: InputStream,
     out: PrintStream
 ) : Runnable {                                              /// ooeforth
     companion object {
@@ -22,7 +22,7 @@ class Eforth(
     private val vm: VM                                      ///< eForth virtual machine
 
     init {
-        io = IO(APP_NAME, `in`, out)
+        io = IO(APP_NAME, ins, out)
         vm = VM(io)
     }
     
