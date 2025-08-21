@@ -27,7 +27,7 @@ class VM(val io: IO) {
     init {
         dict = Dict.getInstance()
         dictInit()                                  /// * create dictionary
-        allotBase()                                 /// * use dict[0].pf[0] for base
+//        allotBase()                                 /// * use dict[0].pf[0] for base
     }
     ///
     ///> Forth outer interpreter - process one line a time
@@ -57,29 +57,24 @@ class VM(val io: IO) {
         if (w != null) {                            ///> found word?
             io.debug(" => [${w.token}]${w.name}\n")
             if (!compile || w.immd) {               ///> in interpreter mode?
-                try {
-                    w.nest()                        ///> * execute immediately
-                } catch (e: Exception) {
-                    io.err(e)                       ///> * just-in-case it failed
-                }
-            } else {
-                dict.compile(w)                     ///> add to dictionary if in compile mode
+                try { w.nest() }                    ///> * execute immediately
+                catch (e: Exception) { io.err(e) }  ///> * just-in-case it failed
             }
+            else dict.compile(w)                    ///> add to dictionary if in compile mode
             return
-        } else {
-            io.debug(" => not found")
         }
+        else io.debug(" => not found")
         
         ///> word not found, try as a number
         try {
             val n = idiom.toInt(base)               ///> * try process as a number
             io.debug(" => $n\n")
             if (compile) {                          ///>> in compile mode 
-                dict.compile(Code(_dolit, "lit", n)) ///> add to latest defined word
-            } else {
-                ss.push(n)                          ///> or, add number to top of stack
+                dict.compile(Code(_dolit,"lit", n)) ///> add to latest defined word
             }
-        } catch (ex: NumberFormatException) {       ///> if it's not a number
+            else ss.push(n)                         ///> or, add number to top of stack
+        }
+        catch (ex: NumberFormatException) {         ///> if it's not a number
             io.pstr("$idiom ?")                     ///> * show not found sign
             compile = false
         }
@@ -90,7 +85,8 @@ class VM(val io: IO) {
         return if (existed) {
             if (w == null) io.pstr("$s?")
             w
-        } else {
+        }
+        else {
             if (w != null) io.pstr("$s reDef?")
             Code(s)                                 ///> create new Code
         }
@@ -102,11 +98,11 @@ class VM(val io: IO) {
     ///
     private fun BOOL(f: Boolean): Int = if (f) -1 else 0
     private fun UINT(v: Int): Int = v and 0x7fffffff
-    private fun ALU(m: (Int) -> Int) {
+    private fun ALU(m: (Int) -> Int) {              ///> TOS = fn(TOS)
         val n = ss.pop()
         ss.push(m(n))
     }
-    private fun ALU(m: (Int, Int) -> Int) {
+    private fun ALU(m: (Int, Int) -> Int) {         ///> TOS = fn(TOS, NOS)
         val n = ss.pop()
         ss.push(m(ss.pop(), n))
     }
@@ -122,51 +118,41 @@ class VM(val io: IO) {
         return ((dict.tail().pf.size - 1) shl 16) or dict.tail().token
     }
     private fun STR(iw: Int): String? {
-        return if (iw >= 0) {
-            dict[iw and 0x7fff].pf[iw shr 16].str
-        } else {
-            io.pad()
-        }
+        if (iw < 0) return io.pad()
+        return dict[iw and 0x7fff].pf[iw shr 16].str
     }
     ///
     ///> built-in words and macros
     ///
-    private val _tmp: (Code)    -> Unit = { /* do nothing */ }
-    private val _dolit: (Code)  -> Unit = { c -> ss.push(c.qf.head()) }
-    private val _dostr: (Code)  -> Unit = { c ->
+    private val _tmp:    (Code) -> Unit = { /* do nothing */ }
+    private val _dolit:  (Code) -> Unit = { c -> ss.push(c.qf.head()) }
+    private val _dostr:  (Code) -> Unit = { c ->
         ss.push(c.token)
         ss.push(STR(c.token)?.length ?: 0)
     }
     private val _dotstr: (Code) -> Unit = { c -> c.str?.let { io.pstr(it) } }
     private val _branch: (Code) -> Unit = { c -> c.branch(ss) }
-    private val _begin: (Code)  -> Unit = { c -> c.begin(ss) }
-    private val _for: (Code)    -> Unit = { c -> c.dofor(rs) }
-    private val _loop: (Code)   -> Unit = { c -> c.loop(rs) }
-    private val _tor: (Code)    -> Unit = { rs.push(ss.pop()) }
-    private val _tor2: (Code)   -> Unit = { 
+    private val _begin:  (Code) -> Unit = { c -> c.begin(ss) }
+    private val _for:    (Code) -> Unit = { c -> c.dofor(rs) }
+    private val _loop:   (Code) -> Unit = { c -> c.loop(rs) }
+    private val _tor:    (Code) -> Unit = { rs.push(ss.pop()) }
+    private val _tor2:   (Code) -> Unit = { 
         rs.push(ss.pop())
         rs.push(ss.pop())
     }
-    private val _dovar: (Code)  -> Unit = { c -> ss.push(c.token) }
+    private val _dovar:  (Code) -> Unit = { c -> ss.push(c.token) }
     private val _dodoes: (Code) -> Unit = { c ->
         var hit = false
         for (w in dict[c.token].pf) {               /// * scan through defining word
-            if (w == c) {
-                hit = true                          /// does> ...
-            } else if (hit) {
-                dict.compile(w)                     /// capture words
-            }
+            if (w == c) hit = true                  /// does> ...
+            else if (hit) dict.compile(w)           /// capture words
         }
         c.unnest()                                  /// exit nest
     }
     private fun ADDW(w: Code) { dict.compile(w) }
     private fun CODE(n: String, f: (Code) -> Unit) { dict.add(Code(n, f, false)) }
     private fun IMMD(n: String, f: (Code) -> Unit) { dict.add(Code(n, f, true)) }
-    private fun BRAN(pf: FV<Code>) {
-        val t = dict.tail()
-        pf.merge(t.pf)
-        t.pf.clear()
-    }
+    private fun BRAN(pf: FV<Code>) { val t = dict.tail(); pf.merge(t.pf); t.pf.clear() }
     ///
     ///> create dictionary - built-in words
     ///
@@ -278,7 +264,7 @@ class VM(val io: IO) {
         /// @{
         CODE("base")   { ss.push(0) }
         CODE("hex")    { dict[0].setVar(0, 16.also { base = it }) }
-        CODE("decimal") { dict[0].setVar(0, 10.also { base = it }) }
+        CODE("decimal"){ dict[0].setVar(0, 10.also { base = it }) }
         CODE("cr")     { io.cr() }
         CODE("bl")     { io.bl() }
         CODE(".")      { io.dot(IO.OP.DOT, ss.pop(), base = base) }
@@ -306,10 +292,7 @@ class VM(val io: IO) {
         /// @defgroup Literal ops
         /// @{
         IMMD("(")      { io.scan("\\)") }
-        IMMD(".(")     {
-            io.scan("\\)")
-            io.pad()?.let { io.pstr(it) }
-        }
+        IMMD(".(")     { io.scan("\\)"); io.pad()?.let { io.pstr(it) } }
         IMMD("\\")     { io.scan("\n") }
         IMMD("s\"")    {                            /// -- w a
             val s = io.scan("\"") ?: return@IMMD
@@ -317,18 +300,16 @@ class VM(val io: IO) {
                 val w = Code(_dostr, "s\"", s)
                 ADDW(w)                             /// literal=s
                 w.token = IDX()
-            } else {
+            }
+            else {
                 ss.push(-1)
                 ss.push(s.length)                   /// use pad
             }
         }
         IMMD(".\"")    {
             val s = io.scan("\"") ?: return@IMMD
-            if (compile) {
-                ADDW(Code(_dotstr, ".\"", s))       /// literal=s
-            } else {
-                io.pstr(s)
-            }
+            if (!compile) io.pstr(s)
+            else ADDW(Code(_dotstr, ".\"", s))      /// literal=s
         }
         /// @}
         /// @defgroup Branching ops
@@ -348,7 +329,8 @@ class VM(val io: IO) {
             if (s == 0) {                           /// * if..{pf}..then
                 BRAN(b.pf)
                 dict.drop()
-            } else {                                /// * else..{p1}..then, or
+            }
+            else {                                /// * else..{p1}..then, or
                 BRAN(b.p1)                          /// * then..{p1}..next
                 if (s == 1) dict.drop()             /// * if..else..then
             }
@@ -407,7 +389,7 @@ class VM(val io: IO) {
             ADDW(Code(_loop, "do"))
             dict.add(Code(_tmp, ""))
         }
-        CODE("leave") { it.unnest() }               /// * exit loop
+        CODE("leave"){ it.unnest() }                /// * exit loop
         IMMD("loop") {
             val b = dict.bran()
             BRAN(b.pf)                              /// * do..{pf}..loop
@@ -439,9 +421,7 @@ class VM(val io: IO) {
                 v.token = IDX()
             }
         }
-        CODE("postpone") {
-            tick()?.let { ADDW(it) }
-        }
+        CODE("postpone"){ tick()?.let { ADDW(it) } }
         CODE("immediate") { dict.tail().immediate() }
         CODE("exit")    { it.unnest() }                /// marker to exit interpreter
         CODE("exec")    { dict[ss.pop()].nest() }
@@ -460,9 +440,7 @@ class VM(val io: IO) {
             w.token = dict.tail().token             /// * point to new word
         }
         CODE("to") {                                /// n -- , compile only
-            tick()?.let { w ->
-                w.setVar(0, ss.pop())
-            }
+            tick()?.let { w -> w.setVar(0, ss.pop()) }
         }
         CODE("is") {                                /// w -- , execute only
             tick()?.let { w ->
@@ -499,9 +477,7 @@ class VM(val io: IO) {
         /// @defgroup Debug ops
         /// @{
         CODE("here")  { ss.push(Code.fence) }
-        CODE("'")     {
-            tick()?.let { ss.push(it.token) }
-        }
+        CODE("'")     { tick()?.let { ss.push(it.token) } }
         CODE(".s")    { io.ssDump(ss, base) }
         CODE("words") { io.words(dict) }
         CODE("see")   { tick()?.let { io.see(it, base, 0) } }
