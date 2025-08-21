@@ -10,7 +10,7 @@ class Eforth(
     out: PrintStream
 ) : Runnable {                                              /// ooeforth
     companion object {
-        const val APP_NAME = "ooeForth v2"
+        const val APP_NAME = "eForthK v0"
         
         @JvmStatic
         fun main(args: Array<String>) {                     /// main app
