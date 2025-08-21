@@ -11,7 +11,6 @@ class Code {
         @JvmStatic
         var fence = 0                      ///< token index
     }
-
     var name: String? = null
     var immd: Boolean = false
     var token: Int = 0
@@ -23,39 +22,33 @@ class Code {
     var p2 = FV<Code>()                    ///< aft..next
     var qf = FV<Int>()                     ///< variable storage
     var str: String? = null                ///< string storage
-    
     ///
     ///> constructors
     ///
-    constructor(n: String, f: (Code) -> Unit, im: Boolean) {                 ///< built-in words
+    constructor(n: String, f: (Code) -> Unit, im: Boolean) {  ///< built-in words
         name = n
         xt = f
         immd = im
         token = fence++
     }
-    
-    constructor(n: String) {                                                  ///< colon words
+    constructor(n: String) {                                  ///< colon words
         name = n
         token = fence++
     }
-    
-    constructor(f: (Code) -> Unit, n: String) {                             ///< branching nodes
+    constructor(f: (Code) -> Unit, n: String) {               ///< branching nodes
         name = n
         xt = f
     }
-    
-    constructor(f: (Code) -> Unit, n: String, d: Int) {                     ///< int literal
+    constructor(f: (Code) -> Unit, n: String, d: Int) {       ///< int literal
         name = n
         xt = f
         qf.add(d)
     }
-    
-    constructor(f: (Code) -> Unit, n: String, s: String) {                  ///< string literal
+    constructor(f: (Code) -> Unit, n: String, s: String) {    ///< string literal
         name = n
         xt = f
         str = s
     }
-    
     ///
     ///> attribute setting
     ///
@@ -63,49 +56,26 @@ class Code {
         immd = true
         return this
     }
-    
     ///
     ///> variable storage management methods
     ///
-    fun comma(v: Int) {
-        pf.head().qf.add(v)
-    }
-    
-    fun setVar(i: Int, v: Int) {
-        pf.head().qf.set(i, v)
-    }
-    
-    fun getVar(i: Int): Int {
-        return pf.head().qf.get(i)
-    }
-    
+    fun comma(v: Int)          { pf.head().qf.add(v)        }
+    fun setVar(i: Int, v: Int) { pf.head().qf.set(i, v)     }
+    fun getVar(i: Int): Int    { return pf.head().qf.get(i) }
     ///
     ///> inner interpreter
     ///
     fun nest() {
-        xt?.let { 
-            it(this)
-            return 
-        }
+        xt?.let { it(this); return }
         for (w in pf) {
-            try {
-                w.nest()
-            } catch (e: ArithmeticException) {
-                break   ///* capture UNNEST
-            }
+            try { w.nest() }
+            catch (e: ArithmeticException) { break; } /// * capture UNNEST
         }
     }
-    
     fun nest(pf: FV<Code>) {
-        for (w in pf) {
-            w.nest()
-        }
+        for (w in pf) { w.nest() }
     }
-    
-    fun unnest() {
-        throw ArithmeticException()
-    }
-    
+    fun unnest() { throw ArithmeticException() }
     ///
     ///> branching, looping methods
     ///
@@ -114,7 +84,6 @@ class Code {
             w.nest()
         }
     }
-    
     fun begin(ss: Stack<Int>) {
         val b = stage
         while (true) {
@@ -125,7 +94,6 @@ class Code {
             nest(p1)
         }
     }
-    
     fun dofor(rs: Stack<Int>) {
         try {
             var i: Int
@@ -144,13 +112,10 @@ class Code {
                 if (i < 0) break
                 nest(p1)
             }
-        } catch (e: Exception) {
-            // leave
-        } finally {
-            rs.pop()                              ///> pop off index
         }
+        catch (e: Exception) { /* leave */ }
+        finally { rs.pop() }                      ///> pop off index
     }
-    
     fun loop(rs: Stack<Int>) {                    ///> do..loop
         try {
             var i: Int
@@ -161,10 +126,8 @@ class Code {
                 rs.push(++i)
                 if (i >= m) break
             }
-        } catch (e: Exception) {
-            // leave - handle LEAVE
-        } finally {
-            rs.pop()
         }
+        catch (e: Exception) { /* leave */ }      /// * handle LEAVE
+        finally { rs.pop() }
     }
 }
