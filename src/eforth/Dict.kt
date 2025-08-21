@@ -16,14 +16,12 @@ class Dict : FV<Code>() {
         @JvmStatic
         fun getInstance(): Dict = dict                   ///< singleton
     }
-    
     ///
     ///> create dictionary with given word list
     ///
     fun forget(t: Int) {
         dict.subList(t, dict.size).clear()              ///> forget words
     }
-    
     ///
     ///> find - Forth dictionary search 
     ///    @param  str  input string to be search against dictionary words
@@ -37,11 +35,9 @@ class Dict : FV<Code>() {
         }
         return null
     }
-    
     fun compile(w: Code): Code {
         dict.tail().pf.add(w)
         return w
     }
-    
     fun bran(): Code = dict.tail(2).pf.tail()
 }
