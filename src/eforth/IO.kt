@@ -143,7 +143,7 @@ class IO(
             }
         } catch (e: IOException) {                         /// * just in case 
             err(e)
-        } finally { ins.dropLast(1) }                      /// * restore scanner
+        } finally { ins.removeLast() }                     /// * restore scanner
         
         tok = tok0                                         /// * restore tokenizer
         return i

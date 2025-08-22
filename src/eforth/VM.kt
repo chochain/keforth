@@ -332,10 +332,10 @@ class VM(val io: IO) {
             val s = b.stage                               ///< branching state
             if (s == 0) {                                 /// * if..{pf}..then
                 BRAN(b.pf)
-                dict.dropLast(1)
+                dict.removeLast()
             } else {                                      /// * else..{p1}..then, or
                 BRAN(b.p1)                                /// * then..{p1}..next
-                if (s == 1) dict.dropLast(1)              /// * if..else..then
+                if (s == 1) dict.removeLast()             /// * if..else..then
             }
         }
         /// @}
@@ -353,18 +353,18 @@ class VM(val io: IO) {
         IMMD("repeat") {
             val b = dict.bran()
             BRAN(b.p1)                                    /// * while..{p1}..repeat
-            dict.dropLast(1)
+            dict.removeLast()
         }
         IMMD("again") {
             val b = dict.bran()
             BRAN(b.pf)                                    /// * begin..{pf}..again
-            dict.dropLast(1)
+            dict.removeLast()
             b.stage = 1
         }
         IMMD("until") {
             val b = dict.bran()
             BRAN(b.pf)                                    /// * begin..{pf}..f.until
-            dict.dropLast(1)
+            dict.removeLast()
         }
         /// @}
         /// @defgroup FOR loops
@@ -382,7 +382,7 @@ class VM(val io: IO) {
         IMMD("next") {
             val b = dict.bran()                           /// * for..{pf}..next, or
             BRAN(if (b.stage == 0) b.pf else b.p2)        /// * then..{p2}..next
-            dict.dropLast(1)
+            dict.removeLast()
         }
         /// @}
         /// @defgroup DO loops
@@ -396,7 +396,7 @@ class VM(val io: IO) {
         IMMD("loop") {
             val b = dict.bran()
             BRAN(b.pf)                                    /// * do..{pf}..loop
-            dict.dropLast(1)
+            dict.removeLast()
         }
         /// @}
         /// @defgroup Compiler ops
@@ -434,7 +434,7 @@ class VM(val io: IO) {
                 val v = Code(_dovar, "var", 0)
                 ADDW(v)
                 v.token = IDX()
-                v.qf.dropLast(1)
+                v.qf.removeLast()
             }
         }
         IMMD("does>") {                                  /// n --
