@@ -37,8 +37,8 @@ class IO(
     }
     fun readline(): Boolean {
         var tib: String? = null
-        tok = if (ins.tail().hasNextLine()) {             ///< create tokenizer
-            tib = ins.tail().nextLine()
+        tok = if (ins.last().hasNextLine()) {             ///< create tokenizer
+            tib = ins.last().nextLine()
             Scanner(tib)
         } else null
         

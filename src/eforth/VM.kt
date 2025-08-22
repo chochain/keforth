@@ -111,7 +111,7 @@ class VM(val io: IO) {
         if (iw == 0) base = n                            /// * also update base
     }
     private fun IDX(): Int {                             ///< calculate String index
-        return ((dict.tail().pf.size - 1) shl 16) or dict.tail().token
+        return ((dict.last().pf.size - 1) shl 16) or dict.last().token
     }
     private fun STR(iw: DU): String? {
         if (iw < 0) return io.pad()
@@ -149,7 +149,7 @@ class VM(val io: IO) {
     private fun CODE(n: String, f: Xt) = dict.add(Code(n, false, f))
     private fun IMMD(n: String, f: Xt) = dict.add(Code(n, true,  f))
     private fun BRAN(pf: FV<Code>) {
-        val t = dict.tail(); pf += t.pf; t.pf.clear()
+        val t = dict.last(); pf += t.pf; t.pf.clear()
     }
     private fun CODEX(n: String): Code {
         val w = Code(n, false); dict.add(w); return w
@@ -425,7 +425,7 @@ class VM(val io: IO) {
             }
         }
         CODE("postpone"){ tick()?.let { ADDW(it) }  }
-        CODE("immediate") { dict.tail().immediate() }
+        CODE("immediate") { dict.last().immediate() }
         CODE("exit")    { it.unnest()               }    /// marker to exit interpreter
         CODE("exec")    { dict[ss.pop()].nest() }
         CODE("create")  {
@@ -440,7 +440,7 @@ class VM(val io: IO) {
         IMMD("does>") {                                  /// n --
             val w = Code(_dodoes, "does>")
             ADDW(w)
-            w.token = dict.tail().token                  /// * point to new word
+            w.token = dict.last().token                  /// * point to new word
         }
         CODE("to") {                                     /// n -- , compile only
             tick()?.let { w -> w.setVar(0, ss.pop()) }
@@ -465,11 +465,11 @@ class VM(val io: IO) {
             SETV(iw, n)
         }
         CODE("?")  { io.dot(IO.OP.DOT, GETV(ss.pop())) } /// w --
-        CODE(",")  { dict.tail().comma(ss.pop())  }      /// n --
+        CODE(",")  { dict.last().comma(ss.pop())  }      /// n --
         CODE("cells") { /* backward compatible */ }      /// --
         CODE("allot") {                                  /// n --
             val n = ss.pop()
-            val w = dict.tail()
+            val w = dict.last()
             repeat(n) { w.comma(0) }
         }
         CODE("th")    {                                  /// w i -- i_w
