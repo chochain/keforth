@@ -6,6 +6,7 @@ package eforth
 
 import java.io.*
 import java.util.*
+import kotlin.random.Random
 ///
 ///> console input/output
 ///
@@ -17,10 +18,11 @@ class IO(
     companion object { private const val DEBUG = false }
     enum class OP { CR, BL, EMIT, DOT, UDOT, DOTR, UDOTR, SPCS }
 
-    val ins = FV<Scanner>()                                ///< input scanner stack
-    var tok: Scanner? = null                               ///< tokenizer
-    val out: PrintWriter                                   ///< streaming output
-    var pad: String? = null                                ///< tmp storage
+    private val rnd = Random                               ///< random number generator
+    private val ins = FV<Scanner>()                        ///< input scanner stack
+    private var tok: Scanner? = null                       ///< tokenizer
+    private val out: PrintWriter                           ///< streaming output
+    private var pad: String? = null                        ///< tmp storage
 
     init {
         ins.add(Scanner(i))                                ///< keep scanner on stack
@@ -129,6 +131,10 @@ class IO(
         c.str?.let { pstr(" \\ =\"$it\" ") }
         if (dp == 0) pstr("\n;\n")
     }
+    ///
+    ///> external modules
+    ///
+    fun rnd(t: Int): Int { return rnd.nextInt(t) }         /// ranged random number [0..t)
     fun loadDepth(): Int = ins.size - 1                    /// * depth or recursive loading
     fun load(fn: String, xt: () -> Boolean): Int {
         val tok0 = tok                                     /// * backup tokenizer

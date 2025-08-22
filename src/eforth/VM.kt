@@ -7,15 +7,13 @@ package eforth
 import java.io.*
 import java.time.*
 import java.util.*
-import kotlin.random.Random
 
 typealias Xt    = (Code) -> Unit                         ///< Code lambda
 typealias DU    = Int                                    ///< data unit
-typealias FV<T> = ArrayList<T>
+typealias FV<T> = ArrayList<T>                           ///< generic Forth Vector
 
 class VM(val io: IO) {
     val dict: Dict
-    private val rnd = Random                             ///< random number generator
     ///
     ///> Forth stacks and dictionary
     ///
@@ -486,7 +484,7 @@ class VM(val io: IO) {
         CODE("words") { io.words(dict)                      }
         CODE("see")   { tick()?.let { io.see(it, base, 0) } }
         CODE("clock") { ss.push(System.currentTimeMillis().toInt()) }
-        CODE("rnd")   { ALU { rnd.nextInt(it)             } }
+        CODE("rnd")   { ALU { io.rnd(it)                  } }
         CODE("depth") { ss.push(ss.size)                    }
         CODE("r")     { ss.push(rs.size)                    }
         IMMD("include")  {                               /// include an OS file
