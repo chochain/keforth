@@ -36,8 +36,8 @@ class Dict : FV<Code>() {
         return null
     }
     fun compile(w: Code): Code {
-        dict.tail().pf.add(w)
+        dict.last().pf.add(w)
         return w
     }
-    fun bran(): Code = dict.tail(2).pf.tail()
+    fun bran(): Code = dict[dict.size - 2].pf.last()
 }
