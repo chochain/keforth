@@ -6,7 +6,10 @@ package eforth
 
 import java.util.*
 
-class Code {
+class Immd : Code {
+    constructor(n: String, f: (Code) -> Unit) : super(n, true, f) {}  ///< immediate words
+}
+open class Code {
     companion object {
         @JvmStatic
         var fence = 0                      ///< token index
@@ -25,7 +28,7 @@ class Code {
     ///
     ///> constructors
     ///
-    constructor(n: String, f: (Code) -> Unit, im: Boolean) {  ///< built-in words
+    constructor(n: String, im: Boolean=false, f: (Code) -> Unit) {  ///< built-in words
         name = n; xt = f; immd = im; token = fence++
     }
     constructor(n: String) {                                  ///< colon words
@@ -112,8 +115,9 @@ class Code {
                 rs.push(++i)
                 if (i >= m) break
             }
-        } catch (e: Exception) {                  /// * handle LEAVE
+        } catch (e: ArithmeticException) {        /// * handle LEAVE
             /* leave */
         } finally { rs.pop() }
     }
 }
+
