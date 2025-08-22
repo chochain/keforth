@@ -14,19 +14,19 @@ class Immd : Code {
 open class Code {
     companion object {
         @JvmStatic
-        var fence = 0                      ///< token index
+        var fence = 0                             ///< token index
     }
     var name: String
     var immd: Boolean = false
     var token: Int = 0
     var stage: Int = 0
     
-    var xt: Xt? = null                     ///< execution token
-    var pf = FV<Code>()                    ///< if..pf..
-    var p1 = FV<Code>()                    ///< else..p1..then
-    var p2 = FV<Code>()                    ///< aft..next
-    var qf = FV<DU>()                      ///< variable storage
-    var str: String? = null                ///< string storage
+    var xt: Xt? = null                            ///< execution token
+    var pf = FV<Code>()                           ///< if..pf..
+    var p1 = FV<Code>()                           ///< else..p1..then
+    var p2 = FV<Code>()                           ///< aft..next
+    var qf = FV<DU>()                             ///< variable storage
+    var str: String? = null                       ///< string storage
     ///
     ///> constructors
     ///
@@ -45,6 +45,10 @@ open class Code {
     constructor(f: Xt, n: String, s: String) {    ///< string literal
         name = n; xt = f; str = s
     }
+    constructor(n: String, im: Boolean=false) {   ///< built-in words
+        name = n; immd = im; token = fence++
+    }
+    operator fun plusAssign(f: Xt) { xt = f }
     ///
     ///> attribute setting
     ///
@@ -52,9 +56,9 @@ open class Code {
     ///
     ///> variable storage management methods
     ///
-    fun comma(v: DU)          = pf.head().qf.add(v)
-    fun setVar(i: Int, v: DU) = pf.head().qf.set(i, v)
-    fun getVar(i: Int): DU    = pf.head().qf.get(i)
+    fun comma(v: DU)          = pf[0].qf.add(v)
+    fun setVar(i: Int, v: DU) = pf[0].qf.set(i, v)
+    fun getVar(i: Int): DU    = pf[0].qf.get(i)
     ///
     ///> inner interpreter
     ///
@@ -117,7 +121,7 @@ open class Code {
                 rs.push(++i)
                 if (i >= m) break
             }
-        } catch (e: Unnest) {                      /// * handle LEAVE
+        } catch (e: Unnest) {                     /// * handle LEAVE
             /* leave */
         } finally { rs.pop() }
     }
