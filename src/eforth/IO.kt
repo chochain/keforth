@@ -109,13 +109,13 @@ class IO(
     }
     fun see(c: Code?, base: Int, dp: Int) {
         if (c == null) return
-        
+       
         val tab: (String) -> Unit = { s ->
-            cr()
+            if (dp > 0) cr()
             repeat(dp) { pstr("  ") }
             pstr(s)
         }
-        tab("${if (dp == 0) ": " else ""}${c.name} ")
+        if (c.name!="\t") tab("${if (dp == 0) ": " else ""}${c.name} ")
         c.pf.forEach { w -> see(w, base, dp + 1) }
         if (c.p1.size > 0) {
             tab("( 1-- )"); c.p1.forEach { w -> see(w, base, dp + 1) }
@@ -127,7 +127,7 @@ class IO(
             pstr(" \\ =");  c.qf.forEach { i -> pstr("${itoa(i, base)} ") }
         }
         if (c.str != null) pstr(" \\ =\"${c.str}\" ")
-        if (dp == 0) pstr("\n; ")
+        if (dp == 0) pstr("\n;\n")
     }
     fun loadDepth(): Int = ins.size - 1                    /// * depth or recursive loading
     fun load(fn: String, xt: () -> Boolean): Int {
