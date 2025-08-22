@@ -9,8 +9,9 @@ import java.time.*
 import java.util.*
 import kotlin.random.Random
 
-typealias Xt = (Code) -> Unit                            ///< Code lambda
-typealias DU = Int                                       ///< data unit
+typealias Xt    = (Code) -> Unit                         ///< Code lambda
+typealias DU    = Int                                    ///< data unit
+typealias FV<T> = ArrayList<T>
 
 class VM(val io: IO) {
     val dict: Dict
