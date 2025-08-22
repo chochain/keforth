@@ -9,12 +9,12 @@ import java.time.*
 import java.util.*
 import kotlin.random.Random
 
-typealias Xt = (Code) -> Unit                       ///< Code lambda
-typealias DU = Int                                  ///< data unit
+typealias Xt = (Code) -> Unit                            ///< Code lambda
+typealias DU = Int                                       ///< data unit
 
 class VM(val io: IO) {
     val dict: Dict
-    private val rnd = Random                        ///< random number generator
+    private val rnd = Random                             ///< random number generator
     ///
     ///> Forth stacks and dictionary
     ///
@@ -23,58 +23,58 @@ class VM(val io: IO) {
     ///
     ///> Forth internal variables
     ///
-    var base    = 10                                ///< numeric radix
-    var run     = true                              ///< VM execution flag
-    var compile = false                             ///< state: interpreter or compiling
+    var base    = 10                                     ///< numeric radix
+    var run     = true                                   ///< VM execution flag
+    var compile = false                                  ///< state: interpreter or compiling
     
     init {
         dict = Dict.getInstance()
-        dictInit()                                  /// * populate dictionary
+        dictInit()                                       /// * populate dictionary
     }
     ///
     ///> Forth outer interpreter - process one line a time
     ///
     fun ok(stat: Boolean) {
         if (stat) io.mstat()
-        if (io.loadDepth() > 0) return              /// * skip when loading
-        if (compile) io.pstr("> ")                  ///> compile mode prompt
+        if (io.loadDepth() > 0) return                   /// * skip when loading
+        if (compile) io.pstr("> ")                       ///> compile mode prompt
         else {
             io.pstr("< ")
             io.ssDump(ss, base)
-            io.pstr(">ok ")                         ///> * OK prompt (interpreter)
+            io.pstr(">ok ")                              ///> * OK prompt (interpreter)
         }
     }
     fun outer(): Boolean {
         var idiom = io.nextToken()
-        while (run && idiom != null) {              ///> parse next token
+        while (run && idiom != null) {                   ///> parse next token
             parse(idiom)
             idiom = io.nextToken()
         }
         ok(false)
-        return run                                  ///> * return VM status
+        return run                                       ///> * return VM status
     }
-    private fun parse(idiom: String) {              ///> outer interpreter (one line a time)
+    private fun parse(idiom: String) {                   ///> outer interpreter
         io.debug("find $idiom")
-        val w = dict.find(idiom, compile)           ///< search dictionary
-        if (w != null) {                            ///> found word?
+        val w = dict.find(idiom, compile)                ///< search dictionary
+        if (w != null) {                                 ///> found word?
             io.debug(" => [${w.token}]${w.name}\n")
-            if (!compile || w.immd) {               ///> in interpreter mode?
-                try { w.nest() }                    ///> * execute immediately
-                catch (e: Exception) { io.err(e) }  ///> * just-in-case it failed
-            } else dict.compile(w)                  ///> add to dictionary if in compile mode
+            if (!compile || w.immd) {                    ///> in interpreter mode?
+                try { w.nest() }                         ///> * execute immediately
+                catch (e: Exception) { io.err(e) }       ///> * just-in-case it failed
+            } else dict.compile(w)                       ///> add to dictionary if in compile mode
             return
         } else io.debug(" => not found")
         
         ///> word not found, try as a number
         try {
-            val n = idiom.toInt(base)               ///> * try process as a number
+            val n = idiom.toInt(base)                    ///> * try process as a number
             io.debug(" => $n\n")
-            if (compile) {                          ///>> in compile mode 
-                dict.compile(Code(_dolit,"lit", n)) ///> add to latest defined word
-            } else ss.push(n)                       ///> or, add number to top of stack
+            if (compile) {                               ///>> in compile mode 
+                dict.compile(Code(_dolit,"lit", n))      ///> add to latest defined word
+            } else ss.push(n)                            ///> or, add number to top of stack
         }
-        catch (ex: NumberFormatException) {         ///> if it's not a number
-            io.pstr("$idiom ?")                     ///> * show not found sign
+        catch (ex: NumberFormatException) {              ///> if it's not a number
+            io.pstr("$idiom ?")                          ///> * show not found sign
             compile = false
         }
     }
@@ -86,20 +86,20 @@ class VM(val io: IO) {
             w
         } else {
             if (w != null) io.pstr("$s reDef?")
-            Code(s)                                 ///> create new Code
+            Code(s)                                      ///> create new Code
         }
     }
-    private fun word(): Code? = word(false)         ///> read token
-    private fun tick(): Code? = word(true)          ///> find existed word
+    private fun word(): Code? = word(false)              ///> read token
+    private fun tick(): Code? = word(true)               ///> find existed word
     ///
     ///> ALU functions (aka. macros)
     ///
     private fun BOOL(f: Boolean): DU = if (f) -1 else 0
     private fun UINT(v: DU): DU = v and 0x7fffffff
-    private fun ALU(m: (DU) -> DU) {                ///> TOS = fn(TOS)
+    private inline fun ALU(m: (DU) -> DU) {              ///> TOS = fn(TOS)
         val n = ss.pop(); ss.push(m(n))
     }
-    private fun ALU(m: (DU, DU) -> DU) {            ///> TOS = fn(TOS, NOS)
+    private inline fun ALU(m: (DU, DU) -> DU) {          ///> TOS = fn(TOS, NOS)
         val n = ss.pop(); ss.push(m(ss.pop(), n))
     }
     ///
@@ -108,9 +108,9 @@ class VM(val io: IO) {
     private fun GETV(iw: DU): DU = dict[iw and 0x7fff].getVar(iw shr 16)
     private fun SETV(iw: DU, n: DU) {
         dict[iw and 0x7fff].setVar(iw shr 16, n)
-        if (iw == 0) base = n                       /// * also update base
+        if (iw == 0) base = n                            /// * also update base
     }
-    private fun IDX(): Int {                        ///< calculate String index
+    private fun IDX(): Int {                             ///< calculate String index
         return ((dict.tail().pf.size - 1) shl 16) or dict.tail().token
     }
     private fun STR(iw: DU): String? {
@@ -121,7 +121,7 @@ class VM(val io: IO) {
     ///> built-in words and macros
     ///
     private val _tmp:    Xt = { /* do nothing */ }
-    private val _dolit:  Xt = { ss.push(it.qf.head()) }
+    private val _dolit:  Xt = { ss.push(it.qf[0]) }
     private val _dostr:  Xt = { 
         ss.push(it.token)
         ss.push(STR(it.token)?.length ?: 0)
@@ -139,43 +139,46 @@ class VM(val io: IO) {
     private val _dovar:  Xt = { ss.push(it.token) }
     private val _dodoes: Xt = {
         var hit = false
-        for (w in dict[it.token].pf) {              /// * scan through defining word
-            if (w == it) hit = true                 /// does> ...
-            else if (hit) dict.compile(w)           /// capture words
+        for (w in dict[it.token].pf) {                   /// * scan through defining word
+            if (w == it) hit = true                      /// does> ...
+            else if (hit) dict.compile(w)                /// capture words
         }
-        it.unnest()                                 /// exit nest
+        it.unnest()                                      /// exit nest
     }
     private fun ADDW(w: Code) { dict.compile(w) }
     private fun CODE(n: String, f: Xt) = dict.add(Code(n, false, f))
     private fun IMMD(n: String, f: Xt) = dict.add(Code(n, true,  f))
     private fun BRAN(pf: FV<Code>) {
-        val t = dict.tail(); pf.merge(t.pf); t.pf.clear()
+        val t = dict.tail(); pf += t.pf; t.pf.clear()
+    }
+    private fun CODEX(n: String): Code {
+        val w = Code(n, false); dict.add(w); return w
     }
     ///
     ///> create dictionary - built-in words
     ///
-    private var prim = mutableListOf<Code>(        /// * experimental, not used
+    private var prim = mutableListOf<Code>(               /// * experimental, not used
         Code("bye") { run = false },
-        Code("+")   { ALU { a, b -> a + b } },
+        Code("+")   { ALU { n, t -> n + t } },
         Immd("(")   { io.scan("\\)") }
     )
     private fun allotBase() {
-        val f: Xt = { ss.push(it.qf.head()) }      /// * _dolit created after init
-        val b = Code(f, "lit", base)               ///< use dict[0] as base store
+        val f: Xt = { ss.push(it.qf[0]) }                 /// * _dolit created after init
+        val b = Code(f, "lit", base)                      ///< use dict[0] as base store
         b.token = 0
         ADDW(b)
     }        
     private fun dictInit() {
         CODE("bye")    { run = false }
-        allotBase();                               ///< use dict[0] as base store
+        allotBase();                                      ///< use dict[0] as base store
         
         /// @defgroup ALU ops
         /// @{
-        CODE("+")      { ALU { a, b -> a + b } }
-        CODE("*")      { ALU { a, b -> a * b } }
-        CODE("-")      { ALU { a, b -> a - b } }
-        CODE("/")      { ALU { a, b -> a / b } }
-        CODE("mod")    { ALU { a, b -> a % b } }
+        CODE("+")      { ALU { n, t -> n + t        } }
+        CODE("-")      { ALU { n, t -> n - t        } }
+        CODE("*")      { ALU { n, t -> n * t        } }
+        CODE("/")      { ALU { n, t -> n / t        } }
+        CODE("mod")    { ALU { n, t -> n % t        } }
         CODE("*/")     {
             val n = ss.pop()
             ss.push(ss.pop() * ss.pop() / n)
@@ -186,41 +189,41 @@ class VM(val io: IO) {
             ss.push(m % n)
             ss.push(m / n)
         }
-        CODE("and")    { ALU { a, b -> a and b } }
-        CODE("or")     { ALU { a, b -> a or b } }
-        CODE("xor")    { ALU { a, b -> a xor b } }
-        CODE("abs")    { ALU { kotlin.math.abs(it) } }
-        CODE("negate") { ALU { -it } }
-        CODE("invert") { ALU { UINT(it).inv() } }
-        CODE("rshift") { ALU { a, b -> a ushr b } }
-        CODE("lshift") { ALU { a, b -> a shl b } }
-        CODE("max")    { ALU { a, b -> maxOf(a, b) } }
-        CODE("min")    { ALU { a, b -> minOf(a, b) } }
-        CODE("2*")     { ALU { it * 2 } }
-        CODE("2/")     { ALU { it / 2 } }
-        CODE("1+")     { ALU { it + 1 } }
-        CODE("1-")     { ALU { it - 1 } }
+        CODE("and")    { ALU { n, t -> n and t      } }
+        CODE("or")     { ALU { n, t -> n or t       } }
+        CODE("xor")    { ALU { n, t -> n xor t      } }
+        CODE("abs")    { ALU { kotlin.math.abs(it)  } }
+        CODE("negate") { ALU { -it                  } }
+        CODE("invert") { ALU { UINT(it).inv()       } }
+        CODE("rshift") { ALU { n, t -> n ushr t     } }
+        CODE("lshift") { ALU { n, t -> n shl t      } }
+        CODE("max")    { ALU { n, t -> maxOf(n, t)  } }
+        CODE("min")    { ALU { n, t -> minOf(n, t)  } }
+        CODE("2*")     { ALU { it * 2               } }
+        CODE("2/")     { ALU { it / 2               } }
+        CODE("1+")     { ALU { it + 1               } }
+        CODE("1-")     { ALU { it - 1               } }
         /// @}
         /// @defgroup Logic ops
         /// @{
-        CODE("0=")     { ALU { BOOL(it == 0) } }
-        CODE("0<")     { ALU { BOOL(it < 0) } }
-        CODE("0>")     { ALU { BOOL(it > 0) } }
-        CODE("=")      { ALU { a, b -> BOOL(a == b) } }
-        CODE(">")      { ALU { a, b -> BOOL(a > b) } }
-        CODE("<")      { ALU { a, b -> BOOL(a < b) } }
-        CODE("<>")     { ALU { a, b -> BOOL(a != b) } }
-        CODE(">=")     { ALU { a, b -> BOOL(a >= b) } }
-        CODE("<=")     { ALU { a, b -> BOOL(a <= b) } }
-        CODE("u<")     { ALU { a, b -> BOOL(UINT(a) < UINT(b)) } }
-        CODE("u>")     { ALU { a, b -> BOOL(UINT(a) > UINT(b)) } }
+        CODE("0=")     { ALU { BOOL(it == 0)        } }
+        CODE("0<")     { ALU { BOOL(it < 0)         } }
+        CODE("0>")     { ALU { BOOL(it > 0)         } }
+        CODE("=")      { ALU { n, t -> BOOL(n == t) } }
+        CODE(">")      { ALU { n, t -> BOOL(n > t)  } }
+        CODE("<")      { ALU { n, t -> BOOL(n < t)  } }
+        CODE("<>")     { ALU { n, t -> BOOL(n != t) } }
+        CODE(">=")     { ALU { n, t -> BOOL(n >= t) } }
+        CODE("<=")     { ALU { n, t -> BOOL(n <= t) } }
+        CODE("u<")     { ALU { n, t -> BOOL(UINT(n) < UINT(t)) } }
+        CODE("u>")     { ALU { n, t -> BOOL(UINT(n) > UINT(t)) } }
         /// @}
         /// @defgroup Data Stack ops
         /// @{
-        CODE("dup")    { ss.push(ss.peek()) }
-        CODE("drop")   { ss.pop() }
-        CODE("over")   { ss.push(ss[ss.size - 2]) }
-        CODE("swap")   { ss.add(ss.size - 2, ss.pop()) }
+        CODE("dup")    { ss.push(ss.peek())                }
+        CODE("drop")   { ss.pop()                          }
+        CODE("over")   { ss.push(ss[ss.size - 2])          }
+        CODE("swap")   { ss.add(ss.size - 2, ss.pop())     }
         CODE("rot")    { ss.push(ss.removeAt(ss.size - 3)) }
         CODE("-rot")   {
             ss.push(ss.removeAt(ss.size - 3))
@@ -236,7 +239,7 @@ class VM(val io: IO) {
             val n = ss.removeAt(ss.size - i - 1)
             ss.push(n)
         }
-        CODE("nip")    { ss.removeAt(ss.size - 2) }
+        CODE("nip")    { ss.removeAt(ss.size - 2)               }
         CODE("?dup")   { if (ss.peek() != 0) ss.push(ss.peek()) }
         /// @}
         
@@ -252,24 +255,24 @@ class VM(val io: IO) {
         /// @}
         /// @defgroup Return Stack ops
         /// @{
-        CODE(">r")     { rs.push(ss.pop()) }
-        CODE("r>")     { ss.push(rs.pop()) }
+        CODE(">r")     { rs.push(ss.pop())  }
+        CODE("r>")     { ss.push(rs.pop())  }
         CODE("r@")     { ss.push(rs.peek()) }
         CODE("i")      { ss.push(rs.peek()) }
         /// @}
         /// @defgroup Return Stack ops - Extra
         /// @{
-        CODE("push")   { rs.push(ss.pop()) }
-        CODE("pop")    { ss.push(rs.pop()) }
+        CODE("push")   { rs.push(ss.pop())  }
+        CODE("pop")    { ss.push(rs.pop())  }
         /// @}
         /// @defgroup IO ops
         /// @{
-        CODE("base")   { ss.push(0) }
-        CODE("hex")    { dict[0].setVar(0, 16.also { base = it }) }
-        CODE("decimal"){ dict[0].setVar(0, 10.also { base = it }) }
-        CODE("cr")     { io.cr() }
-        CODE("bl")     { io.bl() }
-        CODE(".")      { io.dot(IO.OP.DOT, ss.pop(), base = base) }
+        CODE("base")   { ss.push(0)                                }
+        CODE("hex")    { dict[0].setVar(0, 16.also { base = it })  }
+        CODE("decimal"){ dict[0].setVar(0, 10.also { base = it })  }
+        CODE("cr")     { io.cr()                                   }
+        CODE("bl")     { io.bl()                                   }
+        CODE(".")      { io.dot(IO.OP.DOT, ss.pop(), base = base)  }
         CODE("u.")     { io.dot(IO.OP.UDOT, ss.pop(), base = base) }
         CODE(".r")     {
             val r = ss.pop()
@@ -282,41 +285,41 @@ class VM(val io: IO) {
             io.dot(IO.OP.UDOTR, n, r, base)
         }
         CODE("type")   {
-            ss.pop()                                /// drop len
-            val iw = ss.pop()                       /// get index
+            ss.pop()                                      /// drop len
+            val iw = ss.pop()                             /// get index
             STR(iw)?.let { io.pstr(it) }
         }
-        CODE("key")    { ss.push(io.key()) }
+        CODE("key")    { ss.push(io.key())            }
         CODE("emit")   { io.dot(IO.OP.EMIT, ss.pop()) }
-        CODE("space")  { io.spaces(1) }
-        CODE("spaces") { io.spaces(ss.pop()) }
+        CODE("space")  { io.spaces(1)                 }
+        CODE("spaces") { io.spaces(ss.pop())          }
         /// @}
         /// @defgroup Literal ops
         /// @{
-        IMMD("(")      { io.scan("\\)") }
+        IMMD("(")      { io.scan("\\)")               }
         IMMD(".(")     { io.scan("\\)"); io.pad()?.let { io.pstr(it) } }
-        IMMD("\\")     { io.scan("\n") }
-        IMMD("s\"")    {                            /// -- w a
+        IMMD("\\")     { io.scan("\n")                }
+        IMMD("s\"")    {                                  /// -- w a
             val s = io.scan("\"") ?: return@IMMD
             if (compile) {
                 val w = Code(_dostr, "s\"", s)
-                ADDW(w)                             /// literal=s
+                ADDW(w)                                   /// literal=s
                 w.token = IDX()
             } else {
                 ss.push(-1)
-                ss.push(s.length)                   /// use pad
+                ss.push(s.length)                         /// use pad
             }
         }
         IMMD(".\"")    {
             val s = io.scan("\"") ?: return@IMMD
             if (!compile) io.pstr(s)
-            else ADDW(Code(_dotstr, ".\"", s))      /// literal=s
+            else ADDW(Code(_dotstr, ".\"", s))            /// literal=s
         }
         /// @}
         /// @defgroup Branching ops
         /// @{
         IMMD("if")    {
-            ADDW(Code(_branch, "if"))               /// literal=s
+            ADDW(Code(_branch, "if"))                     /// literal=s
             dict.add(Code(_tmp, ""))
         }
         IMMD("else")  {
@@ -325,43 +328,43 @@ class VM(val io: IO) {
             b.stage = 1
         }
         IMMD("then")  {
-            val b = dict.bran()                     ///< branching target
-            val s = b.stage                         ///< branching state
-            if (s == 0) {                           /// * if..{pf}..then
+            val b = dict.bran()                           ///< branching target
+            val s = b.stage                               ///< branching state
+            if (s == 0) {                                 /// * if..{pf}..then
                 BRAN(b.pf)
-                dict.drop()
-            } else {                                /// * else..{p1}..then, or
-                BRAN(b.p1)                          /// * then..{p1}..next
-                if (s == 1) dict.drop()             /// * if..else..then
+                dict.dropLast(1)
+            } else {                                      /// * else..{p1}..then, or
+                BRAN(b.p1)                                /// * then..{p1}..next
+                if (s == 1) dict.dropLast(1)              /// * if..else..then
             }
         }
         /// @}
         /// @defgroup Loops
         /// @{
         IMMD("begin") {
-            ADDW(Code(_begin, "begin"))             /// * branch target
+            ADDW(Code(_begin, "begin"))                   /// * branch target
             dict.add(Code(_tmp, ""))
         }
         IMMD("while") {
             val b = dict.bran()
-            BRAN(b.pf)                              /// * begin..{pf}..f.while
+            BRAN(b.pf)                                    /// * begin..{pf}..f.while
             b.stage = 2
         }
         IMMD("repeat") {
             val b = dict.bran()
-            BRAN(b.p1)                              /// * while..{p1}..repeat
-            dict.drop()
+            BRAN(b.p1)                                    /// * while..{p1}..repeat
+            dict.dropLast(1)
         }
         IMMD("again") {
             val b = dict.bran()
-            BRAN(b.pf)                              /// * begin..{pf}..again
-            dict.drop()
+            BRAN(b.pf)                                    /// * begin..{pf}..again
+            dict.dropLast(1)
             b.stage = 1
         }
         IMMD("until") {
             val b = dict.bran()
-            BRAN(b.pf)                              /// * begin..{pf}..f.until
-            dict.drop()
+            BRAN(b.pf)                                    /// * begin..{pf}..f.until
+            dict.dropLast(1)
         }
         /// @}
         /// @defgroup FOR loops
@@ -377,29 +380,29 @@ class VM(val io: IO) {
             b.stage = 3
         }
         IMMD("next") {
-            val b = dict.bran()                     /// * for..{pf}..next, or
-            BRAN(if (b.stage == 0) b.pf else b.p2)  /// * then..{p2}..next
-            dict.drop()
+            val b = dict.bran()                           /// * for..{pf}..next, or
+            BRAN(if (b.stage == 0) b.pf else b.p2)        /// * then..{p2}..next
+            dict.dropLast(1)
         }
         /// @}
         /// @defgroup DO loops
         /// @{
         IMMD("do")   {
-            ADDW(Code(_tor2, "\t"))                 ///< ( limit first -- )
+            ADDW(Code(_tor2, "\t"))                       ///< ( limit first -- )
             ADDW(Code(_loop, "do"))
             dict.add(Code(_tmp, ""))
         }
-        CODE("leave"){ it.unnest() }                /// * exit loop
+        CODE("leave"){ it.unnest() }                      /// * exit loop
         IMMD("loop") {
             val b = dict.bran()
-            BRAN(b.pf)                              /// * do..{pf}..loop
-            dict.drop()
+            BRAN(b.pf)                                    /// * do..{pf}..loop
+            dict.dropLast(1)
         }
         /// @}
         /// @defgroup Compiler ops
         /// @{
         CODE("[")    { compile = false }
-        CODE("]")    { compile = true }
+        CODE("]")    { compile = true  }
         CODE(":")    {
             word()?.let { dict.add(it) }
             compile = true
@@ -413,7 +416,7 @@ class VM(val io: IO) {
                 v.token = IDX()
             }
         }
-        CODE("constant") {                          /// n --
+        CODE("constant") {                                /// n --
             word()?.let { w ->
                 dict.add(w)
                 val v = Code(_dolit, "lit", ss.pop())
@@ -421,9 +424,9 @@ class VM(val io: IO) {
                 v.token = IDX()
             }
         }
-        CODE("postpone"){ tick()?.let { ADDW(it) } }
+        CODE("postpone"){ tick()?.let { ADDW(it) }  }
         CODE("immediate") { dict.tail().immediate() }
-        CODE("exit")    { it.unnest() }                /// marker to exit interpreter
+        CODE("exit")    { it.unnest()               }    /// marker to exit interpreter
         CODE("exec")    { dict[ss.pop()].nest() }
         CODE("create")  {
             word()?.let { w ->
@@ -431,69 +434,69 @@ class VM(val io: IO) {
                 val v = Code(_dovar, "var", 0)
                 ADDW(v)
                 v.token = IDX()
-                v.qf.drop()
+                v.qf.dropLast(1)
             }
         }
-        IMMD("does>") {                             /// n --
+        IMMD("does>") {                                  /// n --
             val w = Code(_dodoes, "does>")
             ADDW(w)
-            w.token = dict.tail().token             /// * point to new word
+            w.token = dict.tail().token                  /// * point to new word
         }
-        CODE("to") {                                /// n -- , compile only
+        CODE("to") {                                     /// n -- , compile only
             tick()?.let { w -> w.setVar(0, ss.pop()) }
         }
-        CODE("is") {                                /// w -- , execute only
+        CODE("is") {                                     /// w -- , execute only
             tick()?.let { w ->
-                val src = dict[ss.pop()]            /// source word
+                val src = dict[ss.pop()]                 /// source word
                 dict[w.token].pf = src.pf
             }
         }
         /// @}
         /// @defgroup Memory Access ops
         /// @{
-        CODE("@")  { ss.push(GETV(ss.pop())) }      /// w -- n
-        CODE("!")  {                                /// n w --
+        CODE("@")  { ss.push(GETV(ss.pop())) }           /// w -- n
+        CODE("!")  {                                     /// n w --
             val iw = ss.pop()
             SETV(iw, ss.pop())
         }
-        CODE("+!") {                                /// n w --
+        CODE("+!") {                                     /// n w --
             val iw = ss.pop()
             val n = GETV(iw) + ss.pop()
             SETV(iw, n)
         }
         CODE("?")  { io.dot(IO.OP.DOT, GETV(ss.pop())) } /// w --
-        CODE(",")  { dict.tail().comma(ss.pop()) }  /// n --
-        CODE("cells") { /* backward compatible */ } /// --
-        CODE("allot") {                             /// n --
+        CODE(",")  { dict.tail().comma(ss.pop())  }      /// n --
+        CODE("cells") { /* backward compatible */ }      /// --
+        CODE("allot") {                                  /// n --
             val n = ss.pop()
             val w = dict.tail()
             repeat(n) { w.comma(0) }
         }
-        CODE("th")    {                             /// w i -- i_w
+        CODE("th")    {                                  /// w i -- i_w
             val i = ss.pop() shl 16
-            ss.push(i or ss.pop())                  /// i.e. 4 v 2 th !
+            ss.push(i or ss.pop())                       /// i.e. 4 v 2 th !
         }
         /// @}
         /// @defgroup Debug ops
         /// @{
-        CODE("here")  { ss.push(Code.fence) }
-        CODE("'")     { tick()?.let { ss.push(it.token) } }
-        CODE(".s")    { io.ssDump(ss, base) }
-        CODE("words") { io.words(dict) }
+        CODE("here")  { ss.push(Code.fence)                 }
+        CODE("'")     { tick()?.let { ss.push(it.token)   } }
+        CODE(".s")    { io.ssDump(ss, base)                 }
+        CODE("words") { io.words(dict)                      }
         CODE("see")   { tick()?.let { io.see(it, base, 0) } }
         CODE("clock") { ss.push(System.currentTimeMillis().toInt()) }
-        CODE("rnd")   { ALU { rnd.nextInt(it) } }
-        CODE("depth") { ss.push(ss.size) }
-        CODE("r")     { ss.push(rs.size) }
-        IMMD("include")  {                          /// include an OS file
+        CODE("rnd")   { ALU { rnd.nextInt(it)             } }
+        CODE("depth") { ss.push(ss.size)                    }
+        CODE("r")     { ss.push(rs.size)                    }
+        IMMD("include")  {                               /// include an OS file
             io.nextToken()?.let { io.load(it, { outer() }) }
         } 
-        CODE("included") {                          /// include a file (programmable)
+        CODE("included") {                               /// include a file (programmable)
             ss.pop()
             STR(ss.pop())?.let { io.load(it, { outer() }) }
         }
         CODE("ok")    { io.mstat() }
-        CODE("ms")    {                             /// n -- delay n ms
+        CODE("ms")    {                                  /// n -- delay n ms
             try { Thread.sleep(ss.pop().toLong()) }
             catch (e: Exception) { io.err(e) }
         }
