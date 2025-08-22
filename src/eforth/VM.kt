@@ -359,7 +359,7 @@ class VM(val io: IO) {
         /// @defgroup FOR loops
         /// @{
         IMMD("for") {
-            ADDW(Code(_tor, "tor"))
+            ADDW(Code(_tor, "\t"))
             ADDW(Code(_for, "for"))
             dict.add(Code(_tmp, ""))
         }
@@ -377,7 +377,7 @@ class VM(val io: IO) {
         /// @defgroup DO loops
         /// @{
         IMMD("do")   {
-            ADDW(Code(_tor2, "tor2"))               ///< ( limit first -- )
+            ADDW(Code(_tor2, "\t"))                 ///< ( limit first -- )
             ADDW(Code(_loop, "do"))
             dict.add(Code(_tmp, ""))
         }
