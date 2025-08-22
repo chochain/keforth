@@ -42,7 +42,7 @@ class IO(
             Scanner(tib)
         } else null
         
-        if (tib != null && loadDepth() > 0) debug("$tib\n") ///< echo if needed
+        if (loadDepth() > 0) tib?.let { debug("$it\n") }  ///< echo if needed
         return tok != null
     }
     fun pstr(s: String)   { out.print(s); out.flush() }
@@ -126,7 +126,7 @@ class IO(
         if (c.qf.size > 0) {
             pstr(" \\ =");  c.qf.forEach { i -> pstr("${itoa(i, base)} ") }
         }
-        if (c.str != null) pstr(" \\ =\"${c.str}\" ")
+        c.str?.let { pstr(" \\ =\"$it\" ") }
         if (dp == 0) pstr("\n;\n")
     }
     fun loadDepth(): Int = ins.size - 1                    /// * depth or recursive loading
