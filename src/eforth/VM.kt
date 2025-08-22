@@ -27,7 +27,6 @@ class VM(val io: IO) {
     init {
         dict = Dict.getInstance()
         dictInit()                                  /// * create dictionary
-//        allotBase()                                 /// * use dict[0].pf[0] for base
     }
     ///
     ///> Forth outer interpreter - process one line a time
@@ -144,23 +143,29 @@ class VM(val io: IO) {
         it.unnest()                                 /// exit nest
     }
     private fun ADDW(w: Code) { dict.compile(w) }
-    private fun CODE(n: String, f: (Code) -> Unit) { dict.add(Code(n, f, false)) }
-    private fun IMMD(n: String, f: (Code) -> Unit) { dict.add(Code(n, f, true)) }
-    private fun BRAN(pf: FV<Code>) { val t = dict.tail(); pf.merge(t.pf); t.pf.clear() }
+    private fun CODE(n: String, f: (Code) -> Unit) = dict.add(Code(n, false, f))
+    private fun IMMD(n: String, f: (Code) -> Unit) = dict.add(Code(n, true,  f))
+    private fun BRAN(pf: FV<Code>) {
+        val t = dict.tail(); pf.merge(t.pf); t.pf.clear()
+    }
     ///
     ///> create dictionary - built-in words
     ///
-    private var prim = mutableListOf<Code>(
-        Code("bye", { run = false }, false),
-        Code("+",   { ALU { a, b -> a + b } }, false)
+    private var prim = mutableListOf<Code>(        /// * experimental, not used
+        Code("bye") { run = false },
+        Code("+")   { ALU { a, b -> a + b } },
+        Immd("(")   { io.scan("\\)") }
     )
     private fun allotBase() {
-        val b = Code(_dolit, "lit", base)          ///< use dict[0] as base store
+        val f: (Code) -> Unit = { ss.push(it.qf.head()) }
+        val b = Code(f, "lit", base)               ///< use dict[0] as base store
         b.token = 0
         dict[0].pf.add(b)
     }        
     private fun dictInit() {
         CODE("bye")    { run = false }
+        allotBase();                               ///< use dict[0] as base store
+        
         /// @defgroup ALU ops
         /// @{
         CODE("+")      { ALU { a, b -> a + b } }
