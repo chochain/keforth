@@ -9,24 +9,27 @@ import java.time.*
 import java.util.*
 import kotlin.random.Random
 
+typealias Xt = (Code) -> Unit                       ///< Code lambda
+typealias DU = Int                                  ///< data unit
+
 class VM(val io: IO) {
     val dict: Dict
     private val rnd = Random                        ///< random number generator
     ///
     ///> Forth stacks and dictionary
     ///
-    val ss = Stack<Int>()
-    val rs = Stack<Int>()
+    val ss = Stack<DU>()
+    val rs = Stack<DU>()
     ///
     ///> Forth internal variables
     ///
-    var base = 10                                   ///< numeric radix
-    var run = true                                  ///< VM execution flag
+    var base    = 10                                ///< numeric radix
+    var run     = true                              ///< VM execution flag
     var compile = false                             ///< state: interpreter or compiling
     
     init {
         dict = Dict.getInstance()
-        dictInit()                                  /// * create dictionary
+        dictInit()                                  /// * populate dictionary
     }
     ///
     ///> Forth outer interpreter - process one line a time
@@ -91,50 +94,50 @@ class VM(val io: IO) {
     ///
     ///> ALU functions (aka. macros)
     ///
-    private fun BOOL(f: Boolean): Int = if (f) -1 else 0
-    private fun UINT(v: Int): Int = v and 0x7fffffff
-    private fun ALU(m: (Int) -> Int) {              ///> TOS = fn(TOS)
+    private fun BOOL(f: Boolean): DU = if (f) -1 else 0
+    private fun UINT(v: DU): DU = v and 0x7fffffff
+    private fun ALU(m: (DU) -> DU) {                ///> TOS = fn(TOS)
         val n = ss.pop(); ss.push(m(n))
     }
-    private fun ALU(m: (Int, Int) -> Int) {         ///> TOS = fn(TOS, NOS)
+    private fun ALU(m: (DU, DU) -> DU) {            ///> TOS = fn(TOS, NOS)
         val n = ss.pop(); ss.push(m(ss.pop(), n))
     }
     ///
     ///> MMU macros
     ///
-    private fun GETV(iw: Int): Int = dict[iw and 0x7fff].getVar(iw shr 16)
-    private fun SETV(iw: Int, n: Int) {
+    private fun GETV(iw: DU): DU = dict[iw and 0x7fff].getVar(iw shr 16)
+    private fun SETV(iw: DU, n: DU) {
         dict[iw and 0x7fff].setVar(iw shr 16, n)
         if (iw == 0) base = n                       /// * also update base
     }
     private fun IDX(): Int {                        ///< calculate String index
         return ((dict.tail().pf.size - 1) shl 16) or dict.tail().token
     }
-    private fun STR(iw: Int): String? {
+    private fun STR(iw: DU): String? {
         if (iw < 0) return io.pad()
         return dict[iw and 0x7fff].pf[iw shr 16].str
     }
     ///
     ///> built-in words and macros
     ///
-    private val _tmp:    (Code) -> Unit = { /* do nothing */ }
-    private val _dolit:  (Code) -> Unit = { ss.push(it.qf.head()) }
-    private val _dostr:  (Code) -> Unit = { 
+    private val _tmp:    Xt = { /* do nothing */ }
+    private val _dolit:  Xt = { ss.push(it.qf.head()) }
+    private val _dostr:  Xt = { 
         ss.push(it.token)
         ss.push(STR(it.token)?.length ?: 0)
     }
-    private val _dotstr: (Code) -> Unit = { it.str?.let { io.pstr(it) } }
-    private val _branch: (Code) -> Unit = { it.branch(ss) }
-    private val _begin:  (Code) -> Unit = { it.begin(ss) }
-    private val _for:    (Code) -> Unit = { it.dofor(rs) }
-    private val _loop:   (Code) -> Unit = { it.loop(rs) }
-    private val _tor:    (Code) -> Unit = { rs.push(ss.pop()) }
-    private val _tor2:   (Code) -> Unit = { 
+    private val _dotstr: Xt = { it.str?.let { io.pstr(it) } }
+    private val _branch: Xt = { it.branch(ss) }
+    private val _begin:  Xt = { it.begin(ss) }
+    private val _for:    Xt = { it.dofor(rs) }
+    private val _loop:   Xt = { it.loop(rs) }
+    private val _tor:    Xt = { rs.push(ss.pop()) }
+    private val _tor2:   Xt = { 
         rs.push(ss.pop())
         rs.push(ss.pop())
     }
-    private val _dovar:  (Code) -> Unit = { ss.push(it.token) }
-    private val _dodoes: (Code) -> Unit = {
+    private val _dovar:  Xt = { ss.push(it.token) }
+    private val _dodoes: Xt = {
         var hit = false
         for (w in dict[it.token].pf) {              /// * scan through defining word
             if (w == it) hit = true                 /// does> ...
@@ -143,8 +146,8 @@ class VM(val io: IO) {
         it.unnest()                                 /// exit nest
     }
     private fun ADDW(w: Code) { dict.compile(w) }
-    private fun CODE(n: String, f: (Code) -> Unit) = dict.add(Code(n, false, f))
-    private fun IMMD(n: String, f: (Code) -> Unit) = dict.add(Code(n, true,  f))
+    private fun CODE(n: String, f: Xt) = dict.add(Code(n, false, f))
+    private fun IMMD(n: String, f: Xt) = dict.add(Code(n, true,  f))
     private fun BRAN(pf: FV<Code>) {
         val t = dict.tail(); pf.merge(t.pf); t.pf.clear()
     }
@@ -157,10 +160,10 @@ class VM(val io: IO) {
         Immd("(")   { io.scan("\\)") }
     )
     private fun allotBase() {
-        val f: (Code) -> Unit = { ss.push(it.qf.head()) }
+        val f: Xt = { ss.push(it.qf.head()) }      /// * _dolit created after init
         val b = Code(f, "lit", base)               ///< use dict[0] as base store
         b.token = 0
-        dict[0].pf.add(b)
+        ADDW(b)
     }        
     private fun dictInit() {
         CODE("bye")    { run = false }

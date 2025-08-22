@@ -67,7 +67,7 @@ class IO(
     fun pad(): String? = pad
     fun itoa(n: Int, base: Int): String = Integer.toString(n, base)
     fun spaces(n: Int) { repeat(maxOf(1, n)) { pstr(" ") } }
-    fun dot(op: OP, n: Int = 0, r: Int = 0, base: Int = 10) {
+    fun dot(op: OP, n: DU = 0, r: Int = 0, base: Int = 10) {
         when (op) {
             OP.CR   -> pstr("\n")
             OP.BL   -> pchr(0x20)
@@ -92,7 +92,7 @@ class IO(
     ///
     ///> ok - stack dump and OK prompt
     ///
-    fun ssDump(ss: Stack<Int>, base: Int) {
+    fun ssDump(ss: Stack<DU>, base: Int) {
         for (n in ss) pstr("${itoa(n, base)} ")
     }
     fun words(dict: Dict) {
