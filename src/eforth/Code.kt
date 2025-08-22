@@ -11,7 +11,7 @@ class Code {
         @JvmStatic
         var fence = 0                      ///< token index
     }
-    var name: String? = null
+    var name: String
     var immd: Boolean = false
     var token: Int = 0
     var stage: Int = 0
@@ -47,9 +47,9 @@ class Code {
     ///
     ///> variable storage management methods
     ///
-    fun comma(v: Int)          { pf.head().qf.add(v)        }
-    fun setVar(i: Int, v: Int) { pf.head().qf.set(i, v)     }
-    fun getVar(i: Int): Int    { return pf.head().qf.get(i) }
+    fun comma(v: Int)          = pf.head().qf.add(v)
+    fun setVar(i: Int, v: Int) = pf.head().qf.set(i, v)
+    fun getVar(i: Int): Int    = pf.head().qf.get(i)
     ///
     ///> inner interpreter
     ///
