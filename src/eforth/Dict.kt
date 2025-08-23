@@ -16,9 +16,7 @@ class Dict : FV<Code>() {
         @JvmStatic
         fun getInstance(): Dict = dict                   ///< singleton
     }
-    ///
-    ///> create dictionary with given word list
-    ///
+
     fun forget(t: Int) {
         dict.subList(t, dict.size).clear()              ///> forget words
     }
@@ -28,16 +26,16 @@ class Dict : FV<Code>() {
     ///    @return      Code found; null - if not found
     ///
     fun find(s: String, compile: Boolean): Code? {
-        val n = dict.size - (if (compile) 2 else 1)
+        val n = dict.size - (if (compile) 2 else 1)     ///> compile to prevent recursive
         for (i in n downTo 0) {                         /// search array from tail to head
             val w = dict[i]
             if (s == w.name) return w
         }
         return null
     }
-    fun compile(w: Code): Code {
+    fun compile(w: Code): Code {                        ///> compile a token into pf
         dict.last().pf.add(w)
         return w
     }
-    fun bran(): Code = dict[dict.size - 2].pf.last()
+    fun bran(): Code = dict[dict.size - 2].pf.last()    ///> branching target
 }
