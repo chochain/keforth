@@ -120,10 +120,10 @@ class IO(
         if (c.name!="\t") tab("${if (dp == 0) ": " else ""}${c.name} ")
         c.pf.forEach { w -> see(w, base, dp + 1) }
         if (c.p1.size > 0) {
-            tab("( 1-- )"); c.p1.forEach { w -> see(w, base, dp + 1) }
+            tab("( p1 )"); c.p1.forEach { w -> see(w, base, dp + 1) }
         }
         if (c.p2.size > 0) {
-            tab("( 2-- )"); c.p2.forEach { w -> see(w, base, dp + 1) }
+            tab("( p2 )"); c.p2.forEach { w -> see(w, base, dp + 1) }
         }
         if (c.qf.size > 0) {
             pstr(" \\ =");  c.qf.forEach { i -> pstr("${itoa(i, base)} ") }
