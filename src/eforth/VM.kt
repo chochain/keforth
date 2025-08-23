@@ -502,13 +502,13 @@ class VM(val io: IO) {
             catch (e: Exception) { io.err(e) }
         }
         CODE("forget") {
-            val m = dict.find("boot", compile)
+            val m = dict.find("boot", compile)           /// find boot node
             tick()?.let { w ->
-                dict.forget(maxOf(w.token, (m?.token ?: -1) + 1))
+                dict.forget(maxOf(w.token, m!!.token  + 1))
             }
         }
         CODE("boot")  {
-            val t = dict.find("boot", compile)?.token?.plus(1) ?: 0
+            val t = dict.find("boot", compile)!!.token + 1
             dict.forget(t)
         }
         /// @}
