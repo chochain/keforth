@@ -156,11 +156,13 @@ class VM(val io: IO) {
     ///
     ///> create dictionary - built-in words
     ///
+/*    
     private var prim = mutableListOf<Code>(               /// * experimental, not used
         Code("bye") { run = false },
         Code("+")   { ALU { n, t -> n + t } },
         Immd("(")   { io.scan("\\)") }
     )
+ */
     private fun allotBase() {
         val f: Xt = { ss.push(it.qf[0]) }                 /// * _dolit created after init
         val b = Code(f, "lit", base)                      ///< use dict[0] as base store
