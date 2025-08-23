@@ -113,8 +113,8 @@ class VM(val io: IO) {
         return ((dict.last().pf.size - 1) shl 16) or dict.last().token
     }
     private fun STR(iw: DU): String? {
-        if (iw < 0) return io.pad()
-        return dict[iw and 0x7fff].pf[iw shr 16].str
+        return if (iw < 0) io.pad()
+               else dict[iw and 0x7fff].pf[iw shr 16].str
     }
     ///
     ///> built-in words and macros
@@ -410,16 +410,16 @@ class VM(val io: IO) {
         }
         IMMD(";")    { compile = false }
         CODE("variable") {
-            word()?.let { w ->
-                dict.add(w)
+            word()?.let {
+                dict.add(it)
                 val v = Code(_dovar, "var", 0)
                 ADDW(v)
                 v.token = IDX()
             }
         }
         CODE("constant") {                                /// n --
-            word()?.let { w ->
-                dict.add(w)
+            word()?.let {
+                dict.add(it)
                 val v = Code(_dolit, "lit", ss.pop())
                 ADDW(v)
                 v.token = IDX()
@@ -430,8 +430,8 @@ class VM(val io: IO) {
         CODE("exit")    { it.unnest()               }    /// marker to exit interpreter
         CODE("exec")    { dict[ss.pop()].nest() }
         CODE("create")  {
-            word()?.let { w ->
-                dict.add(w)
+            word()?.let { 
+                dict.add(it)
                 val v = Code(_dovar, "var", 0)
                 ADDW(v)
                 v.token = IDX()
@@ -444,12 +444,12 @@ class VM(val io: IO) {
             w.token = dict.last().token                  /// * point to new word
         }
         CODE("to") {                                     /// n -- , compile only
-            tick()?.let { w -> w.setVar(0, ss.pop()) }
+            tick()?.let { it.setVar(0, ss.pop()) }
         }
         CODE("is") {                                     /// w -- , execute only
-            tick()?.let { w ->
+            tick()?.let {
                 val src = dict[ss.pop()]                 /// source word
-                dict[w.token].pf = src.pf
+                dict[it.token].pf = src.pf
             }
         }
         /// @}
@@ -503,8 +503,8 @@ class VM(val io: IO) {
         }
         CODE("forget") {
             val m = dict.find("boot", compile)           /// find boot node
-            tick()?.let { w ->
-                dict.forget(maxOf(w.token, m!!.token  + 1))
+            tick()?.let {
+                dict.forget(maxOf(it.token, m!!.token  + 1))
             }
         }
         CODE("boot")  {
