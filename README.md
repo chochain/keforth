@@ -1,4 +1,4 @@
-# KeForth - Forth in Kotlin
+# keForth - Forth in Kotlin
 
 My entire carrier life was spent on enterprise backend systems. I've seen a lot of Java codes. Too much maybe. When Ruby came along, I was hoping that I never have to work on any Java again.
 
@@ -22,5 +22,8 @@ Then I bumped into Kotlin. So, here we go again!
 ## References
 
     - [Su keforth](https://lastnames.myheritage.tw/last-name/su_keforth)
+    - [Emulator without Android Studio](https://dev.to/shivams136/run-android-emulator-without-installing-android-studio-3ji)
+    - [Waydroid](https://ubuntuhandbook.org/index.php/2023/12/waydroid-run-android-apps-ubuntu/)
+    - Bliss OS ... 202506 pending next release
     - [kforth](https://github.com/dblsaiko/kforth), a more classic approach
     - [exercism - Community Solutions](https://exercism.org/tracks/kotlin/exercises/forth/solutions), over a hundred "new kids" tried this, though missing out big time without definding words
