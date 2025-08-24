@@ -47,12 +47,12 @@ class IO(
         if (loadDepth() > 0) tib?.let { debug("$it\n") }  ///< echo if needed
         return tok != null
     }
-    fun pstr(s: String)   { out.print(s); out.flush() }
+    fun pstr(s: String?)  { s?.let { out.print(it); out.flush() } }
     fun pchr(n: Int)      { out.print(Character.toChars(n)) }
     fun debug(s: String)  { if (DEBUG) pstr(s) }
     fun err(e: Exception) {  e.printStackTrace() }
     fun nextToken(): String? {                             ///< fetch next token from in stream
-        return if (tok?.hasNext() == true) tok!!.next() else null
+        return tok?.let { if (it.hasNext()) it.next() else null }
     }
     fun scan(delim: String): String? {
         val d = tok?.delimiter()                           ///< keep delimiter (SPC)
@@ -65,7 +65,7 @@ class IO(
     ///
     ///> IO methods
     ///
-    fun key(): Int = nextToken()?.get(0)?.code ?: 0
+    fun key(): Int = nextToken()?.get(0)?.code ?: 0        ///> TODO: this doesn't work
     fun pad(): String? = pad
     fun itoa(n: Int, base: Int): String = Integer.toString(n, base)
     fun spaces(n: Int) { repeat(maxOf(1, n)) { pstr(" ") } }
@@ -134,7 +134,8 @@ class IO(
     ///
     fun rnd(t: Int): Int { return rnd.nextInt(t) }         /// ranged random number [0..t)
     fun loadDepth(): Int = ins.size - 1                    /// * depth or recursive loading
-    fun load(fn: String, xt: () -> Boolean): Int {
+    fun load(fn: String?, xt: () -> Boolean): Int {
+        if (fn == null) return 0
         val tok0 = tok                                     /// * backup tokenizer
         var i = 0
         try {
@@ -148,7 +149,6 @@ class IO(
         } catch (e: IOException) {                         /// * just in case 
             err(e)
         } finally { ins.removeLast() }                     /// * restore scanner
-        
         tok = tok0                                         /// * restore tokenizer
         return i
     }
