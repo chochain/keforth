@@ -109,9 +109,7 @@ class IO(
         }
         cr()
     }
-    fun see(c: Code?, base: Int, dp: Int) {
-        if (c == null) return
-       
+    fun see(c: Code, base: Int, dp: Int) {
         val tab: (String) -> Unit = { s ->
             if (dp > 0) cr()
             repeat(dp) { pstr("  ") }
