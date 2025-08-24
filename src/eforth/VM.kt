@@ -123,7 +123,7 @@ class VM(val io: IO) {
         ss.push(it.token)
         ss.push(STR(it.token)?.length ?: 0)
     }
-    private val _dotstr: Xt = { io.pstr(STR(it.token)) }
+    private val _dotstr: Xt = { io.pstr(it.str)        }
     private val _dovar:  Xt = { ss.push(it.token)      }
     private val _branch: Xt = { it.branch(ss)          }
     private val _begin:  Xt = { it.begin(ss)           }
