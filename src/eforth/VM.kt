@@ -37,10 +37,10 @@ class VM(val io: IO) {
         if (stat) io.mstat()
         if (io.loadDepth() > 0) return                   /// * skip when loading
         if (compile) io.pstr("> ")                       ///> compile mode prompt
-        else {
-            io.pstr("< ")
-            io.ssDump(ss, base)
-            io.pstr(">ok ")                              ///> * OK prompt (interpreter)
+        else with (io) {
+            pstr("< ")
+            ssDump(ss, base)
+            pstr(">ok ")                                 ///> * OK prompt (interpreter)
         }
     }
     fun outer(): Boolean {
@@ -54,15 +54,14 @@ class VM(val io: IO) {
     }
     private fun parse(idiom: String) {                   ///> outer interpreter
         io.debug("find $idiom")
-        val w = dict.find(idiom, compile)                ///< search dictionary
-        if (w != null) {                                 ///> found word?
-            io.debug(" => [${w.token}]${w.name}\n")
-            if (!compile || w.immd) {                    ///> in interpreter mode?
-                try { w.nest() }                         ///> * execute immediately
+        dict.find(idiom, compile)?.let {                                                 
+            io.debug(" => [${it.token}]${it.name}\n")
+            if (!compile || it.immd) {                   ///> in interpreter mode?
+                try { it.nest() }                        ///> * execute immediately
                 catch (e: Exception) { io.err(e) }       ///> * just-in-case it failed
-            } else dict.compile(w)                       ///> add to dictionary if in compile mode
+            } else dict.compile(it)                      ///> add to dictionary if in compile mode
             return
-        } else io.debug(" => not found")
+        } ?: io.debug(" => not found")
         
         ///> word not found, try as a number
         try {
@@ -77,14 +76,14 @@ class VM(val io: IO) {
             compile = false
         }
     }
-    private fun word(existed: Boolean): Code? {
-        val s = io.nextToken() ?: return null
+    private fun word(had: Boolean): Code? {              ///> fetch next token
+        val s = io.nextToken() ?: return null            ///> fetch next token
         val w = dict.find(s, compile)
-        return if (existed) {
-            if (w == null) io.pstr("$s?")
-            w
-        } else {
-            if (w != null) io.pstr("$s reDef?")
+        return if (had) {                                ///> find in dictionary
+            if (w == null) io.pstr("$s? ")               /// * warn if not found
+            w                                            /// * return w (can be null)
+        } else {                                         /// * new word to be created
+            if (w != null) io.pstr("$s reDef? ")         /// * warn if duplicated
             Code(s)                                      ///> create new Code
         }
     }
@@ -102,48 +101,10 @@ class VM(val io: IO) {
         val n = ss.pop(); ss.push(m(ss.pop(), n))
     }
     ///
-    ///> MMU macros
+    ///> dictionary access macros
     ///
-    private fun GETV(iw: DU): DU = dict[iw and 0x7fff].getVar(iw shr 16)
-    private fun SETV(iw: DU, n: DU) {
-        dict[iw and 0x7fff].setVar(iw shr 16, n)
-        if (iw == 0) base = n                            /// * also update base
-    }
-    private fun IDX(): Int {                             ///< calculate String index
-        return ((dict.last().pf.size - 1) shl 16) or dict.last().token
-    }
-    private fun STR(iw: DU): String? {
-        return if (iw < 0) io.pad()
-               else dict[iw and 0x7fff].pf[iw shr 16].str
-    }
-    ///
-    ///> built-in words and macros
-    ///
-    private val _tmp:    Xt = { /* do nothing */ }
-    private val _dolit:  Xt = { ss.push(it.qf[0]) }
-    private val _dostr:  Xt = { 
-        ss.push(it.token)
-        ss.push(STR(it.token)?.length ?: 0)
-    }
-    private val _dotstr: Xt = { it.str?.let { io.pstr(it) } }
-    private val _branch: Xt = { it.branch(ss) }
-    private val _begin:  Xt = { it.begin(ss) }
-    private val _for:    Xt = { it.dofor(rs) }
-    private val _loop:   Xt = { it.loop(rs) }
-    private val _tor:    Xt = { rs.push(ss.pop()) }
-    private val _tor2:   Xt = { 
-        rs.push(ss.pop())
-        rs.push(ss.pop())
-    }
-    private val _dovar:  Xt = { ss.push(it.token) }
-    private val _dodoes: Xt = {
-        var hit = false
-        for (w in dict[it.token].pf) {                   /// * scan through defining word
-            if (w == it) hit = true                      /// does> ...
-            else if (hit) dict.compile(w)                /// capture words
-        }
-        it.unnest()                                      /// exit nest
-    }
+    private fun STR(iw: DU): String? = if (iw < 0) io.pad() else dict.str(iw)
+    private fun LIT(w: Code)  { dict.compile(w); w.token = dict.idx() } /// lit, ptr to w
     private fun ADDW(w: Code) { dict.compile(w) }
     private fun CODE(n: String, f: Xt) = dict.add(Code(n, false, f))
     private fun IMMD(n: String, f: Xt) = dict.add(Code(n, true,  f))
@@ -154,12 +115,40 @@ class VM(val io: IO) {
         val w = Code(n, false); dict.add(w); return w
     }
     ///
+    ///> built-in words and macros
+    ///
+    private val _tmp:    Xt = { /* do nothing */       }
+    private val _dolit:  Xt = { ss.push(it.qf[0])      }
+    private val _dostr:  Xt = {
+        ss.push(it.token)
+        ss.push(STR(it.token)?.length ?: 0)
+    }
+    private val _dotstr: Xt = { io.pstr(STR(it.token)) }
+    private val _dovar:  Xt = { ss.push(it.token)      }
+    private val _branch: Xt = { it.branch(ss)          }
+    private val _begin:  Xt = { it.begin(ss)           }
+    private val _for:    Xt = { it.dofor(rs)           }
+    private val _loop:   Xt = { it.loop(rs)            }
+    private val _tor:    Xt = { rs.push(ss.pop())      }
+    private val _tor2:   Xt = { 
+        rs.push(ss.pop())
+        rs.push(ss.pop())
+    }
+    private val _dodoes: Xt = {
+        var hit = false
+        for (w in dict[it.token].pf) {                   /// * scan through defining word
+            if (w == it) hit = true                      /// does> ...
+            else if (hit) dict.compile(w)                /// capture words
+        }
+        it.unnest()                                      /// exit nest
+    }
+    ///
     ///> create dictionary - built-in words
     ///
 /*    
     private var prim = mutableListOf<Code>(               /// * experimental, not used
-        Code("bye") { run = false },
-        Code("+")   { ALU { n, t -> n + t } },
+        Code("bye") { run = false },                      /// * uncomment will mess up
+        Code("+")   { ALU { n, t -> n + t } },            /// * dict.size
         Immd("(")   { io.scan("\\)") }
     )
  */
@@ -243,7 +232,6 @@ class VM(val io: IO) {
         CODE("nip")    { ss.removeAt(ss.size - 2)               }
         CODE("?dup")   { if (ss.peek() != 0) ss.push(ss.peek()) }
         /// @}
-        
         /// @defgroup Data Stack ops - double
         /// @{
         CODE("2dup")   { ss.addAll(ss.subList(ss.size - 2, ss.size)) }
@@ -273,24 +261,23 @@ class VM(val io: IO) {
         CODE("decimal"){ dict[0].setVar(0, 10.also { base = it })  }
         CODE("cr")     { io.cr()                                   }
         CODE("bl")     { io.bl()                                   }
-        CODE(".")      { io.dot(IO.OP.DOT, ss.pop(), base = base)  }
+        CODE(".")      { io.dot(IO.OP.DOT,  ss.pop(), base = base) }
         CODE("u.")     { io.dot(IO.OP.UDOT, ss.pop(), base = base) }
-        CODE(".r")     {
+        CODE(".r")     {                                  /// v n --
             val r = ss.pop()
             val n = ss.pop()
             io.dot(IO.OP.DOTR, n, r, base)
         }
-        CODE("u.r")    {
+        CODE("u.r")    {                                  /// v n --
             val r = ss.pop()
             val n = ss.pop()
             io.dot(IO.OP.UDOTR, n, r, base)
         }
-        CODE("type")   {
+        CODE("type")   {                                  /// s n --
             ss.pop()                                      /// drop len
-            val iw = ss.pop()                             /// get index
-            STR(iw)?.let { io.pstr(it) }
+            io.pstr(STR(ss.pop()))                        /// get string and print
         }
-        CODE("key")    { ss.push(io.key())            }
+        CODE("key")    { ss.push(io.key())            }   /// TODO: this is broken
         CODE("emit")   { io.dot(IO.OP.EMIT, ss.pop()) }
         CODE("space")  { io.spaces(1)                 }
         CODE("spaces") { io.spaces(ss.pop())          }
@@ -303,9 +290,7 @@ class VM(val io: IO) {
         IMMD("s\"")    {                                  /// -- w a
             val s = io.scan("\"") ?: return@IMMD
             if (compile) {
-                val w = Code(_dostr, "s\"", s)
-                ADDW(w)                                   /// literal=s
-                w.token = IDX()
+                LIT(Code(_dostr, "s\"", s))               /// literal=s
             } else {
                 ss.push(-1)
                 ss.push(s.length)                         /// use pad
@@ -314,7 +299,7 @@ class VM(val io: IO) {
         IMMD(".\"")    {
             val s = io.scan("\"") ?: return@IMMD
             if (!compile) io.pstr(s)
-            else ADDW(Code(_dotstr, ".\"", s))            /// literal=s
+            else LIT(Code(_dotstr, ".\"", s))             /// literal=s
         }
         /// @}
         /// @defgroup Branching ops
@@ -333,10 +318,10 @@ class VM(val io: IO) {
             val s = b.stage                               ///< branching state
             if (s == 0) {                                 /// * if..{pf}..then
                 BRAN(b.pf)
-                dict.removeLast()
+                dict.drop()
             } else {                                      /// * else..{p1}..then, or
                 BRAN(b.p1)                                /// * then..{p1}..next
-                if (s == 1) dict.removeLast()             /// * if..else..then
+                if (s == 1) dict.drop()                   /// * if..else..then
             }
         }
         /// @}
@@ -354,18 +339,18 @@ class VM(val io: IO) {
         IMMD("repeat") {
             val b = dict.bran()
             BRAN(b.p1)                                    /// * while..{p1}..repeat
-            dict.removeLast()
+            dict.drop()
         }
         IMMD("again") {
             val b = dict.bran()
             BRAN(b.pf)                                    /// * begin..{pf}..again
-            dict.removeLast()
+            dict.drop()
             b.stage = 1
         }
         IMMD("until") {
             val b = dict.bran()
             BRAN(b.pf)                                    /// * begin..{pf}..f.until
-            dict.removeLast()
+            dict.drop()
         }
         /// @}
         /// @defgroup FOR loops
@@ -383,7 +368,7 @@ class VM(val io: IO) {
         IMMD("next") {
             val b = dict.bran()                           /// * for..{pf}..next, or
             BRAN(if (b.stage == 0) b.pf else b.p2)        /// * then..{p2}..next
-            dict.removeLast()
+            dict.drop()
         }
         /// @}
         /// @defgroup DO loops
@@ -397,7 +382,7 @@ class VM(val io: IO) {
         IMMD("loop") {
             val b = dict.bran()
             BRAN(b.pf)                                    /// * do..{pf}..loop
-            dict.removeLast()
+            dict.drop()
         }
         /// @}
         /// @defgroup Compiler ops
@@ -412,17 +397,13 @@ class VM(val io: IO) {
         CODE("variable") {
             word()?.let {
                 dict.add(it)
-                val v = Code(_dovar, "var", 0)
-                ADDW(v)
-                v.token = IDX()
+                LIT(Code(_dovar, "var", 0))
             }
         }
         CODE("constant") {                                /// n --
             word()?.let {
                 dict.add(it)
-                val v = Code(_dolit, "lit", ss.pop())
-                ADDW(v)
-                v.token = IDX()
+                LIT(Code(_dolit, "lit", ss.pop()))
             }
         }
         CODE("postpone"){ tick()?.let { ADDW(it) }  }
@@ -433,49 +414,49 @@ class VM(val io: IO) {
             word()?.let { 
                 dict.add(it)
                 val v = Code(_dovar, "var", 0)
-                ADDW(v)
-                v.token = IDX()
+                LIT(v)
                 v.qf.removeLast()
             }
         }
-        IMMD("does>") {                                  /// n --
+        IMMD("does>")   {                                /// n --
             val w = Code(_dodoes, "does>")
-            ADDW(w)
-            w.token = dict.last().token                  /// * point to new word
+            LIT(w)
+            w.token = dict.last().token
         }
         CODE("to") {                                     /// n -- , compile only
             tick()?.let { it.setVar(0, ss.pop()) }
         }
         CODE("is") {                                     /// w -- , execute only
             tick()?.let {
-                val src = dict[ss.pop()]                 /// source word
-                dict[it.token].pf = src.pf
+                dict[it.token].pf = dict[ss.pop()].pf    /// * copy from src
             }
         }
         /// @}
         /// @defgroup Memory Access ops
         /// @{
-        CODE("@")  { ss.push(GETV(ss.pop())) }           /// w -- n
+        CODE("@")  { ss.push(dict.getv(ss.pop())) }      /// w -- n
         CODE("!")  {                                     /// n w --
             val iw = ss.pop()
-            SETV(iw, ss.pop())
+            val n  = ss.pop()                                             
+            dict.setv(iw, n)
+            if (iw == 0) base = n
         }
         CODE("+!") {                                     /// n w --
             val iw = ss.pop()
-            val n = GETV(iw) + ss.pop()
-            SETV(iw, n)
+            dict.getv(iw)?.let { dict.setv(iw, it + ss.pop()) }
         }
-        CODE("?")  { io.dot(IO.OP.DOT, GETV(ss.pop())) } /// w --
+        CODE("?")  {                                     /// w --
+            dict.getv(ss.pop())?.let { io.dot(IO.OP.DOT, it) }
+        }
         CODE(",")  { dict.last().comma(ss.pop())  }      /// n --
         CODE("cells") { /* backward compatible */ }      /// --
         CODE("allot") {                                  /// n --
-            val n = ss.pop()
             val w = dict.last()
-            repeat(n) { w.comma(0) }
+            repeat(ss.pop()) { w.comma(0) }
         }
         CODE("th")    {                                  /// w i -- i_w
             val i = ss.pop() shl 16
-            ss.push(i or ss.pop())                       /// i.e. 4 v 2 th !
+            ss.push(i or ss.pop())                       /// i.e. 100 xyz 2 th !
         }
         /// @}
         /// @defgroup Debug ops
@@ -490,11 +471,11 @@ class VM(val io: IO) {
         CODE("depth") { ss.push(ss.size)                    }
         CODE("r")     { ss.push(rs.size)                    }
         IMMD("include")  {                               /// include an OS file
-            io.nextToken()?.let { io.load(it, { outer() }) }
+            io.load(io.nextToken(), { outer() })
         } 
         CODE("included") {                               /// include a file (programmable)
-            ss.pop()
-            STR(ss.pop())?.let { io.load(it, { outer() }) }
+            ss.pop()                                     /// pop off length (not used)
+            io.load(STR(ss.pop()), { outer() })
         }
         CODE("ok")    { io.mstat() }
         CODE("ms")    {                                  /// n -- delay n ms
@@ -502,9 +483,9 @@ class VM(val io: IO) {
             catch (e: Exception) { io.err(e) }
         }
         CODE("forget") {
-            val m = dict.find("boot", compile)           /// find boot node
+            val m = dict.find("boot", compile)?.token ?: 0  /// find boot node
             tick()?.let {
-                dict.forget(maxOf(it.token, m!!.token  + 1))
+                dict.forget(maxOf(it.token, m  + 1))
             }
         }
         CODE("boot")  {
