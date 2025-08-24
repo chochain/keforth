@@ -483,10 +483,8 @@ class VM(val io: IO) {
             catch (e: Exception) { io.err(e) }
         }
         CODE("forget") {
-            val m = dict.find("boot", compile)?.token ?: 0  /// find boot node
-            tick()?.let {
-                dict.forget(maxOf(it.token, m  + 1))
-            }
+            val m = dict.find("boot", compile)!!.token   /// find boot node
+            tick()?.let { dict.forget(maxOf(it.token, m+1)) }
         }
         CODE("boot")  {
             val t = dict.find("boot", compile)!!.token + 1
