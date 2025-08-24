@@ -16,10 +16,21 @@ class Dict : FV<Code>() {
         @JvmStatic
         fun getInstance(): Dict = dict                   ///< singleton
     }
-
-    fun forget(t: Int) {
-        dict.subList(t, dict.size).clear()              ///> forget words
+    ///
+    /// dictionary indexing i_w = |   pf index   |  word index  |
+    /// and proxies               |<-- 16-bit -->|<-- 16-bit -->|
+    ///
+    fun idx(): Int {
+        return ((dict.last().pf.size - 1) shl 16) or dict.last().token
     }
+    fun getv(iw: DU): DU?   = dict[iw and 0x7fff]?.getVar(iw shr 16)
+    fun setv(iw: DU, n: DU) = dict[iw and 0x7fff]?.setVar(iw shr 16, n)
+    fun str(iw: DU): String = dict[iw and 0x7fff]?.pf[iw shr 16]?.str ?: ""
+    ///
+    /// dictionary clean up
+    ///
+    fun drop()         = dict.removeLast()                  ///> remove last item
+    fun forget(t: Int) = dict.subList(t, dict.size).clear() ///> forget words
     ///
     ///> find - Forth dictionary search 
     ///    @param  str  input string to be search against dictionary words
