@@ -19,6 +19,26 @@ Then I bumped into Kotlin. So, here we go again!
     kotlinc src/Eforth.kt src/eforth/*.kt -include-runtime -d tests/Eforth.jar
     java -jar tests/Eforth.jar
 
+## TODO
+0. Review
+   + FireBase - Cloud Messaging, Chat API (for remote access)
+   + DroidScript - Javascript + Python
+   + Roboto - JRuby
+
+1. Android project - vanilla
+    + TextView, color coding
+    + EditView, auto complete
+
+2. Android Project - material design
+    + Backdrop => layered
+       + Cards => keforth responses
+       + Divider
+    + Floating Action Button
+       + Chips << cmd input
+    + Side Sheets => words (sorted), ss_dump
+    + Tooltip => see
+    + SurfaceView => 2D (Logo)
+
 ## References
 
     - [Su keforth](https://lastnames.myheritage.tw/last-name/su_keforth)
