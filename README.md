@@ -13,11 +13,20 @@ I thought Java has faded quietly into the sunset. But, on one occasion, I saw a 
 Then I bumped into Kotlin. So, here we go again!
 
 ## Build & Run
+### Linux et al. (including Termux on Android)
+```Bash
+    $ sudo snap install kotlin 
+    
+    $ git clone this_repo
+    $ cd keforth
+    
+    $ kotlinc src/Eforth.kt src/eforth/*.kt -include-runtime -d tests/Eforth.jar
+    $ java -jar tests/Eforth.jar
+```
 
-    sudo snap install kotlin 
-
-    kotlinc src/Eforth.kt src/eforth/*.kt -include-runtime -d tests/Eforth.jar
-    java -jar tests/Eforth.jar
+### Android Application
+```Bash
+```
 
 ## TODO
 0. Review
