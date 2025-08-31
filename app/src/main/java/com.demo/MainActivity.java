@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.ScrollView;
@@ -29,25 +30,31 @@ public class MainActivity extends AppCompatActivity {
     int                    color_cm;
     
     class Updater extends OutputStream {
-        SpannableStringBuilder buf;
-        TextView               out;
-        ScrollView             sc;
+        TextView   out;
+        ScrollView sc;
 
         Updater() {
-            buf = new SpannableStringBuilder();
             out = findViewById(R.id.textViewOutput);
             sc  = findViewById(R.id.scrollView);
+            sc.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        sc.post(new Runnable() {
+                            public void run() {
+                                sc.fullScroll(ScrollView.FOCUS_DOWN);
+                                in.requestFocus();
+                            }
+                        });
+                    }
+                }
+            );
         }
-
-        public void show(String str, int c) {
+        public void show(String str, int color) {
             SpannableString s = new SpannableString(str);
-            s.setSpan(new ForegroundColorSpan(c),
+            s.setSpan(new ForegroundColorSpan(color),
                       0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            buf.append(s);
-//            out.append(s);
             out.post(() -> out.append(s));
-            sc.requestFocus();
-            buf.clear();
         }
         @Override
         public void write(int n) throws IOException {
