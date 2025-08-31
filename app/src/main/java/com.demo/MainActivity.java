@@ -31,18 +31,19 @@ public class MainActivity extends AppCompatActivity {
     
     class Updater extends OutputStream {
         TextView   out;
-        ScrollView sc;
+        ScrollView sv;
 
         Updater() {
             out = findViewById(R.id.textViewOutput);
-            sc  = findViewById(R.id.scrollView);
-            sc.getViewTreeObserver().addOnGlobalLayoutListener(
+            sv  = findViewById(R.id.scrollView);
+            sv.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
                     public void onGlobalLayout() {
-                        sc.post(new Runnable() {
+                        sv.post(new Runnable() {
+                            @Override
                             public void run() {
-                                sc.fullScroll(ScrollView.FOCUS_DOWN);
+                                sv.fullScroll(ScrollView.FOCUS_DOWN);
                                 in.requestFocus();
                             }
                         });
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
             s.setSpan(new ForegroundColorSpan(color),
                       0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             out.post(() -> out.append(s));
+//            sv.post(() -> sv.fullScroll(View.FOCUS_DOWN));        ///> CC: this does not work
         }
         @Override
         public void write(int n) throws IOException {
