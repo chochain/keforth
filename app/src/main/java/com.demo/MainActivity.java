@@ -7,6 +7,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.ScrollView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -17,79 +18,101 @@ import android.text.style.ForegroundColorSpan;
 import android.graphics.Color;
 import com.demo.R;
 
+import java.io.*;
+import com.demo.eforth.*;
+
 public class MainActivity extends AppCompatActivity {
-    private EditText             in;
-    private TextView             out;
-    private FloatingActionButton fb;
+    static final String APP_NAME = "keForth v0";
+    EditText               in;
+    FloatingActionButton   fb;
+    int                    color_fg;
+    int                    color_cm;
     
+    class Updater extends OutputStream {
+        SpannableStringBuilder buf;
+        TextView               out;
+        ScrollView             sc;
+
+        Updater() {
+            buf = new SpannableStringBuilder();
+            out = findViewById(R.id.textViewOutput);
+            sc  = findViewById(R.id.scrollView);
+        }
+
+        public void show(String str, int c) {
+            SpannableString s = new SpannableString(str);
+            s.setSpan(new ForegroundColorSpan(c),
+                      0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            buf.append(s);
+//            out.append(s);
+            out.post(() -> out.append(s));
+            sc.requestFocus();
+            buf.clear();
+        }
+        @Override
+        public void write(int n) throws IOException {
+            byte[] b = { (byte)n };
+            write(b, 0, b.length);
+        }
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            String rst = new String(b, off, len);
+            show(rst, color_fg);
+        }
+    }
+    Updater up;
+    IO      io;
+    VM      vm;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        // Initialize views
-        in  = findViewById(R.id.editTextInput);
-        out = findViewById(R.id.textViewOutput);
-        fb  = findViewById(R.id.buttonProcess);
+        /// Initialize views
+        in       = findViewById(R.id.editTextInput);
+        fb       = findViewById(R.id.buttonProcess);
+        color_fg = Color.WHITE;
+        color_cm = getResources().getColor(R.color.teal_200);
         
-        // Set click listener for the button
+        up  = new Updater();
+        io  = new IO(APP_NAME, System.in, up);
+        vm  = new VM(io);
+        io.mstat();
+        
+        /// Set click listener for the button
         fb.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                processInput();
-            }
+            public void onClick(View v) { doForth(); }
         });
-        
-        // Process input when user presses Shift+Enter
+        /// Process input when user presses Shift+Enter
         in.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
                     if (keyCode == KeyEvent.KEYCODE_ENTER && event.isShiftPressed()) {
-                        processInput();
-                        return true; // Consume the event
+                        doForth();
+                        return true;                   /// Consume the event
                     }
                 }
-                return false; // Let other key events pass through
+                return false;                          /// Let other key events pass through
             }
         });
     }
-    
-    private void processInput() {
+    private void doForth() {
         // Get user input
         String cmd = in.getText().toString().trim();
 
         if (TextUtils.isEmpty(cmd)) return;
-        
-        // Process the input (example processing)
-        String rst = processText(cmd);
-        
-        SpannableStringBuilder builder = new SpannableStringBuilder();
-        SpannableString s1 = new SpannableString(cmd);
-        s1.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.teal_200)),
-                    0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        builder.append(s1);
 
-        SpannableString s2 = new SpannableString(rst); // Add a space if needed
-        s2.setSpan(new ForegroundColorSpan(Color.WHITE),
-                    0, s2.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        builder.append(s2);
-    
-        // Display result in TextView
-        out.append(builder);
-        in.setText(null);
-    }
-    
-    private String processText(String s) {
-        String upperCase = s.toUpperCase();
-        int    charCount = s.length();
-        String reversed  = new StringBuilder(s).reverse().toString();
+        up.show(cmd+"\n", color_cm);                  /// echo cmd
+        io.rescan(cmd);                               /// reload scanner
         
-        return String.format("\nOriginal: %s\n" +
-                           "Uppercase: %s\n" +
-                           "Character count: %d\n" +
-                           "Reversed: %s\n", 
-                           s, upperCase, charCount, reversed);
+        while (io.readline()) {
+            if (!vm.outer()) break;
+        }
+        in.setText(null);
+        in.requestFocus();
     }
 }
 
