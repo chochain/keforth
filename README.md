@@ -13,9 +13,11 @@ I thought Java has faded quietly into the sunset. But, on one occasion, I saw a 
 Then I bumped into Kotlin. So, here we go again!
 
 ## Build & Run
-### Linux et al. (including Termux on Android)
+### Linux et al.
+Setup Waydroid, the container-based Android emulator, with Termnux. I'm sure there are other ways but, for a newbie Android app person, it gets me a comfortable place to start with.
+
 ```Bash
-    $ sudo snap install kotlin 
+    # install kotlinc (either via snap or apt install)
     
     $ git clone this_repo
     $ cd keforth
@@ -25,20 +27,35 @@ Then I bumped into Kotlin. So, here we go again!
 ```
 
 ### Android Application
+With limited hardware, this was an arduous learning experience for me. So, make sure your system is up to the task first. Install Android Studio or do what I've done following [command-line tools](https://stackoverflow.com/questions/32643297/how-to-make-an-android-app-without-using-android-studio).
+
 ```Bash
+    $ git clone this_repo
+    $ cd keforth
+
+    $ gradlew build
+
+    # install app/build/outputs/apk/debug/app-debug.apk onto your device (virtual or real) for testing
+
 ```
+Note: Though I've never tried that, it's said that one can get app signed by Google [see](https://developer.android.com/studio/publish/app-signing) or [uber-signer](https://github.com/patrickfav/uber-apk-signer) for release.
 
 ## TODO
-0. Review
+0. Android project - vanilla
+    + TextView, color coding
+    + EditView, auto complete
+    + Sensors
+        - Motion
+        - Position
+        - Environment
+
+1. Review
    + FireBase - Cloud Messaging, Chat API (for remote access)
    + DroidScript - Javascript + Python
    + Roboto - JRuby
 
-1. Android project - vanilla
-    + TextView, color coding
-    + EditView, auto complete
-
 2. Android Project - material design
+    + Jetpack Compose
     + Backdrop => layered
        + Cards => keforth responses
        + Divider
