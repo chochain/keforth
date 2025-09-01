@@ -24,15 +24,82 @@ import java.io.*;
 import com.demo.eforth.*;
 import com.demo.logo.*;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements JavaCallback {
     static final String APP_NAME = "keForth v0";
-    EditText               in;
-    FloatingActionButton   fb;
-    Logo                   logo;
-    int                    color_fg;
-    int                    color_cm;
+    EditText              in;       ///< User Input for Forth command
+    FloatingActionButton  fb;       ///< alternate command processor
+    IO                    io;       ///< eForth IO dispatcher
+    VM                    vm;       ///< eForth VM instance
+    Updater               up;       ///< Forth output dispatcher
+    Logo                  logo;     ///< Logo (View to paint on)
+    /// colors
+    int  color_fg;                  ///< forth output color
+    int  color_cm;                  ///< forth command color
+    int  color_cb;                  ///< Logo command (via callback)
     
-    class Updater extends OutputStream {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        
+        /// Initialize views
+        in       = findViewById(R.id.forthInput);
+        fb       = findViewById(R.id.buttonProcess);
+        logo     = findViewById(R.id.logo);
+        
+        color_fg = Color.WHITE;
+        color_cm = getResources().getColor(R.color.teal_200);
+        color_cb = Color.RED;
+        
+        up  = new Updater();
+        io  = new IO(APP_NAME, System.in, up);
+        vm  = new VM(io, this);
+        io.mstat();
+        
+        /// Set click listener for the button
+        fb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) { doForth(); }
+        });
+        /// Process input when user presses Shift+Enter
+        in.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN) {
+//                    if (keyCode == KeyEvent.KEYCODE_ENTER && event.isShiftPressed()) {
+                    if (keyCode == KeyEvent.KEYCODE_ENTER) {
+                        doForth();
+                        return true;                   /// Consume the event
+                    }
+                }
+                return false;                          /// Let other key events pass through
+            }
+        });
+    }
+    ///
+    /// implement JavaCallback interface
+    ///
+    public void post(String str) {
+        up.show(str+"\n", color_cb);
+    }
+    
+    private void doForth() {
+        // Get user input
+        String cmd = in.getText().toString().trim();
+
+        if (TextUtils.isEmpty(cmd)) return;
+
+        up.show(cmd+"\n", color_cm);                  /// echo cmd
+        io.rescan(cmd);                               /// reload scanner
+        
+        while (io.readline()) {
+            if (!vm.outer()) break;
+        }
+        in.setText(null);
+        in.requestFocus();
+    }
+    
+    private class Updater extends OutputStream {
         TextView   out;
         ScrollView sv;
 
@@ -71,62 +138,6 @@ public class MainActivity extends AppCompatActivity {
             String rst = new String(b, off, len);
             show(rst, color_fg);
         }
-    }
-    Updater up;
-    IO      io;
-    VM      vm;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        
-        /// Initialize views
-        in       = findViewById(R.id.forthInput);
-        fb       = findViewById(R.id.buttonProcess);
-        logo     = findViewById(R.id.logo);
-        color_fg = Color.WHITE;
-        color_cm = getResources().getColor(R.color.teal_200);
-        
-        up  = new Updater();
-        io  = new IO(APP_NAME, System.in, up);
-        vm  = new VM(io);
-        io.mstat();
-        
-        /// Set click listener for the button
-        fb.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) { doForth(); }
-        });
-        /// Process input when user presses Shift+Enter
-        in.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN) {
-//                    if (keyCode == KeyEvent.KEYCODE_ENTER && event.isShiftPressed()) {
-                    if (keyCode == KeyEvent.KEYCODE_ENTER) {
-                        doForth();
-                        return true;                   /// Consume the event
-                    }
-                }
-                return false;                          /// Let other key events pass through
-            }
-        });
-    }
-    private void doForth() {
-        // Get user input
-        String cmd = in.getText().toString().trim();
-
-        if (TextUtils.isEmpty(cmd)) return;
-
-        up.show(cmd+"\n", color_cm);                  /// echo cmd
-        io.rescan(cmd);                               /// reload scanner
-        
-        while (io.readline()) {
-            if (!vm.outer()) break;
-        }
-        in.setText(null);
-        in.requestFocus();
     }
 }
 
