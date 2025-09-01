@@ -82,6 +82,39 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     public void post(String str) {
         up.show(str+"\n", color_cb);
     }
+/*        
+self.onmessage = function(e) {                        ///> worker input message queue
+    let k = e.data[0], v = e.data[1]
+    const post = (v)=>postMessage([k, v])             ///> macro to response to front-end
+    switch (k) {
+    case 'cmd': post(forth(0, v));           break    /// * call Forth VM (output=>Module.print)she
+    case 'key': forth(1, v); post(0);        break    /// * PUSH(v), clear keypress mode
+    case 'dc' : post(get_dict());            break    /// * built-in words
+    case 'usr': post(get_dict(true));        break    /// * colon words
+    case 'ss' : post(get_ss());              break    /// * dump stack
+    case 'dm' :                                       /// * dump memory
+        const idx = v[0], n = v[1]
+        const here= wasmExports.vm_mem_idx()
+        const len = (n + 0x10) & ~0xf                 ///> 16-byte blocks
+        const off = idx < 0                           ///> idx < 0 => from 'HERE'
+            ? (here > len ? here - len : 0)
+            : idx
+        const ma  = get_mem(off & ~0xf, len)          ///> get memory ref
+        post(dump(ma, off));                 break
+    case 'mm' :
+        const mm = get_mem(v[0], v[1])                ///> fetch memory block
+        postMessage(                                  /// * to front-end, transfer
+            [ k, mm ],
+            [ mm.buffer ]);                  break
+    case 'px' :
+        const px = get_px(v)                          ///> fetch px values from Forth
+        postMessage(                                  ///> to front-end, transfer
+            [ k, px ],
+            [ px[2].buffer, px[3].buffer ]); break
+    default   : post('unknown type');
+    }
+}
+*/
     
     private void doForth() {
         // Get user input
