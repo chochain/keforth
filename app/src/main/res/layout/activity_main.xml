@@ -33,7 +33,7 @@
                   android:textIsSelectable="false"
                   android:fontFamily="monospace"/>
             </ScrollView>
-            <SurfaceView
+            <com.demo.logo.Logo
                 android:id="@+id/logo"
                 android:layout_width="0dp"
                 android:layout_weight="4"
