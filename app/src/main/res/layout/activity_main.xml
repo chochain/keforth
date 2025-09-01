@@ -19,13 +19,14 @@
             android:padding="2dp"
             android:gravity="center_vertical">
             <ScrollView
-                android:id="@+id/scrollView"
+                android:id="@+id/forthView"
                 android:layout_width="0dp"
-                android:layout_weight="3"
-                android:layout_height="match_parent"
+                android:layout_weight="6"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
                 android:fillViewport="true">
               <TextView
-                  android:id="@+id/textViewOutput"
+                  android:id="@+id/forthOutput"
                   android:layout_width="match_parent"
                   android:layout_height="match_parent"
                   android:text=""
@@ -36,14 +37,14 @@
                   android:fontFamily="monospace"/>
             </ScrollView>
             <SurfaceView
-                android:id="@+id/surfaceView"
+                android:id="@+id/logo"
                 android:layout_width="0dp"
-                android:layout_weight="2"
+                android:layout_weight="4"
                 android:layout_height="match_parent"
                 android:background="@drawable/textview_border"/>
-      </LinearLayout>
+        </LinearLayout>
         <EditText
-            android:id="@+id/editTextInput"
+            android:id="@+id/forthInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Forth here..."
