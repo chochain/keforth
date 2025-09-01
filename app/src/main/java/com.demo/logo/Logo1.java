@@ -156,19 +156,19 @@ public class Logo1 extends View {
         eveCanvas.rotate((float)Math.toDegrees(st.dir));
         
         // Draw turtle body using paths
-        Path turtlePath = new Path();
+        Path turtle = new Path();
         
         // Left shoulder arc
         RectF shoulderRect = new RectF(-20, -20, 20, 20);
-        turtlePath.addArc(shoulderRect, (float)Math.toDegrees(-X), (float)Math.toDegrees(X - W));
+        turtle.addArc(shoulderRect, (float)Math.toDegrees(-X), (float)Math.toDegrees(X - W));
         
         // Move to center for right shoulder
-        turtlePath.moveTo(0, 0);
-        turtlePath.addArc(shoulderRect, (float)Math.toDegrees(W), (float)Math.toDegrees(X - W));
+        turtle.moveTo(0, 0);
+        turtle.addArc(shoulderRect, (float)Math.toDegrees(W), (float)Math.toDegrees(X - W));
         
         // Head circle
-        turtlePath.addCircle(24, 0, 4, Path.Direction.CW);
-        eveCanvas.drawPath(turtlePath, evePaint);
+        turtle.addCircle(24, 0, 4, Path.Direction.CW);
+        eveCanvas.drawPath(turtle, evePaint);
         
         // Restore canvas state
         eveCanvas.restore();
