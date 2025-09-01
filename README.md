@@ -39,7 +39,7 @@ With limited hardware, this was an arduous learning experience for me. So, make 
     # install app/build/outputs/apk/debug/app-debug.apk onto your device (virtual or real) for testing
 
 ```
-<img src="https://github.com/chochain/keforth/blob/main/docs/img/android_eforth_01.png" width="800" />
+<img src="https://github.com/chochain/keforth/blob/main/docs/img/android_keforth_01.png" width="800" />
 
 Note: Though I've never tried, it's said that one can get app signed by Google [in Studio](https://developer.android.com/studio/publish/app-signing) or [uber-signer](https://github.com/patrickfav/uber-apk-signer) for release.
 
