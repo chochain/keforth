@@ -25,6 +25,7 @@ Setup Waydroid, the container-based Android emulator, with Termnux. I'm sure the
     $ kotlinc src/Eforth.kt src/eforth/*.kt -include-runtime -d tests/Eforth.jar
     $ java -jar tests/Eforth.jar
 ```
+<img src="https://github.com/chochain/keforth/blob/main/docs/img/android_eforth_01.png" width="800" />
 
 ### Android Application
 With limited hardware, this was an arduous learning experience for me. So, make sure your system is up to the task first. Install Android Studio or do what I've done following [command-line tools](https://stackoverflow.com/questions/32643297/how-to-make-an-android-app-without-using-android-studio).
@@ -38,7 +39,9 @@ With limited hardware, this was an arduous learning experience for me. So, make 
     # install app/build/outputs/apk/debug/app-debug.apk onto your device (virtual or real) for testing
 
 ```
-Note: Though I've never tried that, it's said that one can get app signed by Google [see](https://developer.android.com/studio/publish/app-signing) or [uber-signer](https://github.com/patrickfav/uber-apk-signer) for release.
+<img src="https://github.com/chochain/keforth/blob/main/docs/img/android_eforth_01.png" width="800" />
+
+Note: Though I've never tried, it's said that one can get app signed by Google [in Studio](https://developer.android.com/studio/publish/app-signing) or [uber-signer](https://github.com/patrickfav/uber-apk-signer) for release.
 
 ## TODO
 0. Android project - vanilla
@@ -48,6 +51,9 @@ Note: Though I've never tried that, it's said that one can get app signed by Goo
         - Motion
         - Position
         - Environment
+    + Object
+        - instantiate from string
+        - lookup by hashcode (kept in map)
 
 1. Review
    + FireBase - Cloud Messaging, Chat API (for remote access)
