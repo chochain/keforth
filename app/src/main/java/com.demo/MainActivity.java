@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     static final String APP_NAME = "keForth v0";
     EditText               in;
     FloatingActionButton   fb;
-    SurfaceView            logo;
+    Logo                   logo;
     int                    color_fg;
     int                    color_cm;
     
