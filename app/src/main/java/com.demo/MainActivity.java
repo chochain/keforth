@@ -4,11 +4,12 @@ package com.demo;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.ScrollView;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -21,11 +22,13 @@ import com.demo.R;
 
 import java.io.*;
 import com.demo.eforth.*;
+import com.demo.logo.*;
 
 public class MainActivity extends AppCompatActivity {
     static final String APP_NAME = "keForth v0";
     EditText               in;
     FloatingActionButton   fb;
+    SurfaceView            logo;
     int                    color_fg;
     int                    color_cm;
     
@@ -34,8 +37,8 @@ public class MainActivity extends AppCompatActivity {
         ScrollView sv;
 
         Updater() {
-            out = findViewById(R.id.textViewOutput);
-            sv  = findViewById(R.id.scrollView);
+            out = findViewById(R.id.forthOutput);
+            sv  = findViewById(R.id.forthView);
             sv.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
@@ -79,8 +82,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         
         /// Initialize views
-        in       = findViewById(R.id.editTextInput);
+        in       = findViewById(R.id.forthInput);
         fb       = findViewById(R.id.buttonProcess);
+        logo     = findViewById(R.id.logo);
         color_fg = Color.WHITE;
         color_cm = getResources().getColor(R.color.teal_200);
         
@@ -99,7 +103,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                    if (keyCode == KeyEvent.KEYCODE_ENTER && event.isShiftPressed()) {
+//                    if (keyCode == KeyEvent.KEYCODE_ENTER && event.isShiftPressed()) {
+                    if (keyCode == KeyEvent.KEYCODE_ENTER) {
                         doForth();
                         return true;                   /// Consume the event
                     }
