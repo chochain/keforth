@@ -10,8 +10,9 @@ import java.util.*;
 import java.util.function.*;
 
 public class VM {
-    Dict   dict;
-    IO     io;
+    Dict         dict;
+    IO           io;
+    JavaCallback java_api;          ///< Java Callback interface
     Random rnd = new Random();      ///< random number generator
     ///
     ///> Forth stacks and dictionary
@@ -27,8 +28,9 @@ public class VM {
     ///
     ///> functional interfaces
     ///
-    public VM(IO io0) {
-        io   = io0;
+    public VM(IO io, JavaCallback cb) {
+        this.io       = io;
+        this.java_api = cb;
         dict = Dict.get_instance();
         dict_init();
         Code b = new Code(_dolit, "lit", 10);            ///< use dict[0] as base store
@@ -488,6 +490,7 @@ public class VM {
             try { Thread.sleep(ss.pop()); } 
             catch (Exception e) { io.err(e); }
         });
+        CODE("java",  c -> java_api.post("this is a test")         );
         CODE("forget", c -> {
             Code m = dict.find("boot", compile);
             Code w = tick(); if (w==null) return;
