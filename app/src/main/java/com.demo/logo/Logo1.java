@@ -173,16 +173,14 @@ public class Logo1 extends View {
         // Restore canvas state
         eveCanvas.restore();
     }
+
+    private void center(float x, float y, double deltaDir) {
+        st.dir = 0;
+        path.reset();                                // Reset to center
+        path.moveTo(st.w/2f + x, st.h/2f + y);
+    }
     
-    private void xform(float x, float y, double deltaDir, boolean reset) {
-        if (reset) {
-            st.dir = 0;
-            // Reset to center
-            path.reset();
-            path.moveTo(st.w/2f + x, st.h/2f + y);
-            return;
-        }
-        
+    private void xform(float x, float y, double deltaDir) {
         st.dir -= deltaDir;
         // Calculate new position based on current transform
         float newX = (float)(st.w/2 + x * Math.cos(st.dir) - y * Math.sin(st.dir));
@@ -195,7 +193,7 @@ public class Logo1 extends View {
     public void reset() {
         if (st == null) return;
         
-        xform(0, 0, st.dir + 90.0 * RAD, true);
+        center(0, 0, st.dir + 90.0 * RAD);
         linePaint.setStrokeWidth(st.pw);
         linePaint.setColor(st.fg);
         
@@ -213,31 +211,31 @@ public class Logo1 extends View {
         clearEve();
         
         switch (op) {
-            case "cs":                                              // clear screen
+            case "cs":                                         /// clear screen
                 surfaceCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                 path.reset();
-                path.moveTo(st.w/2f, st.h/2f);               break;
-            case "st": st.show = 1;                          break; // show turtle
-            case "ht": st.show = 0;                          break; // hide turtle
-            case "ct": reset();                              break; // center turtle
-            case "pd": st.pen = 1;                           break; // pen down
-            case "pu": st.pen = 0;                           break; // pen up
-            case "hd": xform(0, 0, st.dir - v * RAD, false); break; // set heading
-            case "fd": xform((float)v, 0, 0, false);         break; // forward
-            case "bk": xform((float)-v, 0, 0, false);        break; // backward
-            case "rt": xform(0, 0, v * RAD, false);          break; // right turn
-            case "lt": xform(0, 0, -v * RAD, false);         break; // left turn
-            case "pc":                                              // pen color (HSV)
+                path.moveTo(st.w/2f, st.h/2f);         break;
+            case "st": st.show = 1;                    break;  /// show turtle
+            case "ht": st.show = 0;                    break;  /// hide turtle
+            case "ct": reset();                        break;  /// center turtle
+            case "pd": st.pen = 1;                     break;  /// pen down
+            case "pu": st.pen = 0;                     break;  /// pen up
+            case "hd": xform(0, 0, st.dir - v * RAD);  break;  /// set heading
+            case "fd": xform((float)v, 0, 0);          break;  /// forward
+            case "bk": xform((float)-v, 0, 0);         break;  /// backward
+            case "rt": xform(0, 0, v * RAD);           break;  /// right turn
+            case "lt": xform(0, 0, -v * RAD);          break;  /// left turn
+            case "pc":                                         /// pen color (HSV)
                 st.fg = HSVColor(v);
-                linePaint.setColor(st.fg);                   break;
-            case "fg":                                              // foreground color (RGB)
+                linePaint.setColor(st.fg);             break;
+            case "fg":                                         /// foreground color (RGB)
                 st.fg = RGBColor((int) v);
-                linePaint.setColor(st.fg);                   break;
-            case "bg": st.bg = RGBColor((int) v);            break; // background color (RGB)
-            case "pw":                                              // pen width
+                linePaint.setColor(st.fg);             break;
+            case "bg": st.bg = RGBColor((int) v);      break;  /// background color (RGB)
+            case "pw":                                         /// pen width
                 st.pw = (int)v;
-                linePaint.setStrokeWidth(st.pw);             break;
-            case "xy":                                              // set position
+                linePaint.setStrokeWidth(st.pw);       break;
+            case "xy":                                        // set position
                 int intV = (int) v;
                 int x = (intV & 0xffff);
                 int y = (intV >> 16) & 0xffff;
