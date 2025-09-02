@@ -60,6 +60,18 @@ public class VM {
         ok(false);
         return run;                                     ///> * return VM status
     }
+    int number(String idiom) {                          ///> parse a number
+        int b = 0;
+        switch (idiom.charAt(0)) {
+        case '%': b = 2;  break;
+        case '&':
+        case '#': b = 10; break;
+        case '$': b = 16; break;
+        }
+        return (b != 0)
+            ? Integer.parseInt(idiom.substring(1), b)
+            : Integer.parseInt(idiom, base);
+    }
     void parse(String idiom) {                          ///> outer interpreter (one line a time)
         io.debug("find "+idiom);
         Code w = dict.find(idiom, compile);             ///< search dictionary
@@ -75,7 +87,7 @@ public class VM {
         else io.debug(" => not found");
         ///> word not found, try as a number
         try {
-            int n=Integer.parseInt(idiom, base);        ///> * try process as a number
+            int n=number(idiom);                        ///> * try process as a number
             io.debug(" => "+n+"\n");
             if (compile)                                ///>> in compile mode 
                 dict.compile(new Code(_dolit, "lit", n));  ///> add to latest defined word
