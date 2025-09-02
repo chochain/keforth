@@ -5,5 +5,5 @@
 package com.demo.eforth;
 
 public interface JavaCallback {
-    void post(String str);
+    void onPost(String msg);
 }
