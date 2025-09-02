@@ -4,10 +4,12 @@
 ///
 package com.demo.eforth;
 
-import java.io.*;
-import java.time.*;
-import java.util.*;
-import java.util.function.*;
+import java.util.Stack;
+import java.util.Random;
+import java.util.function.Function;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import android.os.Environment;
 
 public class VM {
     Dict         dict;
@@ -490,7 +492,11 @@ public class VM {
             try { Thread.sleep(ss.pop()); } 
             catch (Exception e) { io.err(e); }
         });
-        CODE("java",  c -> java_api.post("this is a test")         );
+        CODE("java",  c -> java_api.onPost(serialize())            );
+        CODE("dir",   c -> {
+//                File d = getFilesDir();
+//                io.pstr(d.toString());
+            });
         CODE("forget", c -> {
             Code m = dict.find("boot", compile);
             Code w = tick(); if (w==null) return;
@@ -501,35 +507,43 @@ public class VM {
             dict.forget(t);
         });
     }
-}
-/*
-void native_api() {                        ///> ( n addr u -- )
-    stringstream n;
-    auto t2s = [&n](char c) {              ///< template to string
-        n.str("");                         /// * clear stream
-        switch (c) {
-        case 'd': n << UINT(POP());                break;
-        case 'f': n << (DU)POP();                  break;
-        case 'x': n << "0x" << hex << UINT(POP()); break;
-        case 's': POP(); n << (char*)MEM(POP());   break;  /// also handles raw stream
-        case 'p':
-            n << "p " << UINT(POP());
-            n << ' '  << UINT(POP());              break;
-        default : n << c << '?';                   break;
+    public String serialize() {
+        StringBuilder n = new StringBuilder();
+        Function<Character, String> t2s = (Character c) -> {
+            n.setLength(0);  // Clear StringBuilder (equivalent to n.str(""))
+            
+            switch (c) {
+            case 'd': n.append(ss.pop().toString());                break;
+            case 'f': n.append((float)ss.pop());                    break;
+            case 'x': n.append("0x").append(ss.pop().toString(16)); break;
+            case 's':
+                int len = ss.pop(), i_w = ss.pop();
+                n.append("\""+STR(i_w)+"\"");                       break;
+            case 'p':
+                int p1 = ss.pop(), p2 = ss.pop();
+                n.append("p ").append(p1).append(' ').append(p2);   break;
+            default: n.append(c).append('?');                       break;
+            }
+            return n.toString();
+        };
+        int len = ss.pop(), i_w = ss.pop();           /// strlen, not used
+        StringBuilder pad = new StringBuilder(STR(i_w));
+        /// Process format specifiers from back to front
+        /// Find % from back until not found
+        for (int i = pad.lastIndexOf("%"); 
+             i != -1; i = (i > 0) ? pad.lastIndexOf("%", i - 1) : -1) {
+            if (i > 0 && pad.charAt(i - 1) == '%') {  /// handle %%
+                pad.delete(i - 1, i);                 /// Drop one %
+                i--;                                  /// Adjust index after deletion
+                continue;
+            }
+            /// Single % followed by format character
+            if (i + 1 < pad.length()) {
+                String x = t2s.apply(pad.charAt(i + 1));
+                pad.replace(i, i + 2, x);
+            }
         }
-        return n.str();
-    };
-    POP();                                 /// * strlen, not used
-    pad.clear();                           /// * borrow PAD for string op
-    pad.append((char*)MEM(POP()));         /// copy string on stack
-    for (size_t i=pad.find_last_of('%');   ///> find % from back
-         i!=string::npos;                  /// * until not found
-         i=pad.find_last_of('%',i?i-1:0)) {
-        if (i && pad[i-1]=='%') {          /// * double %%
-            pad.replace(--i,1,"");         /// * drop one %
-        }
-        else pad.replace(i, 2, t2s(pad[i+1]));
+        /// Pass to JavaScript call handler (equivalent to js_call)
+        return pad.toString();
     }
-    js_call(pad.c_str());    /// * pass to Emscripten function above
 }
-*/
