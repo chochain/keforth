@@ -33,12 +33,12 @@
                   android:textIsSelectable="false"
                   android:fontFamily="monospace"/>
             </ScrollView>
-            <com.demo.logo.Logo
+            <com.demo.logo.Logo1
                 android:id="@+id/logo"
                 android:layout_width="0dp"
                 android:layout_weight="4"
                 android:layout_height="match_parent"
-                android:background="@drawable/textview_border"/>
+                android:background="@drawable/logoview_border"/>
         </LinearLayout>
         <EditText
             android:id="@+id/forthInput"
