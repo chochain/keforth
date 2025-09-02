@@ -8,12 +8,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
-import java.util.Stack;
 import java.lang.String;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.Scanner;
+import java.util.Stack;
+
+import android.os.Environment;
 ///
 ///> console input/output
 ///
@@ -24,13 +26,17 @@ public class IO {
     String        name;
     FV<Scanner>   ins = new FV<>();                         ///< input scanner stack
     Scanner       tok = null;                               ///< tokenizer (from in Scanner)
-    OutputStream  out = null;
+    OutputStream  out = null;                               ///< Stream Output
     String        pad;                                      ///< tmp storage
+    String        dir0= null;                               ///< root directory
+    StringBuffer  wd  = null;                               ///< working directory
 
     public IO(String n, InputStream i, OutputStream o) {
         name = n;                                           ///< name of the system (for mstat)
         ins.add(new Scanner(i));                            ///< stackup input streams
-        out = o;
+        out  = o;
+        dir0 = Environment.getExternalStorageDirectory().toString();  ///< device public storage root
+        wd   = new StringBuffer();
     }
     ///
     ///> IO internal
@@ -144,11 +150,29 @@ public class IO {
         if (c.str != null)  pstr(" \\ =\""+c.str+"\" ");
         if (dp == 0) pstr("\n; ");
     }
+    String full_path(String d) {
+        return dir0 + "/" + wd + (d==null ? "" : "/"+d);
+    }
+    void dir(String d) {
+        File[] fa = new File(full_path(d)).listFiles();      ///< list from 'current dir'
+        for (int i = 0; i < fa.length; i++) {
+            pstr(fa[i].getName()+"  ");
+        }
+        cr();
+    }
+    void cd(String d) {
+        if (d==null)             wd.setLength(0);
+        else if (d.equals("..")) wd.delete(wd.lastIndexOf("/"), wd.length()-1);
+        else if (!d.equals(".")) wd.append("/"+d);
+
+        pstr("cd "+wd.toString());
+    }
     int load_depth() { return ins.size() - 1; }             /// * depth or recursive loading
     int load(String fn, BooleanSupplier outer) {
-        Scanner tok0 = tok;                                 ///< backup tokenizer
+        Scanner tok0    = tok;                              ///< backup tokenizer
+        String  full_fn = full_path(fn);
         int i = 0;
-        try (Scanner sc = new Scanner(new File(fn))) {      ///< auto close scanner
+        try (Scanner sc = new Scanner(new File(full_fn))) { ///< auto close scanner
             ins.add(sc);                                    /// * switch input stream
             while (readline()) {                            /// * load from file now
                 i++;
