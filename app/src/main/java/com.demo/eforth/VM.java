@@ -9,7 +9,6 @@ import java.util.Random;
 import java.util.function.Function;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import android.os.Environment;
 
 public class VM {
     Dict         dict;
@@ -467,6 +466,25 @@ public class VM {
             int i = ss.pop() << 16; ss.push(i | ss.pop());         /// i.e. 4 v 2 th !
         });
         /// @}
+        /// @defgroup System/OS ops
+        /// @{
+        IMMD("dir",   c -> io.dir(io.next_token())                 );
+        IMMD("cd",    c -> io.cd(io.next_token())                  );
+        IMMD("include",                                            /// include an OS file
+             c -> io.load(io.next_token(), ()->{ return outer(); })
+        );
+        CODE("included",c -> {                                     /// include a file (programmable)
+             ss.pop();
+             io.load(STR(ss.pop()), ()->{ return outer(); });
+        });
+        CODE("ok",    c -> io.mstat()                              );
+        CODE("clock", c -> ss.push((int)System.currentTimeMillis()));
+        CODE("rnd",   c -> ALU(a -> rnd.nextInt(a))                );
+        CODE("ms",    c -> {                                       /// n -- delay n ms
+            try { Thread.sleep(ss.pop()); } 
+            catch (Exception e) { io.err(e); }
+        });
+        CODE("java",  c -> java_api.onPost(serialize())            );
         /// @defgroup Debug ops
         /// @{
         CODE("here",  c -> ss.push(Code.fence)                     );
@@ -476,27 +494,8 @@ public class VM {
         CODE(".s",    c -> io.ss_dump(ss, base)                    );
         CODE("words", c -> io.words(dict)                          );
         CODE("see",   c -> io.see(tick(), base, 0)                 );
-        CODE("clock", c -> ss.push((int)System.currentTimeMillis()));
-        CODE("rnd",   c -> ALU(a -> rnd.nextInt(a))                );
         CODE("depth", c -> ss.push(ss.size())                      );
         CODE("r",     c -> ss.push(rs.size())                      );
-        IMMD("include",                                            /// include an OS file
-             c -> io.load(io.next_token(), ()->{ return outer(); })
-        );
-        CODE("included",c -> {                                     /// include a file (programmable)
-             ss.pop();
-             io.load(STR(ss.pop()), ()->{ return outer(); });
-        });
-        CODE("ok",    c -> io.mstat()                              );
-        CODE("ms",    c -> {                                       /// n -- delay n ms
-            try { Thread.sleep(ss.pop()); } 
-            catch (Exception e) { io.err(e); }
-        });
-        CODE("java",  c -> java_api.onPost(serialize())            );
-        CODE("dir",   c -> {
-//                File d = getFilesDir();
-//                io.pstr(d.toString());
-            });
         CODE("forget", c -> {
             Code m = dict.find("boot", compile);
             Code w = tick(); if (w==null) return;
@@ -508,7 +507,7 @@ public class VM {
         });
     }
     public String serialize() {
-        StringBuilder n = new StringBuilder();
+        StringBuffer n = new StringBuffer();
         Function<Character, String> t2s = (Character c) -> {
             n.setLength(0);  // Clear StringBuilder (equivalent to n.str(""))
             
@@ -527,7 +526,7 @@ public class VM {
             return n.toString();
         };
         int len = ss.pop(), i_w = ss.pop();           /// strlen, not used
-        StringBuilder pad = new StringBuilder(STR(i_w));
+        StringBuffer pad = new StringBuffer(STR(i_w));
         /// Process format specifiers from back to front
         /// Find % from back until not found
         for (int i = pad.lastIndexOf("%"); 
