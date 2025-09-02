@@ -153,6 +153,7 @@ public class IO {
     String full_path(String d) {
         return dir0 + "/" + wd + (d==null ? "" : "/"+d);
     }
+    void pwd() { pstr(wd.toString()+" "); }
     void dir(String d) {
         File[] fa = new File(full_path(d)).listFiles();      ///< list from 'current dir'
         for (int i = 0; i < fa.length; i++) {
@@ -164,8 +165,6 @@ public class IO {
         if (d==null)             wd.setLength(0);
         else if (d.equals("..")) wd.delete(wd.lastIndexOf("/"), wd.length()-1);
         else if (!d.equals(".")) wd.append("/"+d);
-
-        pstr("cd "+wd.toString());
     }
     int load_depth() { return ins.size() - 1; }             /// * depth or recursive loading
     int load(String fn, BooleanSupplier outer) {

@@ -470,6 +470,7 @@ public class VM {
         /// @{
         IMMD("dir",   c -> io.dir(io.next_token())                 );
         IMMD("cd",    c -> io.cd(io.next_token())                  );
+        IMMD("pwd",   c -> io.pwd()                                );
         IMMD("include",                                            /// include an OS file
              c -> io.load(io.next_token(), ()->{ return outer(); })
         );
