@@ -115,16 +115,54 @@ public class IO {
     void cr()                     { dot(OP.CR, 0, 0, 10); }
     void bl()                     { dot(OP.BL, 0, 0, 10); }
     ///
-    ///> ok - stack dump and OK prompt
+    /// File ops
     ///
-    void ss_dump(Stack<Integer> ss, int base) {
+    String full_path(String d) {
+        return dir0 + "/" + wd + (d==null ? "" : "/"+d);
+    }
+    void pwd() { pstr(wd.toString()+" "); }
+    void dir(String d) {
+        File[] fa = new File(full_path(d)).listFiles();      ///< list from 'current dir'
+        for (int i = 0; i < fa.length; i++) {
+            pstr(fa[i].getName()+"  ");
+        }
+        cr();
+    }
+    void cd(String d) {
+        if (d==null)             wd.setLength(0);
+        else if (d.equals("..")) wd.delete(wd.lastIndexOf("/"), wd.length());
+        else if (!d.equals(".")) wd.append("/"+d);
+    }
+    int load_depth() { return ins.size() - 1; }             /// * depth or recursive loading
+    int load(String fn, BooleanSupplier outer) {
+        Scanner tok0    = tok;                              ///< backup tokenizer
+        String  full_fn = full_path(fn);
+        int i = 0;
+        try (Scanner sc = new Scanner(new File(full_fn))) { ///< auto close scanner
+            ins.add(sc);                                    /// * switch input stream
+            while (readline()) {                            /// * load from file now
+                i++;
+                if (!outer.getAsBoolean()) break;           /// * pass to outer interpreter
+            }
+        }
+        catch (IOException e) { err(e); }                   /// * just in case 
+        finally {
+            ins.drop();                                     /// * restore input stream
+        }
+        tok = tok0;
+        return i;                                           /// return line loaded
+    }
+    ///
+    ///> Debug ops
+    ///
+    void ss_dump(Stack<Integer> ss, int base) {             /// ok
         for (int n : ss) pstr(itoa(n, base)+" ");
     }
     void words(Dict dict) {
         int i=0, sz = 0; 
         for (Code w : dict) {
             pstr("  " + w.name);
-            sz += w.name.length() + 2;                         /// width control
+            sz += w.name.length() + 2;                      /// width control
             if (sz > 64) { cr(); sz = 0; }
         }
         cr();
@@ -149,40 +187,5 @@ public class IO {
         }
         if (c.str != null)  pstr(" \\ =\""+c.str+"\" ");
         if (dp == 0) pstr("\n; ");
-    }
-    String full_path(String d) {
-        return dir0 + "/" + wd + (d==null ? "" : "/"+d);
-    }
-    void pwd() { pstr(wd.toString()+" "); }
-    void dir(String d) {
-        File[] fa = new File(full_path(d)).listFiles();      ///< list from 'current dir'
-        for (int i = 0; i < fa.length; i++) {
-            pstr(fa[i].getName()+"  ");
-        }
-        cr();
-    }
-    void cd(String d) {
-        if (d==null)             wd.setLength(0);
-        else if (d.equals("..")) wd.delete(wd.lastIndexOf("/"), wd.length()-1);
-        else if (!d.equals(".")) wd.append("/"+d);
-    }
-    int load_depth() { return ins.size() - 1; }             /// * depth or recursive loading
-    int load(String fn, BooleanSupplier outer) {
-        Scanner tok0    = tok;                              ///< backup tokenizer
-        String  full_fn = full_path(fn);
-        int i = 0;
-        try (Scanner sc = new Scanner(new File(full_fn))) { ///< auto close scanner
-            ins.add(sc);                                    /// * switch input stream
-            while (readline()) {                            /// * load from file now
-                i++;
-                if (!outer.getAsBoolean()) break;           /// * pass to outer interpreter
-            }
-        }
-        catch (IOException e) { err(e); }                   /// * just in case 
-        finally {
-            ins.drop();                                     /// * restore input stream
-        }
-        tok = tok0;
-        return i;                                           /// return line loaded
     }
 }
