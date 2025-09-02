@@ -4,11 +4,6 @@
 ///
 package com.demo.eforth;
 
-import java.util.*;
-import java.io.*;
-import java.time.*;
-import java.util.function.*;
-
 final public class Dict extends FV<Code> {
     static Dict dict = new Dict();
     

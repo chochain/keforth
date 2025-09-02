@@ -4,7 +4,7 @@
 ///
 package com.demo.eforth;
 
-import java.util.*;
+import java.util.Stack;
 import java.util.function.Consumer;
 
 public class Code {

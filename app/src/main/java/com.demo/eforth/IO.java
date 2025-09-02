@@ -4,8 +4,12 @@
 ///
 package com.demo.eforth;
 
-import java.io.*;
-import java.util.*;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.Stack;
 import java.lang.String;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
