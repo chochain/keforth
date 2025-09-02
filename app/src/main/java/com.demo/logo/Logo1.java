@@ -268,25 +268,4 @@ public class Logo1 extends View {
         invalidate();
         return true;
     }
-    
-    // Example usage in an Activity:
-    /*
-    public class MainActivity extends AppCompatActivity {
-        private Logo logo;
-        
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            
-            logo = new Logo(this);
-            setContentView(logo);
-            
-            // Example commands
-            logo.update(new Object[]{"logo", "st"});      // show turtle
-            logo.update(new Object[]{"logo", "fd", 100}); // forward 100
-            logo.update(new Object[]{"logo", "rt", 90});  // right 90 degrees
-            logo.update(new Object[]{"logo", "fd", 100}); // forward 100
-        }
-    }
-    */
 }
