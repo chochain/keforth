@@ -14,11 +14,8 @@ public class Logo1 extends View {
     private static final String TAG = "Logo";
     private static final double RAD = Math.PI / 180.0;
     
-    public static int RGBColor(int v) {            /// Shouldn't Color.rgb == v
-        int r = (v >> 16) & 0xff;
-        int g = (v >> 8) & 0xff;
-        int b = v & 0xff;
-        return Color.rgb(r, g, b);
+    public static int RGBColor(int v) {            /// convert v to ARGB
+        return v | 0xff000000;                     /// alpha=100%, i.e. opaque
     }
     public static int HSVColor(int h) {            /// 0 < h < 100
         double s = 1.0, v = 1.0;
@@ -65,11 +62,11 @@ public class Logo1 extends View {
         }
     }
     private State   st;
-    private Bitmap  tgtBitmap, eveBitmap;
-    private Canvas  tgtCanvas, eveCanvas;
-    private Paint   linePaint, evePaint;
+    private Bitmap  sfcBitmap, eveBitmap;
+    private Canvas  sfcCanvas, eveCanvas;
+    private Paint   sfcPaint,  evePaint;
     private Path    path;
-    private boolean needsRedraw = true;
+    private boolean redraw = true;
     
     // Constructors
     public Logo1(Context context) {
@@ -86,10 +83,10 @@ public class Logo1 extends View {
     
     private void init() {
         // Initialize paints
-        linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        linePaint.setStyle(Paint.Style.STROKE);
-        linePaint.setStrokeJoin(Paint.Join.ROUND);
-        linePaint.setStrokeCap(Paint.Cap.ROUND);
+        sfcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        sfcPaint.setStyle(Paint.Style.STROKE);
+        sfcPaint.setStrokeJoin(Paint.Join.ROUND);
+        sfcPaint.setStrokeCap(Paint.Cap.ROUND);
         
         evePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         evePaint.setStyle(Paint.Style.STROKE);
@@ -107,9 +104,9 @@ public class Logo1 extends View {
         if (w <= 0 || h <= 0) return;
         
         // Create bitmaps for the two layers
-        tgtBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        sfcBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         eveBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        tgtCanvas = new Canvas(tgtBitmap);
+        sfcCanvas = new Canvas(sfcBitmap);
         eveCanvas = new Canvas(eveBitmap);
             
         // Initialize state
@@ -120,9 +117,9 @@ public class Logo1 extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (tgtBitmap == null || eveBitmap == null) return;
+        if (sfcBitmap == null || eveBitmap == null) return;
         
-        canvas.drawBitmap(tgtBitmap, 0, 0, null);  /// Draw the surface layer
+        canvas.drawBitmap(sfcBitmap, 0, 0, null);  /// Draw the surface layer
         canvas.drawBitmap(eveBitmap, 0, 0, null);  /// Draw the eve (turtle) layer on top
     }
 
@@ -143,12 +140,13 @@ public class Logo1 extends View {
         eveCanvas.rotate((float)Math.toDegrees(st.d));
         
         Path  eve = new Path();                     /// draw Eve body using paths
-        RectF rec = new RectF(-20, -20, 20, 20);    /// shoulder arc, start from left
-        eve.addArc(rec, (float)Math.toDegrees(-X), (float)Math.toDegrees(X - W));   // (oval, start, sweep)
-        eve.lineTo(0, 0);                           /// move to center, then right shoulder
-        eve.addArc(rec, (float)Math.toDegrees(X), (float)Math.toDegrees(W - X));
-        eve.lineTo(0, 0);
-        eve.addCircle(24, 0, 4, Path.Direction.CW); /// head circle
+        eve.addCircle(24, 0, 4, Path.Direction.CW); /// Eve's head
+        
+        RectF rec = new RectF(-20, -20, 20, 20);    /// bounding oval of shoulder arcs
+        eve.addArc(rec, (float)Math.toDegrees(-X), (float)Math.toDegrees(X - W));   /// left shoulder, (oval, start, sweep)
+        eve.lineTo(0, 0);                           /// move to feet, then right shoulder
+        eve.addArc(rec, (float)Math.toDegrees(X), (float)Math.toDegrees(W - X));    /// right shoulder
+        eve.lineTo(0, 0);                           /// final at feet
         
         eveCanvas.drawPath(eve, evePaint);
         eveCanvas.restore();                        /// Restore canvas state
@@ -160,22 +158,23 @@ public class Logo1 extends View {
         path.moveTo(0.5f * st.w + x, 0.5f * st.h + y);
     }
     
-    private void xform(float x, float y, double delta) {
+    private void xform(int x, int y, double delta) {
         st.d += delta;
         // Calculate new position based on current transform
-        float x1 = (float)(0.5f * st.w + x * Math.cos(st.d) - y * Math.sin(st.d));
-        float y1 = (float)(0.5f * st.h + x * Math.sin(st.d) + y * Math.cos(st.d));
+        float c  = (float)Math.cos(st.d), s = (float)Math.sin(st.d);
+        float dx = c * x - s * y;     /// * TODO: use 4x4 matrix
+        float dy = s * x + c * y;
         
-        if (st.pen == 1) path.lineTo(x1, y1);
-        else             path.moveTo(x1, y1);
+        if (st.pen == 1) path.rLineTo(dx, dy);
+        else             path.rMoveTo(dx, dy);
     }
     
     public void reset() {
         if (st == null) return;
 
-        center(0, 0, st.d - Math.PI * 0.5);                /// recenter
-        linePaint.setStrokeWidth(st.pw);
-        linePaint.setColor(st.fg);
+        center(0, 0, st.d - Math.PI * 0.5);                /// recenter, due North
+        sfcPaint.setStrokeWidth(st.pw);
+        sfcPaint.setColor(st.fg);
         
         if (st.show == 1) drawEve(st.fg);
 
@@ -190,7 +189,7 @@ public class Logo1 extends View {
         
         switch (op) {
         case "cs":                                         /// clear screen
-            tgtCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            sfcCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             path.reset();
             path.moveTo(0.5f * st.w, 0.5f * st.h); break;
         case "st": st.show = 1;                    break;  /// show turtle
@@ -198,21 +197,21 @@ public class Logo1 extends View {
         case "ct": center(0, 0, 0);                break;  /// center turtle
         case "pd": st.pen = 1;                     break;  /// pen down
         case "pu": st.pen = 0;                     break;  /// pen up
-        case "hd": xform(0, 0, st.d - v * RAD);    break;  /// set heading
-        case "fd": xform((float)v, 0, 0);          break;  /// forward
-        case "bk": xform((float)-v, 0, 0);         break;  /// backward
+        case "hd": xform(0, 0, st.d - RAD * v);    break;  /// set heading
+        case "fd": xform(v, 0, 0);                 break;  /// forward
+        case "bk": xform(-v, 0, 0);                break;  /// backward
         case "rt": xform(0, 0, RAD * v);           break;  /// right turn
         case "lt": xform(0, 0, -RAD * v);          break;  /// left turn
         case "pc":                                         /// pen color (HSV)
             st.fg = HSVColor(v);
-            linePaint.setColor(st.fg);             break;
+            sfcPaint.setColor(st.fg);             break;
         case "fg":                                         /// foreground color (RGB)
             st.fg = RGBColor(v);
-            linePaint.setColor(st.fg);             break;
+            sfcPaint.setColor(st.fg);             break;
         case "bg": st.bg = RGBColor(v);            break;  /// background color (RGB)
         case "pw":                                         /// pen width
             st.pw = v;
-            linePaint.setStrokeWidth(st.pw);       break;
+            sfcPaint.setStrokeWidth(st.pw);       break;
         case "xy":                                         /// set position
             int x = (v & 0xffff);
             int y = (v >> 16) & 0xffff;
@@ -231,18 +230,11 @@ public class Logo1 extends View {
             break;
         default: return false;
         }
-        
-        // Draw the current path on surface canvas
-        tgtCanvas.drawPath(path, linePaint);
-        
-        // Draw turtle if visible
-        if (st.show == 1) drawEve(st.fg);
-        
-        // Debug output
-        Log.d(TAG, st.toString());
-        
-        // Trigger view redraw
-        invalidate();
+
+        sfcCanvas.drawPath(path, sfcPaint);              /// Draw the current path on surface canvas
+        if (st.show == 1) drawEve(st.fg);                /// Draw turtle if visible
+        invalidate();                                    /// Trigger view redraw
+
         return true;
     }
 }
