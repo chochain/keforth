@@ -152,16 +152,18 @@ public class Logo1 extends View {
         eveCanvas.drawPath(eve, evePaint);
         eveCanvas.restore();                        /// Restore canvas state
     }
-
-    private void center(float x, float y, double delta) {
-        path.reset();                               /// Reset to center
+    private void xcenter(                           /// change center
+        float x, float y, double delta) {  
+        path.reset();                               /// reset to (0,0)
         st.d += delta;
         st.x = 0.5f * st.w + x;
         st.y = 0.5f * st.h - y;
-        path.moveTo(st.x, st.y);
+        path.moveTo(st.x, st.y);                    ///< move to new center
     }
-    private void repath() {
+    private void xcolor(int color) {                ///< change surface paint color
         path.reset();
+        st.fg = color;
+        sfcPaint.setColor(st.fg);
         path.moveTo(st.x, st.y);
     }
     
@@ -180,7 +182,7 @@ public class Logo1 extends View {
     public void reset() {
         if (st==null) return;
 
-        center(0, 0, -st.d - Math.PI * 0.5);               /// recenter, due North
+        xcenter(0, 0, -st.d - Math.PI * 0.5);              /// recenter, due North
         sfcPaint.setStrokeWidth(st.pw);
         sfcPaint.setColor(st.fg);
         
@@ -198,11 +200,10 @@ public class Logo1 extends View {
         switch (op) {
         case "cs":                                         /// clear screen
             sfcCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-            path.reset();
-            center(0, 0, -st.d);                   break;
+            xcenter(0, 0, -st.d);                  break;  /// center, due North
         case "st": st.show = 1;                    break;  /// show turtle
         case "ht": st.show = 0;                    break;  /// hide turtle
-        case "ct": center(0, 0, 0);                break;  /// center turtle
+        case "ct": xcenter(0, 0, 0);               break;  /// center turtle
         case "pd": st.pen = 1;                     break;  /// pen down
         case "pu": st.pen = 0;                     break;  /// pen up
         case "hd": xform(0, 0, -st.d-RAD*(90-v));  break;  /// set heading, 0=North
@@ -210,17 +211,9 @@ public class Logo1 extends View {
         case "bk": xform(-v, 0, 0);                break;  /// backward
         case "rt": xform(0, 0, RAD * v);           break;  /// right turn
         case "lt": xform(0, 0, -RAD * v);          break;  /// left turn
-        case "pc":                                         /// pen color (HSV)
-            repath();
-            st.fg = HSVColor(v);
-            sfcPaint.setColor(st.fg);              break;
-        case "fg":                                         /// foreground color (RGB)
-            repath();
-            st.fg = RGBColor(v);
-            sfcPaint.setColor(st.fg);              break;
-        case "bg":
-            repath();
-            st.bg = RGBColor(v);                   break;  /// background color (RGB)
+        case "pc": xcolor(HSVColor(v));            break;  /// change pen color (HSV)
+        case "fg": xcolor(RGBColor(v));            break;  /// change foreground color (RGB)
+        case "bg": st.bg = RGBColor(v);            break;  /// background color (RGB)
         case "pw":                                         /// pen width
             st.pw = v;
             sfcPaint.setStrokeWidth(st.pw);        break;
