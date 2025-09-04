@@ -42,18 +42,16 @@ public class Logo1 extends View {
     public static class State {
         public float  x, y;               ///< current x, y (0,0 at top-left)
         public int    w, h;               ///< width, height of display port
-        public double d;                  ///< direction
-        public int    pen, pw, show;      ///< pen-down, pen-width, pen-shown
-        public int    fg, bg;             ///< fore/background colors
+        public float  d    = 0;           ///< direction (in degree, 0=East)
+        public int    pen  = 1;           ///< 0: pen-up, 1: pen-down
+        public int    pw   = 3;           ///< pen brush width (3-pixel)
+        public int    show = 0;           ///< 0: hide turtle, 1: show turtle
+        public int    fg   = Color.WHITE; ///< brush foreground colors
+        public int    bg   = Color.GREEN; ///< background color (not used now)
         
         public State(int w, int h) {
             this.w    = w;
             this.h    = h;                ///< x, y, d will be set by reset()
-            this.pen  = 1;
-            this.pw   = 3;                ///< 3-pixel stroke
-            this.show = 0;
-            this.fg   = Color.WHITE;
-            this.bg   = Color.GREEN;
         }
         @Override
         public String toString() {
@@ -130,46 +128,49 @@ public class Logo1 extends View {
     }
     
     private void drawEve(int color) {
+        final float A = 30; //(float)Math.toDegrees(Math.PI/6);   ///< starting angle
+        final float S = 18; // (float)Math.toDegrees(Math.PI/10);  ///< sweeping angle
+        
         if (eveCanvas==null) return;
         
-        final double W = Math.PI / 15, X = Math.PI / 6;
         evePaint.setColor(color);
         eveCanvas.save();                           /// save canvas state
         
         /// Translate and rotate to current turtle position and direction
         eveCanvas.translate(st.x, st.y);
-        eveCanvas.rotate((float)Math.toDegrees(st.d));
+        eveCanvas.rotate(st.d);
         
         Path  eve = new Path();                     /// draw Eve body using paths
         eve.addCircle(24, 0, 4, Path.Direction.CW); /// Eve's head
         
         RectF rec = new RectF(-20, -20, 20, 20);    /// bounding oval of shoulder arcs
-        eve.addArc(rec, (float)Math.toDegrees(-X), (float)Math.toDegrees(X - W));   /// left shoulder, (oval, start, sweep)
+        eve.addArc(rec, -A, S);                     /// left shoulder, (oval, start, sweep)
         eve.lineTo(0, 0);                           /// move to feet, then right shoulder
-        eve.addArc(rec, (float)Math.toDegrees(X), (float)Math.toDegrees(W - X));    /// right shoulder
+        eve.addArc(rec, A, -S);                     /// right shoulder
         eve.lineTo(0, 0);                           /// final at feet
         
         eveCanvas.drawPath(eve, evePaint);
         eveCanvas.restore();                        /// Restore canvas state
     }
     private void xcenter(                           /// change center
-        float x, float y, double delta) {  
-        path.reset();                               /// reset to (0,0)
+        float x, float y, float delta) {  
+        path.rewind();                              /// reset to (0,0)
         st.d += delta;
-        st.x = 0.5f * st.w + x;
+        st.x = 0.5f * st.w + x;                     /// absolute coor
         st.y = 0.5f * st.h - y;
         path.moveTo(st.x, st.y);                    ///< move to new center
     }
     private void xcolor(int color) {                ///< change surface paint color
-        path.reset();
+        path.rewind();
         st.fg = color;
         sfcPaint.setColor(st.fg);
         path.moveTo(st.x, st.y);
     }
     
-    private void xform(int x, int y, double delta) {
+    private void xform(int x, int y, float delta) {
         st.d += delta;
-        float c = (float)Math.cos(st.d), s = (float)Math.sin(st.d);
+        float c = (float)Math.cos(st.d * RAD);     /// cos(dir)
+        float s = (float)Math.sin(st.d * RAD);     /// sin(dir)
         
         // Calculate new position based on current transform
         st.x += c * x - s * y;                     /// * TODO: use 4x4 matrix
@@ -178,11 +179,18 @@ public class Logo1 extends View {
         if (st.pen==1) path.lineTo(st.x, st.y);
         else           path.moveTo(st.x, st.y);
     }
+    private void xtext(String txt) {
+        sfcCanvas.save();
+        sfcCanvas.rotate(st.d - 90);
+        sfcCanvas.drawText(                         ///< remove quotes
+            txt.substring(1,txt.length()-1), 0, 0, sfcPaint);
+        sfcCanvas.restore();
+     }
     
     public void reset() {
         if (st==null) return;
 
-        xcenter(0, 0, -st.d - Math.PI * 0.5);              /// recenter, due North
+        xcenter(0, 0, -st.d - 90);                  /// recenter, due North
         sfcPaint.setStrokeWidth(st.pw);
         sfcPaint.setColor(st.fg);
         
@@ -192,8 +200,9 @@ public class Logo1 extends View {
     }
 
     public String to_s() { return st.toString(); }
-    public boolean update(String op, int v) {
+    public boolean update(String op, String v1, String v2) {
         if (st == null) return false;
+        int n = op.equals("tt") ? 0 : Integer.parseInt(v1);
         
         clearEve();                                        /// hide turtle
         
@@ -201,25 +210,27 @@ public class Logo1 extends View {
         case "cs":                                         /// clear screen
             sfcCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             xcenter(0, 0, -st.d);                  break;  /// center, due North
-        case "st": st.show = 1;                    break;  /// show turtle
         case "ht": st.show = 0;                    break;  /// hide turtle
+        case "st": st.show = 1;                    break;  /// show turtle
         case "ct": xcenter(0, 0, 0);               break;  /// center turtle
         case "pd": st.pen = 1;                     break;  /// pen down
         case "pu": st.pen = 0;                     break;  /// pen up
-        case "hd": xform(0, 0, -st.d-RAD*(90-v));  break;  /// set heading, 0=North
-        case "fd": xform(v, 0, 0);                 break;  /// forward
-        case "bk": xform(-v, 0, 0);                break;  /// backward
-        case "rt": xform(0, 0, RAD * v);           break;  /// right turn
-        case "lt": xform(0, 0, -RAD * v);          break;  /// left turn
-        case "pc": xcolor(HSVColor(v));            break;  /// change pen color (HSV)
-        case "fg": xcolor(RGBColor(v));            break;  /// change foreground color (RGB)
-        case "bg": st.bg = RGBColor(v);            break;  /// background color (RGB)
+        case "hd": xform(0, 0, -st.d -(90 - n));   break;  /// set heading, 0=North
+        case "fd": xform(n, 0, 0);                 break;  /// forward
+        case "bk": xform(-n, 0, 0);                break;  /// backward
+        case "rt": xform(0, 0, n);                 break;  /// right turn
+        case "lt": xform(0, 0, -n);                break;  /// left turn
+        case "pc": xcolor(HSVColor(n));            break;  /// change pen color (HSV)
+        case "fg": xcolor(RGBColor(n));            break;  /// change foreground color (RGB)
+        case "bg": st.bg = RGBColor(n);            break;  /// background color (RGB)
         case "pw":                                         /// pen width
-            st.pw = v;
+            st.pw = n;
             sfcPaint.setStrokeWidth(st.pw);        break;
+        case "tt": xtext(v1);                      break;
+        case "ts": sfcPaint.setTextSize(n);        break;  /// default 12
         case "xy":                                         /// set position
-            int x = (v & 0xffff);
-            int y = (v >> 16) & 0xffff;
+            int x = (n & 0xffff);
+            int y = (n >> 16) & 0xffff;
                 
             // Handle negative coordinates (sign extension)
             if ((x & 0x8000) != 0) x |= 0xffff0000;
