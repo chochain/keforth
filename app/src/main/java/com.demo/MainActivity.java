@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     /// implement JavaCallback interface
     ///
     public void onPost(String msg) {
-        String[] op = msg.split("\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+        String[] op = msg.split("\\s+(?=(?:[^']*'[^']*')*[^']*$)");
         int      n  = op.length;
         up.show(msg+" n="+n, color_cm);
         for (int i=0; i<n; i++) {
