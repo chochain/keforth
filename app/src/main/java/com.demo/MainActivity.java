@@ -80,16 +80,23 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     /// implement JavaCallback interface
     ///
     public void onPost(String msg) {
-        String[] op = msg.split(" ");
+        String[] op = msg.split("\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
         int      n  = op.length;
-        up.show("op["+n+"] ", color_cb);
-        String k = n > 0 ? op[0] : "NA";       /// message key
-        int    v = n > 1 ? Integer.parseInt(op[1]) : 0;
-        up.show(k+"=>"+v+"\n", color_cb);
-        
-        up.show("before "+logo.to_s()+"\n", color_cb);
-        logo.update(k, v);
-        up.show("after "+logo.to_s()+"\n", color_cb);
+        up.show(msg+" n="+n, color_cm);
+        for (int i=0; i<n; i++) {
+            up.show(" "+i+":"+op[i], color_cb);
+        }
+        up.show("\n", color_cm);
+        String k  = n > 0 ? op[0] : "--";              ///< message key (operator)
+//        switch (k) {
+//        case "logo": 
+            String v1 = n > 1 ? op[1] : "0";           ///< value (operand)
+            String v2 = n > 2 ? op[2] : "0";
+            up.show("before "+logo.to_s()+"\n", color_cb);
+            logo.update(k, v1, v2);
+            up.show("after  "+logo.to_s()+"\n", color_cb);
+//        default: io.pstr("msg?="+msg+"\n");
+//        }
     }
     
     private void doForth() {
