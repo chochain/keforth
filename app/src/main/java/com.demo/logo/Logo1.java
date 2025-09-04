@@ -181,16 +181,18 @@ public class Logo1 extends View {
     }
     private void xtext(String txt) {
         sfcCanvas.save();
-        sfcCanvas.rotate(st.d - 90);
-        sfcCanvas.drawText(                         ///< remove quotes
-            txt.substring(1,txt.length()-1), 0, 0, sfcPaint);
+        sfcCanvas.translate(st.x, st.y);           ///< reposition text at turtle
+        sfcCanvas.rotate(st.d);                    ///< orient text to st.d
+        sfcCanvas.drawText(                        ///< remove quotes
+            txt.substring(1, txt.length()-1),
+            0, 0, sfcPaint);
         sfcCanvas.restore();
      }
     
     public void reset() {
         if (st==null) return;
 
-        xcenter(0, 0, -st.d - 90);                  /// recenter, due North
+        xcenter(0, 0, -st.d - 90);                 /// recenter, due North
         sfcPaint.setStrokeWidth(st.pw);
         sfcPaint.setColor(st.fg);
         
