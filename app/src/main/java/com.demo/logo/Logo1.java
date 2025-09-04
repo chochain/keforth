@@ -181,12 +181,15 @@ public class Logo1 extends View {
     }
     private void xtext(String txt) {
         sfcCanvas.save();
+
+        Rect r  = new Rect();
+        sfcPaint.getTextBounds(txt, 0, txt.length(), r);
         
-        Rect rec = new Rect();
-        sfcPaint.getTextBounds(txt, 0, txt.length(), rec);
-        sfcCanvas.translate(
-            st.x - 0.5f * rec.width(),
-            st.y - 0.5f * rec.height());           ///< reposition text at turtle
+        Paint.FontMetrics fm = sfcPaint.getFontMetrics();
+        float dx = 0.5f * r.width();
+        float dy = 0.5f * (fm.bottom - fm.top);
+        
+        sfcCanvas.translate(st.x, st.y);           ///< reposition text at turtle
         sfcCanvas.rotate(st.d + 90);               ///< reorient text to st.d
         sfcCanvas.drawText(                        ///< remove quotes
             txt.substring(1, txt.length()-1),
@@ -201,6 +204,7 @@ public class Logo1 extends View {
         xcenter(0, 0, -st.d - 90);                 /// recenter, due North
         sfcPaint.setStrokeWidth(st.pw);
         sfcPaint.setColor(st.fg);
+        sfcPaint.setTextSize(20);                  /// default text size
         
         if (st.show==1) drawEve(st.fg);
 
