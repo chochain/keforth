@@ -1,160 +1,69 @@
-// MainActivity.java
+// MainActivity.java - Refactored main activity
 package com.demo;
 
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.KeyEvent;
-import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.EditText;
-import android.widget.ScrollView;
-import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import android.text.SpannableStringBuilder;
-import android.text.SpannableString;
-import android.text.Spannable;
-import android.text.style.ForegroundColorSpan;
-import android.graphics.Color;
-import com.demo.R;
-
-import java.io.*;
 import com.demo.eforth.*;
 import com.demo.logo.*;
+import com.demo.ui.OutputHandler;
+import com.demo.ui.InputHandler;
+import com.demo.forth.Eforth;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
     static final String APP_NAME = "keForth v0";
-    EditText              in;       ///< User Input for Forth command
-    FloatingActionButton  fb;       ///< alternate command processor
-    IO                    io;       ///< eForth IO dispatcher
-    VM                    vm;       ///< eForth VM instance
-    Updater               up;       ///< Forth output dispatcher
-    Logo1                 logo;     ///< Logo (View to paint on)
-    /// colors
-    int  color_fg;                  ///< forth output color
-    int  color_cm;                  ///< forth command color
-    int  color_cb;                  ///< Logo command (via callback)
+    
+    private EditText             edit;
+    private FloatingActionButton fab;
+    private Logo1                logo;
+    
+    private Eforth               forth;
+    private InputHandler         in;
+    private OutputHandler        out;
     
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle state) {
+        super.onCreate(state);
         setContentView(R.layout.activity_main);
         
-        /// Initialize views
-        in       = findViewById(R.id.forthInput);
-        fb       = findViewById(R.id.buttonProcess);
-        logo     = findViewById(R.id.logo);
+        initViews();
+        initComponents();
+        setupEventListeners();
+    }
+    
+    private void initViews() {
+        edit = findViewById(R.id.forthInput);
+        fab  = findViewById(R.id.buttonProcess);
+        logo = findViewById(R.id.logo);
+    }
+    
+    private void initComponents() {
+        out   = new OutputHandler(this);
+        forth = new Eforth(APP_NAME, out, this);
+        in    = new InputHandler(edit, forth);
         
-        color_fg = Color.WHITE;
-        color_cm = getResources().getColor(R.color.teal_200);
-        color_cb = Color.RED;
-        
-        up  = new Updater();
-        io  = new IO(APP_NAME, System.in, up);
-        vm  = new VM(io, this);
-        io.mstat();
-        
-        /// Set click listener for the button
-        fb.setOnClickListener(new View.OnClickListener() {
+        forth.init();
+    }
+    
+    private void setupEventListeners() {
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) { doForth(); }
-        });
-        /// Process input when user presses Shift+Enter
-        in.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN) {
-//                    if (keyCode == KeyEvent.KEYCODE_ENTER && event.isShiftPressed()) {
-                    if (keyCode == KeyEvent.KEYCODE_ENTER) {
-                        doForth();
-                        return true;                   /// Consume the event
-                    }
-                }
-                return false;                          /// Let other key events pass through
+            public void onClick(View v) {
+                in.doForth();
             }
         });
+        in.setupKeyListener();
     }
-    ///
-    /// implement JavaCallback interface
-    ///
+    
+    @Override
     public void onPost(String msg) {
-        String[] op = msg.split("\\s+(?=(?:[^']*'[^']*')*[^']*$)");
-        int      n  = op.length;
-        up.show(msg+" n="+n, color_cm);
-        for (int i=0; i<n; i++) {
-            up.show(" "+i+":"+op[i], color_cb);
-        }
-        up.show("\n", color_cm);
-        String k  = n > 0 ? op[0] : "--";              ///< message key (operator)
-//        switch (k) {
-//        case "logo": 
-            String v1 = n > 1 ? op[1] : "0";           ///< value (operand)
-            String v2 = n > 2 ? op[2] : "0";
-            up.show("before "+logo.to_s()+"\n", color_cb);
-            logo.update(k, v1, v2);
-            up.show("after  "+logo.to_s()+"\n", color_cb);
-//        default: io.pstr("msg?="+msg+"\n");
-//        }
-    }
-    
-    private void doForth() {
-        // Get user input
-        String cmd = in.getText().toString().trim();
-
-        if (TextUtils.isEmpty(cmd)) return;
-
-        up.show(cmd+"\n", color_cm);                  /// echo cmd
-        io.rescan(cmd);                               /// reload scanner
-        
-        while (io.readline()) {
-            if (!vm.outer()) break;
-        }
-        in.setText(null);
-        in.requestFocus();
-    }
-    
-    private class Updater extends OutputStream {
-        TextView   out;
-        ScrollView sv;
-
-        Updater() {
-            out = findViewById(R.id.forthOutput);
-            sv  = findViewById(R.id.forthView);
-            sv.getViewTreeObserver().addOnGlobalLayoutListener(
-                new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @Override
-                    public void onGlobalLayout() {
-                        sv.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                sv.fullScroll(ScrollView.FOCUS_DOWN);
-                                in.requestFocus();
-                            }
-                        });
-                    }
-                }
-            );
-        }
-        public void show(String str, int color) {
-            SpannableString s = new SpannableString(str);
-            s.setSpan(new ForegroundColorSpan(color),
-                      0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            out.post(() -> out.append(s));
-//            sv.post(() -> sv.fullScroll(View.FOCUS_DOWN));        ///> CC: this does not work
-        }
-        @Override
-        public void write(int n) throws IOException {
-            byte[] b = { (byte)n };
-            write(b, 0, b.length);
-        }
-        @Override
-        public void write(byte[] b, int off, int len) throws IOException {
-            String rst = new String(b, off, len);
-            show(rst, color_fg);
-        }
+        Elogo.process(msg, logo, out);
     }
 }
+
+
 
 
