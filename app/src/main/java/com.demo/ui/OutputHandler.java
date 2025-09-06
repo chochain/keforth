@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
-import android.view.ViewTreeObserver;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
