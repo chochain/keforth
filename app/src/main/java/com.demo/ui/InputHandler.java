@@ -9,16 +9,17 @@ import android.widget.EditText;
 import com.demo.forth.Eforth;
 
 public class InputHandler {
-    private final EditText input;
+    private final EditText in;
     private final Eforth   forth;
     
-    public InputHandler(EditText input, Eforth forth) {
-        this.input = input;
+    public InputHandler(EditText in, Eforth forth) {
+        this.in    = in;
         this.forth = forth;
+
     }
     
     public void setupKeyListener() {
-        input.setOnKeyListener(new View.OnKeyListener() {
+        in.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int key, KeyEvent ev) {
                 if (ev.getAction() == KeyEvent.ACTION_DOWN) {
@@ -33,7 +34,7 @@ public class InputHandler {
     }
     
     public void doForth() {
-        String cmd = input.getText().toString().trim();
+        String cmd = in.getText().toString().trim();
         
         if (TextUtils.isEmpty(cmd)) return;
         
@@ -42,8 +43,8 @@ public class InputHandler {
     }
     
     private void clearInput() {
-        input.setText(null);
-        input.requestFocus();
+        in.setText(null);
+        in.requestFocus();
     }
 }
 
