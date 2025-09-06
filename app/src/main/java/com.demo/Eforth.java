@@ -7,26 +7,26 @@ import com.demo.ui.OutputHandler;
 
 public class Eforth {
     private final String        name;
-    private final OutputHandler output;
-    private final JavaCallback  callback;
+    private final OutputHandler out;
+    private final JavaCallback  cb;
     
     private IO io;
     private VM vm;
     
-    public Eforth(String name, OutputHandler output, JavaCallback callback) {
-        this.name     = name;
-        this.output   = output;
-        this.callback = callback;
+    public Eforth(String name, OutputHandler out, JavaCallback cb) {
+        this.name  = name;
+        this.out   = out;
+        this.cb    = cb;
     }
     
     public void init() {
-        io = new IO(name, System.in, output.getScroll());
-        vm = new VM(io, callback);
+        io = new IO(name, System.in, out);
+        vm = new VM(io, cb);
         io.mstat();
     }
     
     public void outer(String cmd) {
-        output.showCommand(cmd);
+        out.log(cmd);
         io.rescan(cmd);
         
         while (io.readline()) {
