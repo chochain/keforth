@@ -43,7 +43,7 @@ With limited hardware, this was an arduous learning experience for me. So, make 
 
 Note: Though I've never tried, it's said that one can get app signed by Google [in Studio](https://developer.android.com/studio/publish/app-signing) or [uber-signer](https://github.com/patrickfav/uber-apk-signer) for release.
 
-With mass market of Android, the rich features from all walk of life can be brought into and interact with keForth. For example Turtle Graphics here and more.
+With the mass market of Android, the rich features from all walks of life can be brought into keForth and interact with. For example, a Turtle Graphics here and many more to have fun with.
 <img src="https://github.com/chochain/keforth/blob/main/docs/img/keforth_logo_01.png" width="800" />
 
 
