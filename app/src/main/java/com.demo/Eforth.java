@@ -26,7 +26,7 @@ public class Eforth {
     }
     
     public void outer(String cmd) {
-        out.log(cmd);
+        out.log(cmd + "\n");
         io.rescan(cmd);
         
         while (io.readline()) {
