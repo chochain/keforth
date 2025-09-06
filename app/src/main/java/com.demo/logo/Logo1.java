@@ -217,7 +217,7 @@ public class Logo1 extends View {
         switch (op) {
         case "cs":                                         /// clear screen
             sfcCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-            xcenter(0, 0, -st.d);                  break;  /// center, due North
+            xcenter(0, 0, -st.d - 90);             break;  /// center, due North
         case "ht": st.show = 0;                    break;  /// hide turtle
         case "st": st.show = 1;                    break;  /// show turtle
         case "ct": xcenter(0, 0, 0);               break;  /// center turtle
