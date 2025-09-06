@@ -43,10 +43,15 @@ With limited hardware, this was an arduous learning experience for me. So, make 
 
 Note: Though I've never tried, it's said that one can get app signed by Google [in Studio](https://developer.android.com/studio/publish/app-signing) or [uber-signer](https://github.com/patrickfav/uber-apk-signer) for release.
 
+With mass market of Android, the rich features from all walk of life can be brought into and interact with keForth. For example Turtle Graphics here and more.
+<img src="https://github.com/chochain/keforth/blob/main/docs/img/keforth_logo_01.png" width="800" />
+
+
 ## TODO
 0. Android project - vanilla
     + TextView, color coding
     + EditView, auto complete
+    + SurfaceView => 2D Logo
     + Sensors
         - Motion
         - Position
@@ -56,12 +61,14 @@ Note: Though I've never tried, it's said that one can get app signed by Google [
         - lookup by hashcode (kept in map)
 
 1. Review
+   + Cordova - Google's cross-platform WebView
    + FireBase - Cloud Messaging, Chat API (for remote access)
    + DroidScript - Javascript + Python
    + Roboto - JRuby
+   + ButterKnife => ViewBinding, DataBinding
+   + AndroidClock => Forth-base solution
 
-2. Android Project - material design
-    + Jetpack Compose
+2. Android Project - Jetpack Compose + Material Design
     + Backdrop => layered
        + Cards => keforth responses
        + Divider
@@ -69,7 +76,6 @@ Note: Though I've never tried, it's said that one can get app signed by Google [
        + Chips << cmd input
     + Side Sheets => words (sorted), ss_dump
     + Tooltip => see
-    + SurfaceView => 2D (Logo)
 
 ## References
 
