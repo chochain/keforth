@@ -3,7 +3,9 @@ package com.demo;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -49,6 +51,21 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
     
     private void setupEventListeners() {
+        ScrollView sv = findViewById(R.id.forthView);
+        sv.getViewTreeObserver().addOnGlobalLayoutListener(
+            new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    sv.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                sv.fullScroll(ScrollView.FOCUS_DOWN);
+                                edit.requestFocus();
+                            }
+                        });
+                }
+            });
+        
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
