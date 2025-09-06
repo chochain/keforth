@@ -20,7 +20,6 @@ public class OutputHandler extends OutputStream {
     public OutputHandler(AppCompatActivity act) {
         scheme = new Scheme(act);
         out    = act.findViewById(R.id.forthOutput);
-        
     }
     
     @Override
@@ -35,16 +34,15 @@ public class OutputHandler extends OutputStream {
         print(rst);
     }
     
-    public void print(String txt) { show(txt, scheme.fg);        }
-    public void log(String cmd)   { show(cmd + "\n", scheme.cm); }
-    public void debug(String msg) { show(msg, scheme.cb);        }
+    public void print(String txt) { post(txt, scheme.fg); }
+    public void log(String cmd)   { post(cmd, scheme.cm); }
+    public void debug(String msg) { post(msg, scheme.cb); }
     
-    private void show(String str, int color) {
+    private void post(String str, int color) {
         SpannableString s = new SpannableString(str);
         s.setSpan(new ForegroundColorSpan(color),
                   0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         out.post(() -> out.append(s));
-//            sv.post(() -> sv.fullScroll(View.FOCUS_DOWN));        ///> CC: this does not work
     }
     
     private static class Scheme {
