@@ -2,13 +2,11 @@
 // ForthOutputHandler.java - Manages output display and colors
 package com.demo.ui;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.view.ViewTreeObserver;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -16,46 +14,38 @@ import com.demo.R;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class OutputHandler {
-    private final Scheme scheme;
-    private final Scroll scroll;
+public class OutputHandler extends OutputStream {
+    private final Scheme   scheme;
+    private final TextView out;
     
     public OutputHandler(AppCompatActivity act) {
         scheme = new Scheme(act);
+        out    = act.findViewById(R.id.forthOutput);
         
-        ScrollView sv = act.findViewById(R.id.forthView);
-        sv.getViewTreeObserver().addOnGlobalLayoutListener(
-            new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    sv.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                sv.fullScroll(ScrollView.FOCUS_DOWN);
-//                                in.requestFocus();
-                            }
-                        });
-                }
-            });
-        
-        TextView out = act.findViewById(R.id.forthOutput);
-        this.scroll = new Scroll(out, scheme.fg);
     }
     
-    public void showCommand(String cmd) {
-        scroll.show(cmd + "\n", scheme.cm);
+    @Override
+    public void write(int n) throws IOException {
+        byte[] b = { (byte)n };
+        write(b, 0, b.length);
     }
     
-    public void showCallback(String msg) {
-        scroll.show(msg, scheme.cb);
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+        String rst = new String(b, off, len);
+        print(rst);
     }
     
-    public void showOutput(String output) {
-        scroll.show(output, scheme.fg);
-    }
+    public void print(String txt) { show(txt, scheme.fg);        }
+    public void log(String cmd)   { show(cmd + "\n", scheme.cm); }
+    public void debug(String msg) { show(msg, scheme.cb);        }
     
-    public OutputStream getScroll() {
-        return scroll;
+    private void show(String str, int color) {
+        SpannableString s = new SpannableString(str);
+        s.setSpan(new ForegroundColorSpan(color),
+                  0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        out.post(() -> out.append(s));
+//            sv.post(() -> sv.fullScroll(View.FOCUS_DOWN));        ///> CC: this does not work
     }
     
     private static class Scheme {
