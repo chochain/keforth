@@ -7,6 +7,11 @@
 ///     Can be reused across different platforms (Desktop Java, Web, etc.)
 ///     You can unit test Engine without any Android context
 ///
+package com.demo.logo;
+
+import java.util.List;
+import java.util.ArrayList;
+
 public class Engine {
     private static final double RAD = Math.PI / 180.0;
     
@@ -87,7 +92,7 @@ public class Engine {
             this.a   = angle;
         }
         @Override
-        public void exec(Turtle t) { t.drawText(text, x, y, a); }
+        public void exec(Turtle t) { t.drawText(txt, x, y, a); }
     }
     
     public static class OpClear extends Op {
@@ -108,7 +113,7 @@ public class Engine {
     
     public  List<Op> getOps()   { return new ArrayList<>(ops); }
     public  void     clearOps() { ops.clear(); }
-    public  State    getState() { return state; }
+    public  State    getState() { return st; }
     
     /// Color conversion utilities
     public static int RGBColor(int v) {
@@ -152,46 +157,42 @@ public class Engine {
         int n = op.equals("tt") ? 0 : Integer.parseInt(v1);
         
         switch (op) {
-        case "cs":                               /// clear screen
+        case "cs":                                       /// clear screen
             ops.clear();
             st.reset();
             add(new OpClear());
-            add(new OpMove(st.x, st.y, false));
-            break;
-        case "ht": st.show = 0;         break;   /// hide turtle
-        case "st": st.show = 1;         break;   /// show turtle
-        case "ct":                               /// center turtle
+            add(new OpMove(st.x, st.y, false)); break;
+        case "ht": st.show = 0;                 break;   /// hide turtle
+        case "st": st.show = 1;                 break;   /// show turtle
+        case "ct":                                       /// center turtle
             st.x = 0;
             st.y = 0;
-            add(new OpMove(st.x, st.y, false));
-            break;
-        case "pd": st.pen = 1;          break;   /// pen down
-        case "pu": st.pen = 0;          break;   /// pen up
-        case "hd": st.d = n - 90;       break;   /// set heading
-                st.d = n - 90;                   /// Convert to our coordinate system
-        case "fd": xform(n, 0, 0);      break;   /// forward
-        case "bk": xform(-n, 0, 0);     break;   /// backward  
-        case "rt": xform(0, 0, n);      break;   /// right turn
-        case "lt": xform(0, 0, -n);     break;   /// left turn
+            add(new OpMove(st.x, st.y, false)); break; 
+        case "pd": st.pen = 1;                  break;   /// pen down
+        case "pu": st.pen = 0;                  break;   /// pen up
+        case "hd": st.d = n - 90;               break;   /// set heading
+        case "fd": xform(n, 0, 0);              break;   /// forward
+        case "bk": xform(-n, 0, 0);             break;   /// backward  
+        case "rt": xform(0, 0, n);              break;   /// right turn
+        case "lt": xform(0, 0, -n);             break;   /// left turn
             
-        case "pc":                               /// pen color (HSV)
+        case "pc":                                       /// pen color (HSV)
             st.fg = HSVColor(n);
-            add(new OpColor(st.fg));    break;
-        case "fg":                               /// foreground color (RGB)
+            add(new OpColor(st.fg));            break;
+        case "fg":                                       /// foreground color (RGB)
             st.fg = RGBColor(n);
-            add(new OpColor(st.fg));
-            break;
-        case "bg": st.bg = RGBColor(n); break;
+            add(new OpColor(st.fg));            break;
+        case "bg": st.bg = RGBColor(n);         break;
             
         case "pw":
             st.pw = n;
-            add(new OpWidth(n));        break;   /// pen width
+            add(new OpWidth(n));                break;   /// pen width
         case "tt": /// text
             String s = v1.substring(1, v1.length()-1);   /// remove quotes
             add(new OpLabel(s, st.x, st.y, st.d + 90));
             break;
-        case "ts": /* in renderer */    break;   /// text size - handled by renderer
-        case "xy":                               /// set position
+        case "ts": /* in renderer */            break;   /// text size - handled by renderer
+        case "xy":                                       /// set position
             int x = (n & 0xffff);
             int y = (n >> 16) & 0xffff;
                 
@@ -199,7 +200,7 @@ public class Engine {
             if ((y & 0x8000) != 0) y |= 0xffff0000;
                 
             st.x = x;
-            st.y = -y;                           /// Flip Y
+            st.y = -y;                                   /// Flip Y
             add(new OpMove(st.x, st.y, st.pen == 1));
             break;
         default: return false;
