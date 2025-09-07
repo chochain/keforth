@@ -6,6 +6,7 @@
 /// * Decouples drawing logic from specific graphics APIs
 /// * Makes it easy to support different backends (Canvas, OpenGL, SVG, etc.)
 /// * Commands are simple and focused on drawing primitives
+package com.demo.logo;
 
 public interface Turtle {
     void clear();
