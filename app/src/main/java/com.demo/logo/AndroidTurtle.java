@@ -5,6 +5,9 @@
 /// * AndroidTurtle handles all Android Canvas specifics
 /// * Coordinate system conversion happens here
 /// * Paint and drawing style management isolated
+package com.demo.logo;
+
+import android.graphics.*;
 
 public class AndroidTurtle implements Turtle {
     private Canvas sfcCanvas;
@@ -61,14 +64,14 @@ public class AndroidTurtle implements Turtle {
     }
     
     @Override
-    public void setPenWidth(int width) {
+    public void setWidth(int width) {
         sfcPaint.setStrokeWidth(width);
     }
     
     @Override
     public void drawText(String text, float x, float y, float angle) {
-        float screenX = w * 0.5f + x;
-        float screenY = h * 0.5f - y;
+        float screenX = width  * 0.5f + x;
+        float screenY = height * 0.5f - y;
         
         sfcCanvas.save();
         sfcCanvas.translate(screenX, screenY);
@@ -89,8 +92,8 @@ public class AndroidTurtle implements Turtle {
         final float SKULL = 4;
         if (!visible) return;
         
-        float screenX = w * 0.5f + x;
-        float screenY = h * 0.5f - y;
+        float screenX = width  * 0.5f + x;
+        float screenY = height * 0.5f - y;
         
         evePaint.setColor(color);
         eveCanvas.save();
@@ -112,7 +115,7 @@ public class AndroidTurtle implements Turtle {
     }
     
     @Override
-    public void present() {
+    public void show() {
         sfcCanvas.drawPath(path, sfcPaint);
         path.rewind();
     }
