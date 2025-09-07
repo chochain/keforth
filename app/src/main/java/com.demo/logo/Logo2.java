@@ -14,8 +14,6 @@
 /// * State Management: Clear separation between logical state and visual state
 package com.demo.logo;
 
-import java.util.List;
-import java.util.ArrayList;
 import android.content.Context;
 import android.graphics.*;
 import android.view.View;
@@ -46,7 +44,7 @@ public class Logo2 extends View {
         sfcCanvas = new Canvas(sfcBitmap);
         eveCanvas = new Canvas(eveBitmap);
         
-        /// Initialize engine and turgle
+        /// Initialize engine (state) and turtle (views)
         core = new Engine(w, h);
         eve  = new AndroidTurtle(sfcCanvas, eveCanvas, w, h);
         
@@ -70,8 +68,7 @@ public class Logo2 extends View {
         eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         
         /// Execute all pending commands
-        List<Engine.Op> ops = core.getOps();
-        for (Engine.Op op : ops) {
+        for (Engine.Op op : core.getOps()) {
             op.exec(eve);
         }
         
