@@ -92,7 +92,7 @@ public class Engine {
             this.a   = angle;
         }
         @Override
-        public void exec(Turtle t) { t.drawText(txt, x, y, a); }
+        public void exec(Turtle t) { t.label(txt, x, y, a); }
     }
     
     public static class OpClear extends Op {
