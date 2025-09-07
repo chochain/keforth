@@ -49,13 +49,16 @@ With the mass market of Android, the rich features from all walks of life can be
 
 ## TODO
 0. Android project - vanilla
-    + TextView, color coding
-    + EditView, auto complete
-    + SurfaceView => 2D Logo
+    x TextView, color coding
+    x EditView, auto complete
+    x SurfaceView => 2D Logo
     + Sensors
         - Motion
         - Position
         - Environment
+    + Communication
+        - Bluetooth Low Energy - mesh
+        - Wifi - service, P2P
     + Object
         - instantiate from string
         - lookup by hashcode (kept in map)
@@ -64,8 +67,8 @@ With the mass market of Android, the rich features from all walks of life can be
    + Cordova - Google's cross-platform WebView
    + FireBase - Cloud Messaging, Chat API (for remote access)
    + DroidScript - Javascript + Python
-   + Roboto - JRuby
-   + ButterKnife => ViewBinding, DataBinding
+   + Roboto - JRuby + React
+   + ButterKnife => ViewBinding, DataBinding vs Jetpack Compose
    + AndroidClock => Forth-base solution
 
 2. Android Project - Jetpack Compose + Material Design
