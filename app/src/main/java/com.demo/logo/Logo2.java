@@ -12,6 +12,14 @@
 /// * Debugging: You can log/inspect the command stream
 /// * Multiple Backends: Easy to add SVG export, printing, or other renderers
 /// * State Management: Clear separation between logical state and visual state
+package com.demo.logo;
+
+import java.util.List;
+import java.util.ArrayList;
+import android.content.Context;
+import android.graphics.*;
+import android.view.View;
+import android.util.AttributeSet;
     
 public class Logo2 extends View {
     private Engine core;
@@ -43,7 +51,7 @@ public class Logo2 extends View {
         eve  = new AndroidTurtle(sfcCanvas, eveCanvas, w, h);
         
         /// Execute initial commands
-        executeCommands();
+        doLogo();
     }
     
     @Override
