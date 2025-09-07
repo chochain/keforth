@@ -17,8 +17,8 @@ public class AndroidTurtle implements Turtle {
     private Path   path;
     private int    width, height;
     
-    public AndroidTurtle(Canvas src, Canvas eve, int w, int h) {
-        this.sfcCanvas = src;
+    public AndroidTurtle(Canvas sfc, Canvas eve, int w, int h) {
+        this.sfcCanvas = sfc;
         this.eveCanvas = eve;
         this.width     = w;
         this.height    = h;
