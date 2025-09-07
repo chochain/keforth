@@ -48,14 +48,11 @@ public class AndroidTurtle implements Turtle {
     @Override
     public void moveTo(float x, float y, boolean penDown) {
         /// Convert logical coordinates to screen coordinates
-        float screenX = width * 0.5f + x;
-        float screenY = height * 0.5f - y;
+        float x1 = width  * 0.5f + x;
+        float y1 = height * 0.5f - y;
         
-        if (penDown) {
-            path.lineTo(screenX, screenY);
-        } else {
-            path.moveTo(screenX, screenY);
-        }
+        if (penDown) path.lineTo(x1, y1);
+        else         path.moveTo(x1, y1);
     }
     
     @Override
@@ -69,36 +66,35 @@ public class AndroidTurtle implements Turtle {
     }
     
     @Override
-    public void drawText(String text, float x, float y, float angle) {
-        float screenX = width  * 0.5f + x;
-        float screenY = height * 0.5f - y;
+    public void label(String txt, float x, float y, float angle) {
+        float x1 = width  * 0.5f + x;
+        float y1 = height * 0.5f - y;
         
         sfcCanvas.save();
-        sfcCanvas.translate(screenX, screenY);
+        sfcCanvas.translate(x1, y1);
         sfcCanvas.rotate(angle);
         
         Rect r = new Rect();
-        sfcPaint.getTextBounds(text, 0, text.length(), r);
-        sfcCanvas.drawText(text, -0.5f * r.width(), 0.5f * r.height(), sfcPaint);
+        sfcPaint.getTextBounds(txt, 0, txt.length(), r);
+        sfcCanvas.drawText(txt, -0.5f * r.width(), 0.5f * r.height(), sfcPaint);
         
         sfcCanvas.restore();
     }
     
     @Override
-    public void drawTurtle(float x, float y, float angle, int color, boolean visible) {
+    public void draw(float x, float y, float angle, int color) {
         final float ANGLE = 30;          ///< startding point of the shoulder
         final float SWEEP = 18;          ///< sweep angle
         final float HEAD  = 24;
         final float SKULL = 4;
-        if (!visible) return;
         
-        float screenX = width  * 0.5f + x;
-        float screenY = height * 0.5f - y;
+        float x1 = width  * 0.5f + x;
+        float y1 = height * 0.5f - y;
         
         evePaint.setColor(color);
         eveCanvas.save();
         
-        eveCanvas.translate(screenX, screenY);
+        eveCanvas.translate(x1, y1);
         eveCanvas.rotate(angle);
         
         Path  eve = new Path();
@@ -115,7 +111,7 @@ public class AndroidTurtle implements Turtle {
     }
     
     @Override
-    public void show() {
+    public void update() {
         sfcCanvas.drawPath(path, sfcPaint);
         path.rewind();
     }

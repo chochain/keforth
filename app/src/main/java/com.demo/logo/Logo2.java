@@ -77,10 +77,10 @@ public class Logo2 extends View {
         
         /// Draw turtle if visible
         Engine.State st = core.getState();
-        eve.drawTurtle(st.x, st.y, st.d, st.fg, st.show == 1);
+        if (st.show==1) eve.draw(st.x, st.y, st.d, st.fg);
         
         /// Finish rendering
-        eve.show();
+        eve.update();
     }
     
     public String to_s() {

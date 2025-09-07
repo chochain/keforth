@@ -10,11 +10,12 @@ package com.demo.logo;
 
 public interface Turtle {
     void clear();
-    void moveTo(float x, float y, boolean penDown);
     void setColor(int color);
     void setWidth(int width);
-    void drawText(String text, float x, float y, float angle);
-    void drawTurtle(float x, float y, float angle, int color, boolean visible);
     
-    void show();                                 /// Finish drawing and display
+    void moveTo(float x, float y, boolean penDown);
+    void label(String txt, float x, float y, float angle);
+    void draw(float x, float y, float angle, int color);
+    
+    void update();                                 /// Finish drawing and display
 }
