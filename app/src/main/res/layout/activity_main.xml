@@ -33,7 +33,7 @@
                   android:textIsSelectable="false"
                   android:fontFamily="monospace"/>
             </ScrollView>
-            <com.demo.logo.Logo1
+            <View
                 android:id="@+id/logo"
                 android:layout_width="0dp"
                 android:layout_weight="4"
