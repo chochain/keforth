@@ -1,14 +1,15 @@
 ///
 /// @file
-/// @brief - Renderer Interface
+/// @brief - Blip Interface, the View renderer
 ///
 /// * Abstract interface for different rendering backends
 /// * Decouples drawing logic from specific graphics APIs
 /// * Makes it easy to support different backends (Canvas, OpenGL, SVG, etc.)
 /// * Commands are simple and focused on drawing primitives
+///
 package com.demo.logo;
 
-public interface Renderer {
+public interface Blip {
     void clear();
     void setColor(int color);
     void setWidth(int width);

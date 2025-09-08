@@ -2,7 +2,7 @@
 /// @file
 /// @brief - Android Platform-Specific Implementation
 ///
-/// * AndroidTurtle handles all Android Canvas specifics
+/// * AndroidBlip handles all Android Canvas specifics
 /// * Coordinate system conversion happens here
 /// * Paint and drawing style management isolated
 ///
@@ -10,7 +10,7 @@ package com.demo.logo;
 
 import android.graphics.*;
 
-public class AndroidRenderer implements Renderer {
+public class AndroidBlip implements Blip {
     private Canvas sfcCanvas;
     private Canvas eveCanvas;
     private Paint  sfcPaint;
@@ -18,7 +18,7 @@ public class AndroidRenderer implements Renderer {
     private Path   path;
     private int    width, height;
     
-    public AndroidRenderer(Canvas sfc, Canvas eve, int w, int h) {
+    public AndroidBlip(Canvas sfc, Canvas eve, int w, int h) {
         this.sfcCanvas = sfc;
         this.eveCanvas = eve;
         this.width     = w;
