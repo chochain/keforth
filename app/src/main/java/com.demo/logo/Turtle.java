@@ -15,7 +15,7 @@ public interface Turtle {
     
     void moveTo(float x, float y, boolean penDown);
     void label(String txt, float x, float y, float angle);
-    void draw(float x, float y, float angle, int color);
+    void draw(float x, float y, float angle, int color, boolean show);
     
     void update();                                 /// Finish drawing and display
 }
