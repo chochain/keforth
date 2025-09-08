@@ -18,10 +18,11 @@ import android.content.Context;
 import android.graphics.*;
 import android.view.View;
 import android.util.AttributeSet;
+import java.lang.IllegalStateException;
     
 public class Logo2 extends View {
     private Engine core;
-    private Turtle eve;
+    private Turtle turt;
     private Bitmap sfcBitmap, eveBitmap;
     private Canvas sfcCanvas, eveCanvas;
     
@@ -32,12 +33,10 @@ public class Logo2 extends View {
     public Logo2(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
-    
-    @Override
-    protected void onSizeChanged(int w, int h, int w0, int h0) {
-        super.onSizeChanged(w, h, w0, h0);
+
+    public void reset(int w, int h) {
         if (w <= 0 || h <= 0) return;
-        
+
         /// Create bitmaps and canvases
         sfcBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         eveBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
@@ -46,10 +45,18 @@ public class Logo2 extends View {
         
         /// Initialize engine (state) and turtle (views)
         core = new Engine(w, h);
-        eve  = new AndroidTurtle(sfcCanvas, eveCanvas, w, h);
-        
-        /// Execute initial commands
+        turt = new AndroidTurtle(sfcCanvas, eveCanvas, w, h);
+
+        core.exec("cs", "", "");         /// * could throw NullPointerException
         doLogo();
+//        invalidate();
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int w0, int h0) {
+        super.onSizeChanged(w, h, w0, h0);
+        throw new IllegalStateException("logo.onSizeChanged");
+//        reset(w, h);
     }
     
     @Override
@@ -62,44 +69,37 @@ public class Logo2 extends View {
     }
     
     private void doLogo() {
-        if (eve == null) return;
+        if (turt == null) return;
         
         /// Clear turtle layer
         eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         
         /// Execute all pending commands
         for (Engine.Op op : core.getOps()) {
-            op.exec(eve);
+            op.exec(turt);
         }
         
         /// Draw turtle if visible
         Engine.State st = core.getState();
-        if (st.show==1) eve.draw(st.x, st.y, st.d, st.fg);
+        turt.draw(st.x, st.y, st.d, st.fg, st.show==1);
         
         /// Finish rendering
-        eve.update();
+        turt.update();
     }
     
     public String to_s() {
-        return core != null ? core.getState().toString() : "";
+        return core != null ? core.getState().toString() : "na";
     }
     
     public boolean update(String op, String v1, String v2) {
         if (core == null) return false;
         
-        boolean result = core.exec(op, v1, v2);
-        if (result) {
+        boolean rst = core.exec(op, v1, v2);
+        if (rst) {
             doLogo();
             invalidate();
         }
-        return result;
+        return rst;
     }
     
-    public void reset() {
-        if (core != null) {
-            core.exec("cs", "", "");
-            doLogo();
-            invalidate();
-        }
-    }
 }
