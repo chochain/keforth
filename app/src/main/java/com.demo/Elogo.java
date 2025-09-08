@@ -22,9 +22,9 @@ public class Elogo {
             public void onLayoutChange(View v,
                 int l1, int t1, int r1, int b1,               ///< new layout
                 int l0, int t0, int r0, int b0) {             ///< orig layout (0,0,0,0)
-                vu.removeOnLayoutChangeListener(this);        ///< once, fixed size
+                v.removeOnLayoutChangeListener(this);         ///< once, fixed size
                 out.debug("logo w="+v.getWidth()+" h="+v.getHeight()+"\n");
-                logo.reset(v.getWidth(), v.getHeight());
+//                logo.reset(v.getWidth(), v.getHeight());
             }
         });
     }
@@ -49,7 +49,7 @@ public class Elogo {
         String v2 = n > 2 ? ops[2] : "0";
 
         out.debug("before " + logo.to_s() + "\n");
-        logo.update(op, v1, v2);
+        logo.execute(op, v1, v2);
         out.debug("after  " + logo.to_s() + "\n");
     }
 }
