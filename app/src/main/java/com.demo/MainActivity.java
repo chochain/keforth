@@ -18,10 +18,11 @@ import com.demo.forth.Eforth;
 public class MainActivity extends AppCompatActivity implements JavaCallback {
     static final String APP_NAME = "keForth v0";
     
-    private EditText             edit;
+    private EditText             ed;
     private FloatingActionButton fab;
-    private Logo1                logo;
-    
+    private View                 vu;
+
+    private Elogo                logo;
     private Eforth               forth;
     private InputHandler         in;
     private OutputHandler        out;
@@ -37,15 +38,16 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
     
     private void initViews() {
-        edit = findViewById(R.id.forthInput);
-        fab  = findViewById(R.id.buttonProcess);
-        logo = findViewById(R.id.logo);
+        ed  = findViewById(R.id.forthInput);
+        fab = findViewById(R.id.buttonProcess);
+        vu  = findViewById(R.id.logo);
     }
     
     private void initComponents() {
         out   = new OutputHandler(this);
+        logo  = new Elogo(vu, out);
         forth = new Eforth(APP_NAME, out, this);
-        in    = new InputHandler(edit, forth);
+        in    = new InputHandler(ed, forth);
         
         forth.init();
     }
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
                             @Override
                             public void run() {
                                 sv.fullScroll(ScrollView.FOCUS_DOWN);
-                                edit.requestFocus();
+                                ed.requestFocus();
                             }
                         });
                 }
@@ -77,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     
     @Override
     public void onPost(String msg) {
-        Elogo.process(msg, logo, out);
+        logo.process(msg);
     }
 }
 
