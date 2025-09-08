@@ -11,9 +11,22 @@ public class Elogo {
     OutputHandler out;
     
     public Elogo(View vu, OutputHandler out) {
-        this.logo = new Logo2(vu.getContext());
-        this.out  = out;
-        logo.reset();
+        this.out = out;
+        
+        logo = new Logo2(vu.getContext());
+        ///
+        ///> resize Logo panel only after layed out (see View life-cycle)
+        ///
+        vu.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v,
+                int l1, int t1, int r1, int b1,               ///< new layout
+                int l0, int t0, int r0, int b0) {             ///< orig layout (0,0,0,0)
+                vu.removeOnLayoutChangeListener(this);        ///< once, fixed size
+                out.debug("logo w="+v.getWidth()+" h="+v.getHeight()+"\n");
+                logo.reset(v.getWidth(), v.getHeight());
+            }
+        });
     }
     
     public void process(String msg) {
