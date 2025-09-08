@@ -16,14 +16,14 @@ public class Engine {
     private static final double RAD = Math.PI / 180.0;
     
     public static class State {
-        public float x, y;               /// current position (relative to center)
-        public int   w, h;               /// viewport dimensions
-        public float d    = 0;           /// direction in degrees, 0=East
-        public int   pen  = 1;           /// 0: pen-up, 1: pen-down  
-        public int   pw   = 3;           /// pen width
-        public int   show = 0;           /// 0: hide turtle, 1: show turtle
-        public int   fg   = 0xFFFFFFFF;  /// foreground color (white)
-        public int   bg   = 0xFF00FF00;  /// background color (green)
+        public float x, y;               ///< current position (relative to center)
+        public int   w, h;               ///< viewport dimensions
+        public float d    = 0;           ///< direction in degrees, 0=East
+        public int   pen  = 1;           ///< 0: pen-up, 1: pen-down  
+        public int   pw   = 3;           ///< pen width
+        public int   show = 0;           ///< 0: hide turtle, 1: show turtle
+        public int   fg   = 0xFFFFFFFF;  ///< foreground color (white)
+        public int   bg   = 0xFF00FF00;  ///< background color (green)
         
         public State(int w, int h) {
             this.w = w;
@@ -32,11 +32,8 @@ public class Engine {
         }
         
         public void reset() {
-            x    = 0;
-            y    = 0; 
-            d    = -90;                  /// North
-            pen  = 1;
-            show = 0;
+            x = y = 0;
+            d = -90;                     /// North
         }
         
         @Override
@@ -49,7 +46,7 @@ public class Engine {
     
     /// Drawing commands that will be executed by the renderer
     public static abstract class Op {
-       public abstract void exec(Turtle t);
+       public abstract void exec(Renderer r);
     }
     
     public static class OpMove extends Op {
@@ -63,23 +60,23 @@ public class Engine {
         }
         
         @Override
-        public void exec(Turtle t) {
-            t.moveTo(x, y, penDown);
+        public void exec(Renderer r) {
+            r.moveTo(x, y, penDown);
         }
     }
     
     public static class OpColor extends Op {
         public final int c;
-        public OpColor(int c)      { this.c = c; }
+        public OpColor(int c)        { this.c = c; }
         @Override
-        public void exec(Turtle t) { t.setColor(c); }
+        public void exec(Renderer r) { r.setColor(c); }
     }
     
     public static class OpWidth extends Op {
         public final int w;
-        public OpWidth(int w)      { this.w = w; }
+        public OpWidth(int w)        { this.w = w; }
         @Override
-        public void exec(Turtle t) { t.setWidth(w); }
+        public void exec(Renderer r) { r.setWidth(w); }
     }
     
     public static class OpLabel extends Op {
@@ -92,12 +89,12 @@ public class Engine {
             this.a   = angle;
         }
         @Override
-        public void exec(Turtle t) { t.label(txt, x, y, a); }
+        public void exec(Renderer r) { r.label(txt, x, y, a); }
     }
     
     public static class OpClear extends Op {
         @Override
-        public void exec(Turtle t) { t.clear(); }
+        public void exec(Renderer r) { r.clear(); }
     }
     
     /// The engine state and command generation
@@ -106,7 +103,7 @@ public class Engine {
     
     public Engine(int w, int h) {
         this.st = new State(w, h);
-        add(new OpMove(st.x, st.y, false));
+//        add(new OpMove(st.x, st.y, false));
     }
     
     private void     add(Op op) { ops.add(op); }
