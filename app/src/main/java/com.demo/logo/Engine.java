@@ -46,7 +46,7 @@ public class Engine {
     
     /// Drawing commands that will be executed by the renderer
     public static abstract class Op {
-       public abstract void exec(Renderer r);
+       public abstract void exec(Blip b);
     }
     
     public static class OpMove extends Op {
@@ -60,23 +60,23 @@ public class Engine {
         }
         
         @Override
-        public void exec(Renderer r) {
-            r.moveTo(x, y, penDown);
+        public void exec(Blip b) {
+            b.moveTo(x, y, penDown);
         }
     }
     
     public static class OpColor extends Op {
         public final int c;
-        public OpColor(int c)        { this.c = c; }
+        public OpColor(int c)    { this.c = c; }
         @Override
-        public void exec(Renderer r) { r.setColor(c); }
+        public void exec(Blip b) { b.setColor(c); }
     }
     
     public static class OpWidth extends Op {
         public final int w;
-        public OpWidth(int w)        { this.w = w; }
+        public OpWidth(int w)    { this.w = w; }
         @Override
-        public void exec(Renderer r) { r.setWidth(w); }
+        public void exec(Blip b) { b.setWidth(w); }
     }
     
     public static class OpLabel extends Op {
@@ -89,12 +89,12 @@ public class Engine {
             this.a   = angle;
         }
         @Override
-        public void exec(Renderer r) { r.label(txt, x, y, a); }
+        public void exec(Blip b) { b.label(txt, x, y, a); }
     }
     
     public static class OpClear extends Op {
         @Override
-        public void exec(Renderer r) { r.clear(); }
+        public void exec(Blip b) { b.clear(); }
     }
     
     /// The engine state and command generation

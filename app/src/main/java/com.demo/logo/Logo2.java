@@ -22,7 +22,7 @@ import java.lang.IllegalStateException;
     
 public class Logo2 extends View {
     private Engine   core;
-    private Renderer rndr;
+    private Blip     blip;
     private Bitmap   sfcBitmap, eveBitmap;
     private Canvas   sfcCanvas, eveCanvas;
     
@@ -45,7 +45,7 @@ public class Logo2 extends View {
         
         /// Initialize engine (state) and turtle (views)
         core = new Engine(w, h);
-        rndr = new AndroidRenderer(sfcCanvas, eveCanvas, w, h);
+        blip = new AndroidBlip(sfcCanvas, eveCanvas, w, h);
 
         core.exec("cs", "", "");         /// * could throw NullPointerException
         doLogo();
@@ -69,22 +69,22 @@ public class Logo2 extends View {
     }
     
     private void doLogo() {
-        if (rndr == null) return;
+        if (blip == null) return;
         
         /// Clear turtle layer
         eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         
         /// Execute all pending commands
         for (Engine.Op op : core.getOps()) {
-            op.exec(rndr);
+            op.exec(blip);
         }
         
         /// Draw turtle if visible
         Engine.State st = core.getState();
-        rndr.drawTurtle(st.x, st.y, st.d, st.fg, st.show==1);
+        blip.drawTurtle(st.x, st.y, st.d, st.fg, st.show==1);
         
         /// Finish rendering
-        rndr.render();
+        blip.render();
     }
     
     public String to_s() {
