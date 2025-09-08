@@ -21,10 +21,10 @@ import android.util.AttributeSet;
 import java.lang.IllegalStateException;
     
 public class Logo2 extends View {
-    private Engine core;
-    private Turtle turt;
-    private Bitmap sfcBitmap, eveBitmap;
-    private Canvas sfcCanvas, eveCanvas;
+    private Engine   core;
+    private Renderer rndr;
+    private Bitmap   sfcBitmap, eveBitmap;
+    private Canvas   sfcCanvas, eveCanvas;
     
     public Logo2(Context context) {
         super(context);
@@ -45,18 +45,18 @@ public class Logo2 extends View {
         
         /// Initialize engine (state) and turtle (views)
         core = new Engine(w, h);
-        turt = new AndroidTurtle(sfcCanvas, eveCanvas, w, h);
+        rndr = new AndroidRenderer(sfcCanvas, eveCanvas, w, h);
 
         core.exec("cs", "", "");         /// * could throw NullPointerException
         doLogo();
-//        invalidate();
+        invalidate();
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int w0, int h0) {
         super.onSizeChanged(w, h, w0, h0);
-        throw new IllegalStateException("logo.onSizeChanged");
-//        reset(w, h);
+//        throw new IllegalStateException("logo.onSizeChanged");
+        reset(w, h);
     }
     
     @Override
@@ -69,29 +69,29 @@ public class Logo2 extends View {
     }
     
     private void doLogo() {
-        if (turt == null) return;
+        if (rndr == null) return;
         
         /// Clear turtle layer
         eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         
         /// Execute all pending commands
         for (Engine.Op op : core.getOps()) {
-            op.exec(turt);
+            op.exec(rndr);
         }
         
         /// Draw turtle if visible
         Engine.State st = core.getState();
-        turt.draw(st.x, st.y, st.d, st.fg, st.show==1);
+        rndr.drawTurtle(st.x, st.y, st.d, st.fg, st.show==1);
         
         /// Finish rendering
-        turt.update();
+        rndr.render();
     }
     
     public String to_s() {
         return core != null ? core.getState().toString() : "na";
     }
     
-    public boolean update(String op, String v1, String v2) {
+    public boolean execute(String op, String v1, String v2) {
         if (core == null) return false;
         
         boolean rst = core.exec(op, v1, v2);
