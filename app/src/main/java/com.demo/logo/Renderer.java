@@ -8,14 +8,14 @@
 /// * Commands are simple and focused on drawing primitives
 package com.demo.logo;
 
-public interface Turtle {
+public interface Renderer {
     void clear();
     void setColor(int color);
     void setWidth(int width);
     
     void moveTo(float x, float y, boolean penDown);
     void label(String txt, float x, float y, float angle);
-    void draw(float x, float y, float angle, int color, boolean show);
+    void drawTurtle(float x, float y, float angle, int color, boolean show);
     
-    void update();                                 /// Finish drawing and display
+    void render();                                 /// Finish drawing and display
 }
