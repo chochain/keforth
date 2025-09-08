@@ -165,9 +165,8 @@ public class Engine {
         case "ht": st.show = 0;                 break;   /// hide turtle
         case "st": st.show = 1;                 break;   /// show turtle
         case "ct":                                       /// center turtle
-            st.x = 0;
-            st.y = 0;
-            add(new OpMove(st.x, st.y, false)); break; 
+            st.x = st.y = 0;
+            add(new OpMove(0, 0, false));       break; 
         case "pd": st.pen = 1;                  break;   /// pen down
         case "pu": st.pen = 0;                  break;   /// pen up
         case "hd": st.d = n - 90;               break;   /// set heading
@@ -175,7 +174,6 @@ public class Engine {
         case "bk": xform(-n, 0, 0);             break;   /// backward  
         case "rt": xform(0, 0, n);              break;   /// right turn
         case "lt": xform(0, 0, -n);             break;   /// left turn
-            
         case "pc":                                       /// pen color (HSV)
             st.fg = HSVColor(n);
             add(new OpColor(st.fg));            break;
