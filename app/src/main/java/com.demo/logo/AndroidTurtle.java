@@ -5,6 +5,7 @@
 /// * AndroidTurtle handles all Android Canvas specifics
 /// * Coordinate system conversion happens here
 /// * Paint and drawing style management isolated
+///
 package com.demo.logo;
 
 import android.graphics.*;
@@ -82,11 +83,13 @@ public class AndroidTurtle implements Turtle {
     }
     
     @Override
-    public void draw(float x, float y, float angle, int color) {
+    public void draw(float x, float y, float angle, int color, boolean show) {
         final float ANGLE = 30;          ///< startding point of the shoulder
         final float SWEEP = 18;          ///< sweep angle
         final float HEAD  = 24;
         final float SKULL = 4;
+        
+        if (!show) return;
         
         float x1 = width  * 0.5f + x;
         float y1 = height * 0.5f - y;
