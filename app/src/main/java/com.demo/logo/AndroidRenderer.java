@@ -10,7 +10,7 @@ package com.demo.logo;
 
 import android.graphics.*;
 
-public class AndroidTurtle implements Turtle {
+public class AndroidRenderer implements Renderer {
     private Canvas sfcCanvas;
     private Canvas eveCanvas;
     private Paint  sfcPaint;
@@ -18,7 +18,7 @@ public class AndroidTurtle implements Turtle {
     private Path   path;
     private int    width, height;
     
-    public AndroidTurtle(Canvas sfc, Canvas eve, int w, int h) {
+    public AndroidRenderer(Canvas sfc, Canvas eve, int w, int h) {
         this.sfcCanvas = sfc;
         this.eveCanvas = eve;
         this.width     = w;
@@ -83,7 +83,7 @@ public class AndroidTurtle implements Turtle {
     }
     
     @Override
-    public void draw(float x, float y, float angle, int color, boolean show) {
+    public void drawTurtle(float x, float y, float angle, int color, boolean show) {
         final float ANGLE = 30;          ///< startding point of the shoulder
         final float SWEEP = 18;          ///< sweep angle
         final float HEAD  = 24;
@@ -114,7 +114,7 @@ public class AndroidTurtle implements Turtle {
     }
     
     @Override
-    public void update() {
+    public void render() {
         sfcCanvas.drawPath(path, sfcPaint);
         path.rewind();
     }
