@@ -16,7 +16,7 @@ import com.demo.ui.InputHandler;
 import com.demo.forth.Eforth;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
-    static final String APP_NAME = "keForth v0";
+    static final String APP_NAME = "keForth v0.6";
     
     private EditText             ed;
     private FloatingActionButton fab;
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                in.doForth();
+                out.debug("fab clicked\n");
             }
         });
         in.setupKeyListener();
