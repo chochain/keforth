@@ -38,7 +38,7 @@ public class InputHandler {
         
         if (TextUtils.isEmpty(cmd)) return;
         
-        forth.outer(cmd);
+        forth.process(cmd);
         clearInput();
     }
     
