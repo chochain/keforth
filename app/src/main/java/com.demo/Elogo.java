@@ -13,7 +13,7 @@ public class Elogo {
     public Elogo(View vu, OutputHandler out) {
         this.out = out;
         
-        logo = new Logo2(vu.getContext());
+        logo = new Logo2(vu.getContext(), out);
         ///
         ///> resize Logo panel only after layed out (see View life-cycle)
         ///
@@ -24,11 +24,11 @@ public class Elogo {
                 int l0, int t0, int r0, int b0) {             ///< orig layout (0,0,0,0)
                 v.removeOnLayoutChangeListener(this);         ///< once, fixed size
                 out.debug("logo w="+v.getWidth()+" h="+v.getHeight()+"\n");
-//                logo.reset(v.getWidth(), v.getHeight());
+                logo.reset(v.getWidth(), v.getHeight());
             }
         });
     }
-    
+
     public void process(String msg) {
         final String rx = "\\s+(?=(?:[^']*'[^']*')*[^']*$)"; ///< regex single quotes
         String[] ops = msg.split(rx);                        ///< parse parameters
