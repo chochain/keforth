@@ -25,7 +25,7 @@ public class Eforth {
         io.mstat();
     }
     
-    public void outer(String cmd) {
+    public void process(String cmd) {
         out.log(cmd + "\n");
         io.rescan(cmd);
         
