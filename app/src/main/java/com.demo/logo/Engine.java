@@ -16,11 +16,12 @@ public class Engine {
     private static final double RAD = Math.PI / 180.0;
     
     public static class State {
-        public float x, y;               ///< current position (relative to center)
         public int   w, h;               ///< viewport dimensions
-        public float d    = 0;           ///< direction in degrees, 0=East
+        public float x, y;               ///< current position (relative to center)
+        public float d;                  ///< direction in degrees, 0=East
+        public int   pw   = 3;           ///< pen stroke width
+        public int   ts   = 20;          ///< default text size
         public int   pen  = 1;           ///< 0: pen-up, 1: pen-down  
-        public int   pw   = 3;           ///< pen width
         public int   show = 0;           ///< 0: hide turtle, 1: show turtle
         public int   fg   = 0xFFFFFFFF;  ///< foreground color (white)
         public int   bg   = 0xFF00FF00;  ///< background color (green)
@@ -28,10 +29,10 @@ public class Engine {
         public State(int w, int h) {
             this.w = w;
             this.h = h;
-            reset();
+            home();
         }
         
-        public void reset() {
+        public void home() {
             x = y = 0;
             d = -90;                     /// North
         }
@@ -39,8 +40,8 @@ public class Engine {
         @Override
         public String toString() {
             return String.format(
-                "{x:%.1f, y:%.1f, w:%d, h:%d, d:%.2f, pw:%d, pen:%d, show:%d}",
-                x, y, w, h, d, pw, pen, show);
+                "{x:%.1f, y:%.1f, w:%d, h:%d, d:%.2f, pen:%d, show:%d}",
+                x, y, w, h, d, pen, show);
         }
     }
     
@@ -54,7 +55,7 @@ public class Engine {
         public final boolean penDown;
         
         public OpMove(float x, float y, boolean penDown) {
-            this.x = x;
+            this.x = x;                               ///< move turtle to x,y
             this.y = y;
             this.penDown = penDown;
         }
@@ -65,21 +66,28 @@ public class Engine {
         }
     }
     
-    public static class OpColor extends Op {
+    public static class OpColor extends Op {          ///< set pen color
         public final int c;
         public OpColor(int c)    { this.c = c; }
         @Override
         public void exec(Blip b) { b.setColor(c); }
     }
     
-    public static class OpWidth extends Op {
-        public final int w;
-        public OpWidth(int w)    { this.w = w; }
+    public static class OpWidth extends Op {           ///< set pen width
+        public final int pw;
+        public OpWidth(int pw)    { this.pw = pw; }
         @Override
-        public void exec(Blip b) { b.setWidth(w); }
+        public void exec(Blip b) { b.setWidth(pw); }
+    }
+
+    public static class OpTextSize extends Op {        ///< set text size
+        public final int ts;
+        public OpTextSize(int ts)    { this.ts = ts; }
+        @Override
+        public void exec(Blip b) { b.setTextSize(ts); }
     }
     
-    public static class OpLabel extends Op {
+    public static class OpLabel extends Op {          ///< place a label
         public final String txt;
         public final float  x, y, a;
         public OpLabel(String txt, float x, float y, float angle) {
@@ -155,22 +163,25 @@ public class Engine {
         
         switch (op) {
         case "cs":                                       /// clear screen
-            ops.clear();
-            st.reset();
+            ops.clear();                                 ///< clean queue
+            st.home();                                   ///< at origin, due North
             add(new OpClear());
-            add(new OpMove(st.x, st.y, false)); break;
+            add(new OpMove(0, 0, false));       break;
+        ///< display modes
         case "ht": st.show = 0;                 break;   /// hide turtle
         case "st": st.show = 1;                 break;   /// show turtle
+        case "pd": st.pen = 1;                  break;   /// pen down
+        case "pu": st.pen = 0;                  break;   /// pen up
+        ///< turtle movement
         case "ct":                                       /// center turtle
             st.x = st.y = 0;
             add(new OpMove(0, 0, false));       break; 
-        case "pd": st.pen = 1;                  break;   /// pen down
-        case "pu": st.pen = 0;                  break;   /// pen up
         case "hd": st.d = n - 90;               break;   /// set heading
         case "fd": xform(n, 0, 0);              break;   /// forward
         case "bk": xform(-n, 0, 0);             break;   /// backward  
         case "rt": xform(0, 0, n);              break;   /// right turn
         case "lt": xform(0, 0, -n);             break;   /// left turn
+        ///< coloring
         case "pc":                                       /// pen color (HSV)
             st.fg = HSVColor(n);
             add(new OpColor(st.fg));            break;
@@ -178,15 +189,18 @@ public class Engine {
             st.fg = RGBColor(n);
             add(new OpColor(st.fg));            break;
         case "bg": st.bg = RGBColor(n);         break;
-            
-        case "pw":
+        ///< pen stroke, text size
+        case "pw":                                       /// pen width
             st.pw = n;
-            add(new OpWidth(n));                break;   /// pen width
+            add(new OpWidth(n));                break;
+        case "ts":                                       /// text size
+            st.ts = n;
+            add(new OpTextSize(n));             break;
         case "tt": /// text
             String s = v1.substring(1, v1.length()-1);   /// remove quotes
             add(new OpLabel(s, st.x, st.y, st.d + 90));
             break;
-        case "ts": /* in renderer */            break;   /// text size - handled by renderer
+        ///< absolute position
         case "xy":                                       /// set position
             int x = (n & 0xffff);
             int y = (n >> 16) & 0xffff;
