@@ -47,7 +47,8 @@ public class Engine {
     
     /// Drawing commands that will be executed by the renderer
     public static abstract class Op {
-       public abstract void exec(Blip b);
+        public String name = "--";
+        public abstract void exec(Blip b);
     }
     
     public static class OpMove extends Op {
@@ -55,6 +56,7 @@ public class Engine {
         public final boolean penDown;
         
         public OpMove(float x, float y, boolean penDown) {
+            name = "move";
             this.x = x;                               ///< move turtle to x,y
             this.y = y;
             this.penDown = penDown;
@@ -66,23 +68,23 @@ public class Engine {
         }
     }
     
-    public static class OpColor extends Op {          ///< set pen color
+    public static class OpColor extends Op {           ///< set pen color
         public final int c;
-        public OpColor(int c)    { this.c = c; }
+        public OpColor(int c)    { name="color="+c; this.c = c; }
         @Override
         public void exec(Blip b) { b.setColor(c); }
     }
     
     public static class OpWidth extends Op {           ///< set pen width
         public final int pw;
-        public OpWidth(int pw)    { this.pw = pw; }
+        public OpWidth(int pw)    { name="pw="+pw; this.pw = pw; }
         @Override
         public void exec(Blip b) { b.setWidth(pw); }
     }
 
     public static class OpTextSize extends Op {        ///< set text size
         public final int ts;
-        public OpTextSize(int ts)    { this.ts = ts; }
+        public OpTextSize(int ts)    { name="ts="+ts; this.ts = ts; }
         @Override
         public void exec(Blip b) { b.setTextSize(ts); }
     }
@@ -91,6 +93,7 @@ public class Engine {
         public final String txt;
         public final float  x, y, a;
         public OpLabel(String txt, float x, float y, float angle) {
+            name = "label"+txt;
             this.txt = txt;
             this.x   = x;
             this.y   = y;
@@ -116,9 +119,9 @@ public class Engine {
     
     private void     add(Op op) { ops.add(op); }
     
-    public  List<Op> getOps()   { return new ArrayList<>(ops); }
+    public  List<Op> getOps()   { return ops;  }
     public  void     clearOps() { ops.clear(); }
-    public  State    getState() { return st; }
+    public  State    getState() { return st;   }
     
     /// Color conversion utilities
     public static int RGBColor(int v) {
@@ -158,9 +161,9 @@ public class Engine {
         add(new OpMove(st.x, st.y, st.pen == 1));
     }
     
-    public boolean exec(String op, String v1, String v2) {
+    public boolean step(String op, String v1, String v2) {
         int n = op.equals("tt") ? 0 : Integer.parseInt(v1);
-        
+
         switch (op) {
         case "cs":                                       /// clear screen
             ops.clear();                                 ///< clean queue
