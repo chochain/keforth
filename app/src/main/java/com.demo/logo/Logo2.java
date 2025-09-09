@@ -7,11 +7,12 @@
 /// * Much easier to understand and maintain
 ///
 /// With the following benifits
-/// * Testability: You can unit test TurtleEngine without any Android context
+/// * Testability: can unit test Engine without any Android context
 /// * Performance: Commands can be batched and optimized
 /// * Debugging: You can log/inspect the command stream
 /// * Multiple Backends: Easy to add SVG export, printing, or other renderers
 /// * State Management: Clear separation between logical state and visual state
+///
 package com.demo.logo;
 
 import android.content.Context;
@@ -19,15 +20,19 @@ import android.graphics.*;
 import android.view.View;
 import android.util.AttributeSet;
 import java.lang.IllegalStateException;
+
+import com.demo.ui.OutputHandler;
     
 public class Logo2 extends View {
-    private Engine   core;
-    private Blip     blip;
-    private Bitmap   sfcBitmap, eveBitmap;
-    private Canvas   sfcCanvas, eveCanvas;
+    private OutputHandler out;
+    private Engine        core;
+    private Blip          blip;
+    private Bitmap        sfcBitmap, eveBitmap;
+    private Canvas        sfcCanvas, eveCanvas;
     
-    public Logo2(Context context) {
+    public Logo2(Context context, OutputHandler out) {
         super(context);
+        this.out = out;
     }
     
     public Logo2(Context context, AttributeSet attrs) {
@@ -50,10 +55,7 @@ public class Logo2 extends View {
         Engine.State st = core.getState();
         blip.init(st.w, st.h, st.fg, st.pw, st.ts);
 
-        core.exec("cs", "", "");         /// * could throw NullPointerException
-        doLogo();
-        
-        invalidate();
+        execute("cs", "0", "0");
     }
 
     @Override
@@ -75,20 +77,20 @@ public class Logo2 extends View {
     private void doLogo() {
         if (blip == null) return;
         
-        /// Clear turtle layer
-        eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        
-        /// Execute all pending commands
-        for (Engine.Op op : core.getOps()) {
+        for (Engine.Op op : core.getOps()) {  /// dispatch command from queue
+            out.log(op.name+" ");
             op.exec(blip);
         }
+        core.clearOps();                      /// clear command queue
+        out.log("\n");
         
-        /// Draw turtle if visible
-        Engine.State st = core.getState();
+        Engine.State st = core.getState();    /// redraw turtle if visible
+        
+//        eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        blip.render();                        /// rendering path
         blip.turtle(st.x, st.y, st.d, st.fg, st.show==1);
-        
-        /// Finish rendering
-        blip.render();
+
+        invalidate();
     }
     
     public String to_s() {
@@ -97,13 +99,9 @@ public class Logo2 extends View {
     
     public boolean execute(String op, String v1, String v2) {
         if (core == null) return false;
-        
-        boolean rst = core.exec(op, v1, v2);
-        if (rst) {
-            doLogo();
-            invalidate();
-        }
-        return rst;
+
+        boolean t = core.step(op, v1, v2);
+        if (t) doLogo();
+        return t;
     }
-    
 }
