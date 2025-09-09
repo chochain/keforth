@@ -10,13 +10,15 @@
 package com.demo.logo;
 
 public interface Blip {
-    void clear();
-    void setColor(int color);
-    void setWidth(int width);
+    void init(int w, int h, int fs, int pw, int ts);       ///< initialize attributes
+    void setColor(int color);                              ///< set pen color
+    void setWidth(int pw);                                 ///< set pen stroke width
+    void setTextSize(int ts);                              ///< set text font size
     
-    void moveTo(float x, float y, boolean penDown);
-    void label(String txt, float x, float y, float angle);
-    void drawTurtle(float x, float y, float angle, int color, boolean show);
+    void moveTo(float x, float y, boolean penDown);        ///< move turtle to x,y
+    void label(String txt, float x, float y, float angle); ///< place label at x,y
+    void turtle(float x, float y, float angle, int color, boolean show); ///< place turtle at x,y
     
-    void render();                                 /// Finish drawing and display
+    void clear();                                          ///< clean draw path
+    void render();                                         ///< display on canvas
 }
