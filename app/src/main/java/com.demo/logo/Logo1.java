@@ -1,6 +1,13 @@
 ///
 /// @file
 /// @brief keForth - Logo/Turtle Graphic implementation (Android Canvas version)
+/// @note
+///    Logo1 is an implementation that has no separation among the following
+///    * Turtle computational logic
+///    * No Renderer abstraction
+///    * Android specific rendering (separate logical from screen coordinates)
+///    * View interface
+///    Logo2 does those but bloated the code 2x lines
 ///
 package com.demo.logo;
 
