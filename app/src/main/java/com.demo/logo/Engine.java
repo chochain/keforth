@@ -40,8 +40,8 @@ public class Engine {
         @Override
         public String toString() {
             return String.format(
-                "{x:%.1f, y:%.1f, w:%d, h:%d, d:%.2f, pen:%d, show:%d}",
-                x, y, w, h, d, pen, show);
+                "{x:%.1f, y:%.1f, w:%d, h:%d, d:%.2f, pw:%d, ts:%d, pen:%d, show:%d}",
+                x, y, w, h, d, pw, ts, pen, show);
         }
     }
     
