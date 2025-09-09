@@ -45,10 +45,14 @@ public class Logo2 extends View {
         
         /// Initialize engine (state) and turtle (views)
         core = new Engine(w, h);
-        blip = new AndroidBlip(sfcCanvas, eveCanvas, w, h);
+        blip = new AndroidBlip(sfcCanvas, eveCanvas);
+        
+        Engine.State st = core.getState();
+        blip.init(st.w, st.h, st.fg, st.pw, st.ts);
 
         core.exec("cs", "", "");         /// * could throw NullPointerException
         doLogo();
+        
         invalidate();
     }
 
@@ -81,7 +85,7 @@ public class Logo2 extends View {
         
         /// Draw turtle if visible
         Engine.State st = core.getState();
-        blip.drawTurtle(st.x, st.y, st.d, st.fg, st.show==1);
+        blip.turtle(st.x, st.y, st.d, st.fg, st.show==1);
         
         /// Finish rendering
         blip.render();
