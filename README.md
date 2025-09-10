@@ -64,6 +64,7 @@ With the mass market of Android, the rich features from all walks of life can be
         - lookup by hashcode (kept in map)
 
 1. Review
+   + OpenBot - Robot control using Android Phone
    + Cordova - Google's cross-platform WebView
    + FireBase - Cloud Messaging, Chat API (for remote access)
    + DroidScript - Javascript + Python
