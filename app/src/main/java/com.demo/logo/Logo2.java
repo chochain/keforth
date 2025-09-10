@@ -9,14 +9,15 @@
 /// With the following benifits
 /// * Testability: can unit test Engine without any Android context
 /// * Performance: Commands can be batched and optimized
-/// * Debugging: You can log/inspect the command stream
+/// * Debugging: can log/inspect the command stream
 /// * Multiple Backends: Easy to add SVG export, printing, or other renderers
 /// * State Management: Clear separation between logical state and visual state
 ///
 package com.demo.logo;
 
 import android.content.Context;
-import android.graphics.*;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.view.View;
 import android.util.AttributeSet;
 import java.lang.IllegalStateException;
@@ -24,11 +25,11 @@ import java.lang.IllegalStateException;
 import com.demo.ui.OutputHandler;
     
 public class Logo2 extends View {
-    private OutputHandler out;
-    private Engine        core;
-    private Blip          blip;
-    private Bitmap        sfcBitmap, eveBitmap;
-    private Canvas        sfcCanvas, eveCanvas;
+    private Bitmap        sfc;                     ///< bitmap for path surface
+    private Bitmap        eve;                     ///< bitmap for turtle cursor
+    private OutputHandler out;                     ///< for debug tracing
+    private Engine        core;                    ///< Logo logic
+    private Blip          blip;                    ///< Renderer
     
     public Logo2(Context context, OutputHandler out) {
         super(context);
@@ -41,18 +42,16 @@ public class Logo2 extends View {
 
     public void reset(int w, int h) {
         if (w <= 0 || h <= 0) return;
-
-        /// Create bitmaps and canvases
-        sfcBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        eveBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        sfcCanvas = new Canvas(sfcBitmap);
-        eveCanvas = new Canvas(eveBitmap);
         
         /// Initialize engine (state) and turtle (views)
         core = new Engine(w, h);
-        blip = new AndroidBlip(sfcCanvas, eveCanvas);
-        
+
         Engine.State st = core.getState();
+        
+        sfc  = Bitmap.createBitmap(st.w, st.h, Bitmap.Config.ARGB_8888);
+        eve  = Bitmap.createBitmap(st.w, st.h, Bitmap.Config.ARGB_8888);
+        blip = new AndroidBlip(sfc, eve);
+        
         blip.init(st.w, st.h, st.fg, st.pw, st.ts);
 
         execute("cs", "0", "0");
@@ -64,14 +63,16 @@ public class Logo2 extends View {
 //        throw new IllegalStateException("logo.onSizeChanged");
         reset(w, h);
     }
-    
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (sfcBitmap == null || eveBitmap == null) return;
-        
-        canvas.drawBitmap(sfcBitmap, 0, 0, null);
-        canvas.drawBitmap(eveBitmap, 0, 0, null);
+        canvas.drawBitmap(sfc, 0, 0, null);
+        canvas.drawBitmap(eve, 0, 0, null);
+    }
+    
+    public String to_s() {
+        return core != null ? core.getState().toString() : "na";
     }
     
     private void doLogo() {
@@ -86,22 +87,18 @@ public class Logo2 extends View {
         
         Engine.State st = core.getState();    /// redraw turtle if visible
         
-//        eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        blip.render();                        /// rendering path
-        blip.turtle(st.x, st.y, st.d, st.fg, st.show==1);
-
+        blip.draw(st.x, st.y, st.d, st.fg, st.show==1);
+        
         invalidate();
-    }
-    
-    public String to_s() {
-        return core != null ? core.getState().toString() : "na";
     }
     
     public boolean execute(String op, String v1, String v2) {
         if (core == null) return false;
 
+        out.debug("before " + to_s() + "\n");
         boolean t = core.step(op, v1, v2);
         if (t) doLogo();
+        out.debug("after  " + to_s() + "\n");
         return t;
     }
 }
