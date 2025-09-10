@@ -53,6 +53,22 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
     
     private void setupEventListeners() {
+        ///
+        ///> resize Logo panel only after layed out (see View life-cycle)
+        ///
+        vu.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v,
+                int l1, int t1, int r1, int b1,               ///< new layout
+                int l0, int t0, int r0, int b0) {             ///< orig layout (0,0,0,0)
+                v.removeOnLayoutChangeListener(this);         ///< once, fixed size
+                out.debug("logo w="+v.getWidth()+" h="+v.getHeight()+"\n");
+                logo.init(v.getWidth(), v.getHeight());
+            }
+        });
+        ///
+        ///> force scroll to bottom of view once updated
+        ///
         ScrollView sv = findViewById(R.id.forthView);
         sv.getViewTreeObserver().addOnGlobalLayoutListener(
             new ViewTreeObserver.OnGlobalLayoutListener() {
