@@ -11,38 +11,38 @@ package com.demo.logo;
 import android.graphics.*;
 
 public class AndroidBlip implements Blip {
-    private Canvas sfcCanvas, eveCanvas;
-    private Paint  sfcPaint,  evePaint;
-    private Path   path;
+    private Paint  sfcPaint,  evePaint;     ///< Paint attributes
+    private Canvas sfcCanvas, eveCanvas;    ///< Logical surfaces
+    private Path   path;                    ///< Collections
     private float  x0, y0;                  ///< offsets to screen coordinates
     
-    public AndroidBlip(Canvas sfc, Canvas eve) {
-        this.sfcCanvas = sfc;
-        this.eveCanvas = eve;
+    public AndroidBlip(Bitmap sfc, Bitmap eve) {
+        sfcCanvas = new Canvas(sfc);        ///< Logo path
+        eveCanvas = new Canvas(eve);        ///< Turtle overlay
+        sfcPaint  = new Paint(Paint.ANTI_ALIAS_FLAG);
+        evePaint  = new Paint(Paint.ANTI_ALIAS_FLAG);
+        path      = new Path();
         
-        sfcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         sfcPaint.setStyle(Paint.Style.STROKE);
         sfcPaint.setStrokeJoin(Paint.Join.ROUND);
         sfcPaint.setStrokeCap(Paint.Cap.ROUND);
         
-        evePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         evePaint.setStyle(Paint.Style.STROKE);
         evePaint.setStrokeWidth(3);
         evePaint.setColor(Color.RED);
         evePaint.setStrokeJoin(Paint.Join.ROUND);
         evePaint.setStrokeCap(Paint.Cap.ROUND);
-        
-        path = new Path();
     }
 
     @Override
     public void init(int w, int h, int fg, int pw, int ts) {
-        this.x0 = 0.5f * w;              ///< logical 0,0 at center of canvas
-        this.y0 = 0.5f * h;              ///< TODO: use Matirx
+        x0 = 0.5f * w;                   ///< logical 0,0 at center of canvas
+        y0 = 0.5f * h;                   ///< TODO: use Matirx
+        
         setColor(fg);
         setWidth(pw);
         setTextSize(ts);
-    }
+    }        
 
     @Override
     public void setColor(int color) {
@@ -83,19 +83,36 @@ public class AndroidBlip implements Blip {
         
         sfcCanvas.restore();
     }
+    
     ///
     ///> Turtle shaped like Eve (as in Wall-E)
     ///
     @Override
-    public void turtle(float x, float y, float angle, int color, boolean show) {
-        final float ANGLE = 30;          ///< startding point of the shoulder
-        final float SWEEP = 18;          ///< sweep angle
-        final float HEAD  = 24;          ///< head height
+    public void draw(float x, float y, float angle, int color, boolean show) {
+        sfcCanvas.drawPath(path, sfcPaint);   ///< draw collected path
+        path.rewind();
+        
+        if (!show) return;                    ///< skip turtle
+        
+        drawTurtle(x, y, angle, color);
+    }
+
+    @Override
+    public void clear() {                ///< clean canvas
+        sfcCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        path.rewind();
+    }
+    
+    private void drawTurtle(float x, float y, float angle, int color) {
+        final float ANGLE = 30;             ///< startding point of the shoulder
+        final float SWEEP = 18;             ///< sweep angle
+        final float HEAD  = 24;             ///< head height
         final float SKULL = 4;
         
-        if (!show) return;
+        float x1 = x0 + x, y1 = y0 - y;     ///< logical => screen coordinate
         
-        float x1 = x0 + x, y1 = y0 - y;  ///< logical => screen coordinate
+//        eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         
         evePaint.setColor(color);
         eveCanvas.save();
@@ -114,19 +131,6 @@ public class AndroidBlip implements Blip {
         
         eveCanvas.drawPath(eve, evePaint);
         eveCanvas.restore();
-    }
-    
-    @Override
-    public void clear() {
-        sfcCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-        path.rewind();
-    }
-    
-    @Override
-    public void render() {
-        sfcCanvas.drawPath(path, sfcPaint);
-        path.rewind();
     }
 }
 
