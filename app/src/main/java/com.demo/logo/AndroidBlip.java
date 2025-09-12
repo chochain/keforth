@@ -6,6 +6,16 @@
 /// * Coordinate system conversion happens here
 /// * Paint and drawing style management isolated
 ///
+///     +===============+
+///     |       Y  /    |
+///     |       | /     |
+///     |       |/alpha |
+///     | ------o-----X |
+///     |       |       |
+///     |       |       |
+///     |       |       |
+///     +===============+
+///
 package com.demo.logo;
 
 import android.graphics.*;
@@ -36,8 +46,8 @@ public class AndroidBlip implements Blip {
 
     @Override
     public void init(int w, int h, int fg, int pw, int ts) {
-        x0 = 0.5f * w;                   ///< logical 0,0 at center of canvas
-        y0 = 0.5f * h;                   ///< TODO: use Matirx
+        x0 = 0.5f * w;                      ///< logical 0,0 at center of canvas
+        y0 = 0.5f * h;                      ///< TODO: use Matirx
         
         setColor(fg);
         setWidth(pw);
@@ -46,9 +56,9 @@ public class AndroidBlip implements Blip {
 
     @Override
     public void setColor(int color) {
-//        path.rewind();                 /// from Logo1
+//        path.rewind();                    /// from Logo1
         sfcPaint.setColor(color);
-//        path.moveTo(st.x, st.y);       /// from Logo1
+//        path.moveTo(st.x, st.y);          /// from Logo1
     }
     
     @Override
@@ -63,7 +73,7 @@ public class AndroidBlip implements Blip {
     
     @Override
     public void moveTo(float x, float y, boolean penDown) {
-        float x1 = x0 + x, y1 = y0 - y;   ///< logical => screen coordinates
+        float x1 = x0 + x, y1 = y0 - y;     ///< logical => screen coordinates
         
         if (penDown) path.lineTo(x1, y1);
         else         path.moveTo(x1, y1);
@@ -71,34 +81,34 @@ public class AndroidBlip implements Blip {
     
     @Override
     public void label(String txt, float x, float y, float angle) {
-        float x1 = x0 + x, y1 = y0 - y;  ///< logical => screen coordinate
+        float x1 = x0 + x, y1 = y0 - y;     ///< logical => screen coordinate
         
         sfcCanvas.save();
         sfcCanvas.translate(x1, y1);
-        sfcCanvas.rotate(angle);
+        sfcCanvas.rotate(angle+180);
         
-        Rect r = new Rect();             ///< boundig box
+        Rect r = new Rect();                ///< boundig box
         sfcPaint.getTextBounds(txt, 0, txt.length(), r);
         sfcCanvas.drawText(txt, -0.5f * r.width(), 0.5f * r.height(), sfcPaint);
         
         sfcCanvas.restore();
     }
-    
     ///
     ///> Turtle shaped like Eve (as in Wall-E)
     ///
     @Override
     public void draw(float x, float y, float angle, int color, boolean show) {
-        sfcCanvas.drawPath(path, sfcPaint);   ///< draw collected path
+        sfcCanvas.drawPath(path, sfcPaint); ///< draw collected path
         path.rewind();
+        moveTo(x, y, false);
         
-        if (!show) return;                    ///< skip turtle
+        if (!show) return;                  ///< skip turtle
         
-        drawTurtle(x, y, angle, color);
+        drawTurtle(x, y, angle+180, color);
     }
 
     @Override
-    public void clear() {                ///< clean canvas
+    public void clear() {                   ///< clean canvas
         sfcCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         path.rewind();
@@ -112,7 +122,7 @@ public class AndroidBlip implements Blip {
         
         float x1 = x0 + x, y1 = y0 - y;     ///< logical => screen coordinate
         
-//        eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        eveCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         
         evePaint.setColor(color);
         eveCanvas.save();
