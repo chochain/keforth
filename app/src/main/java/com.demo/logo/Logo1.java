@@ -74,18 +74,7 @@ public class Logo1 extends View {
     private Path    path;
     private boolean redraw = true;
     
-    // Constructors
-    public Logo1(Context context) {
-        super(context); init();
-    }
-    
-    public Logo1(Context context, AttributeSet attrs) {
-        super(context, attrs); init();
-    }
-    
-    public Logo1(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr); init();
-    }
+    public Logo1(Context context) { super(context); init(); }
     
     private void init() {
         // Initialize paints
@@ -215,7 +204,7 @@ public class Logo1 extends View {
     }
 
     public String to_s() { return st.toString(); }
-    public boolean update(String op, String v1, String v2) {
+    public boolean execute(String op, String v1, String v2) {
         if (st == null) return false;
         int n = op.equals("tt") ? 0 : Integer.parseInt(v1);
         
