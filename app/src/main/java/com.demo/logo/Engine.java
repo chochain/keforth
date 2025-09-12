@@ -7,6 +7,12 @@
 ///     Can be reused across different platforms (Desktop Java, Web, etc.)
 ///     You can unit test Engine without any Android context
 ///
+///         Y
+///         |  /
+///         | /
+///         |/alpha
+///         +--------X
+///
 package com.demo.logo;
 
 import java.util.List;
@@ -18,7 +24,7 @@ public class Engine {
     public static class State {
         public int   w, h;               ///< viewport dimensions
         public float x, y;               ///< current position (relative to center)
-        public float d;                  ///< direction in degrees, 0=East
+        public float d;                  ///< direction in degrees, 0=East, 90=North
         public int   pw   = 3;           ///< pen stroke width
         public int   ts   = 20;          ///< default text size
         public int   pen  = 1;           ///< 0: pen-up, 1: pen-down  
@@ -34,7 +40,7 @@ public class Engine {
         
         public void home() {
             x = y = 0;
-            d = -90;                     /// North
+            d = 90;                      /// North
         }
         
         @Override
@@ -47,7 +53,6 @@ public class Engine {
     
     /// Drawing commands that will be executed by the renderer
     public static abstract class Op {
-        public String name = "--";
         public abstract void exec(Blip b);
     }
     
@@ -56,8 +61,7 @@ public class Engine {
         public final boolean penDown;
         
         public OpMove(float x, float y, boolean penDown) {
-            name = "move";
-            this.x = x;                               ///< move turtle to x,y
+            this.x = x;                                 ///< move turtle to x,y
             this.y = y;
             this.penDown = penDown;
         }
@@ -70,30 +74,29 @@ public class Engine {
     
     public static class OpColor extends Op {           ///< set pen color
         public final int c;
-        public OpColor(int c)    { name="color="+c; this.c = c; }
+        public OpColor(int c)     { this.c = c; }
         @Override
-        public void exec(Blip b) { b.setColor(c); }
+        public void exec(Blip b)  { b.setColor(c); }
     }
     
     public static class OpWidth extends Op {           ///< set pen width
         public final int pw;
-        public OpWidth(int pw)    { name="pw="+pw; this.pw = pw; }
+        public OpWidth(int pw)    { this.pw = pw; }
         @Override
-        public void exec(Blip b) { b.setWidth(pw); }
+        public void exec(Blip b)  { b.setWidth(pw); }
     }
 
     public static class OpTextSize extends Op {        ///< set text size
         public final int ts;
-        public OpTextSize(int ts)    { name="ts="+ts; this.ts = ts; }
+        public OpTextSize(int ts) { this.ts = ts; }
         @Override
-        public void exec(Blip b) { b.setTextSize(ts); }
+        public void exec(Blip b)  { b.setTextSize(ts); }
     }
     
     public static class OpLabel extends Op {          ///< place a label
         public final String txt;
         public final float  x, y, a;
         public OpLabel(String txt, float x, float y, float angle) {
-            name = "label"+txt;
             this.txt = txt;
             this.x   = x;
             this.y   = y;
@@ -112,10 +115,7 @@ public class Engine {
     private State    st;
     private List<Op> ops = new ArrayList<>();
     
-    public Engine(int w, int h) {
-        this.st = new State(w, h);
-//        add(new OpMove(st.x, st.y, false));
-    }
+    public Engine(int w, int h) { st = new State(w, h); }
     
     private void     add(Op op) { ops.add(op); }
     
@@ -179,11 +179,11 @@ public class Engine {
         case "ct":                                       /// center turtle
             st.x = st.y = 0;
             add(new OpMove(0, 0, false));       break; 
-        case "hd": st.d = n - 90;               break;   /// set heading
+        case "hd": st.d = n + 90;               break;   /// set heading
         case "fd": xform(n, 0, 0);              break;   /// forward
         case "bk": xform(-n, 0, 0);             break;   /// backward  
-        case "rt": xform(0, 0, n);              break;   /// right turn
-        case "lt": xform(0, 0, -n);             break;   /// left turn
+        case "rt": xform(0, 0, -n);             break;   /// right turn
+        case "lt": xform(0, 0, n);              break;   /// left turn
         ///< coloring
         case "pc":                                       /// pen color (HSV)
             st.fg = HSVColor(n);
@@ -199,7 +199,7 @@ public class Engine {
         case "ts":                                       /// text size
             st.ts = n;
             add(new OpTextSize(n));             break;
-        case "tt": /// text
+        case "tt":                                       /// text
             String s = v1.substring(1, v1.length()-1);   /// remove quotes
             add(new OpLabel(s, st.x, st.y, st.d + 90));
             break;
@@ -208,11 +208,11 @@ public class Engine {
             int x = (n & 0xffff);
             int y = (n >> 16) & 0xffff;
                 
-            if ((x & 0x8000) != 0) x |= 0xffff0000;
+            if ((x & 0x8000) != 0) x |= 0xffff0000;      /// negative number
             if ((y & 0x8000) != 0) y |= 0xffff0000;
                 
             st.x = x;
-            st.y = -y;                                   /// Flip Y
+            st.y = y;
             add(new OpMove(st.x, st.y, st.pen == 1));
             break;
         default: return false;
