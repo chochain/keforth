@@ -3,6 +3,7 @@ package com.demo;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.ScrollView;
@@ -20,12 +21,12 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     
     private EditText             ed;
     private FloatingActionButton fab;
-    private View                 vu;
+    private ViewGroup            vgrp;
 
-    private Elogo                logo;
-    private Eforth               forth;
     private InputHandler         in;
     private OutputHandler        out;
+    private Eforth               forth;
+    private Elogo                logo;
     
     @Override
     protected void onCreate(Bundle state) {
@@ -38,34 +39,21 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
     
     private void initViews() {
-        ed  = findViewById(R.id.forthInput);
-        fab = findViewById(R.id.buttonProcess);
-        vu  = findViewById(R.id.logo);
+        ed    = findViewById(R.id.forthInput);
+        fab   = findViewById(R.id.buttonProcess);
+        vgrp  = findViewById(R.id.logo);
     }
     
     private void initComponents() {
         out   = new OutputHandler(this);
-        logo  = new Elogo(vu, out);
         forth = new Eforth(APP_NAME, out, this);
         in    = new InputHandler(ed, forth);
-        
         forth.init();
+        
+        logo  = new Elogo(vgrp, out);
     }
     
     private void setupEventListeners() {
-        ///
-        ///> resize Logo panel only after layed out (see View life-cycle)
-        ///
-        vu.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-            @Override
-            public void onLayoutChange(View v,
-                int l1, int t1, int r1, int b1,               ///< new layout
-                int l0, int t0, int r0, int b0) {             ///< orig layout (0,0,0,0)
-                v.removeOnLayoutChangeListener(this);         ///< once, fixed size
-                out.debug("logo w="+v.getWidth()+" h="+v.getHeight()+"\n");
-                logo.init(v.getWidth(), v.getHeight());
-            }
-        });
         ///
         ///> force scroll to bottom of view once updated
         ///
@@ -95,7 +83,10 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     
     @Override
     public void onPost(String msg) {
+        out.debug(msg);
+        out.debug(logo.to_s()+"\n");
         logo.process(msg);
+        out.debug(logo.to_s()+"\n");
     }
 }
 
