@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         in    = new InputHandler(ed, forth);
         forth.init();
         
-        logo  = new Elogo(vgrp, out);
+        logo  = new Elogo(vgrp);
     }
     
     private void setupEventListeners() {
@@ -83,10 +83,10 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     
     @Override
     public void onPost(String msg) {
-        out.debug(msg);
-        out.debug(logo.to_s()+"\n");
+        out.debug(msg+"\n");
+        out.debug(logo.status()+"\n");
         logo.process(msg);
-        out.debug(logo.to_s()+"\n");
+        out.debug(logo.status()+"\n");
     }
 }
 
