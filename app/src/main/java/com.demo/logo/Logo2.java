@@ -19,8 +19,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.view.View;
-import android.util.AttributeSet;
-import java.lang.IllegalStateException;
 
 import com.demo.ui.OutputHandler;
     
@@ -30,16 +28,11 @@ public class Logo2 extends View {
     private OutputHandler out;                     ///< for debug tracing
     private Engine        core;                    ///< Logo logic
     private Blip          blip;                    ///< Renderer
-    
-    public Logo2(Context context, OutputHandler out) {
-        super(context);
-        this.out = out;
-    }
-    
-    public Logo2(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
 
+    public int nx = 0;
+
+    public Logo2(Context context) { super(context); }
+    
     public void reset(int w, int h) {
         if (w <= 0 || h <= 0) return;
         
@@ -54,13 +47,14 @@ public class Logo2 extends View {
         
         blip.init(st.w, st.h, st.fg, st.pw, st.ts);
 
+        nx++;
+
         execute("cs", "0", "0");
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int w0, int h0) {
         super.onSizeChanged(w, h, w0, h0);
-//        throw new IllegalStateException("logo.onSizeChanged");
         reset(w, h);
     }
 
@@ -79,11 +73,9 @@ public class Logo2 extends View {
         if (blip == null) return;
         
         for (Engine.Op op : core.getOps()) {  /// dispatch command from queue
-            out.log(op.name+" ");
             op.exec(blip);
         }
         core.clearOps();                      /// clear command queue
-        out.log("\n");
         
         Engine.State st = core.getState();    /// redraw turtle if visible
         
@@ -95,10 +87,8 @@ public class Logo2 extends View {
     public boolean execute(String op, String v1, String v2) {
         if (core == null) return false;
 
-        out.debug("before " + to_s() + "\n");
         boolean t = core.step(op, v1, v2);
         if (t) doLogo();
-        out.debug("after  " + to_s() + "\n");
         return t;
     }
 }
