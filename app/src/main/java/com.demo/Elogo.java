@@ -7,14 +7,12 @@ package com.demo.logo;
 import android.view.ViewGroup;
 import android.widget.LinearLayout.LayoutParams;
 
-import com.demo.ui.OutputHandler;
-
 public class Elogo {                                        
-    final private Logo1 logo;                                ///< Logo proxy
+    final private Logo2 logo;                                ///< Logo proxy
     
-    public Elogo(ViewGroup vgrp, OutputHandler out) {
-//        this.logo = new Logo2(vgrp.getContext(), out);
-        this.logo = new Logo1(vgrp.getContext());
+    public Elogo(ViewGroup vgrp) {
+        this.logo = new Logo2(vgrp.getContext());
+//        this.logo = new Logo1(vgrp.getContext());
         
         LayoutParams p = new LayoutParams(
             LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT
@@ -24,8 +22,8 @@ public class Elogo {
         vgrp.addView(logo);                                  ///< dynamic view
     }
 
-    public String to_s() {
-        return logo.to_s();
+    public String status() {
+        return logo.to_s() + " n="+logo.nx;
     }
 
     public void process(String msg) {
