@@ -11,6 +11,7 @@
         android:padding="2dp"
         android:gravity="center_horizontal">
         <LinearLayout
+            android:id="@+id/output"
             android:layout_width="match_parent"
             android:layout_height="416dp"
             android:orientation="horizontal"
@@ -33,12 +34,15 @@
                   android:textIsSelectable="false"
                   android:fontFamily="monospace"/>
             </ScrollView>
-            <View
+            <LinearLayout
                 android:id="@+id/logo"
                 android:layout_width="0dp"
                 android:layout_weight="4"
                 android:layout_height="match_parent"
-                android:background="@drawable/logoview_border"/>
+                android:gravity="center_vertical"
+                android:orientation="vertical"
+                android:background="@drawable/logoview_border">
+             </LinearLayout>
         </LinearLayout>
         <EditText
             android:id="@+id/forthInput"
