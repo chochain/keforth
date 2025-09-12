@@ -1,22 +1,31 @@
-// ============================================================================
-// LogoX.java - Processes Logo commands
+///
+/// @file
+/// @brief - Logo command processor
+///
 package com.demo.logo;
 
-import android.content.Context;
-import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout.LayoutParams;
+
 import com.demo.ui.OutputHandler;
 
-public class Elogo {
-    Logo2         logo;                                      ///< Logo implementation
-    OutputHandler out;                                       ///< for debugging
+public class Elogo {                                        
+    final private Logo1 logo;                                ///< Logo proxy
     
-    public Elogo(View vu, OutputHandler out) {
-        this.logo = new Logo2(vu.getContext(), out);
-        this.out  = out;
+    public Elogo(ViewGroup vgrp, OutputHandler out) {
+//        this.logo = new Logo2(vgrp.getContext(), out);
+        this.logo = new Logo1(vgrp.getContext());
+        
+        LayoutParams p = new LayoutParams(
+            LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT
+        );
+        logo.setLayoutParams(p);
+        
+        vgrp.addView(logo);                                  ///< dynamic view
     }
 
-    public void init(int w, int h) {                         ///< proxy to Logo2
-        logo.reset(w, h);
+    public String to_s() {
+        return logo.to_s();
     }
 
     public void process(String msg) {
@@ -24,14 +33,6 @@ public class Elogo {
         String[] ops = msg.split(rx);                        ///< parse parameters
         int      n   = ops.length;
 
-        Runnable trace = () -> {                             ///< borrowed interface
-            out.log(msg + " n=" + n);                        ///  to trace params
-            for (int i = 0; i < n; i++) {
-                out.log(" " + i + ":" + ops[i]);
-            }
-            out.log("\n");
-        };
-        trace.run();
         if (n < 1) return;
 
         String op = ops[0];
