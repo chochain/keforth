@@ -6,15 +6,11 @@
 /// * Coordinate system conversion happens here
 /// * Paint and drawing style management isolated
 ///
-///     +===============+
-///     |       Y  /    |
-///     |       | /     |
-///     |       |/alpha |
-///     | ------o-----X |
-///     |       |       |
-///     |       |       |
-///     |       |       |
-///     +===============+
+///     o------X Android Coordinate system
+///     |\alpha  
+///     | \
+///     |  \
+///     Y
 ///
 package com.demo.logo;
 
@@ -85,7 +81,7 @@ public class AndroidBlip implements Blip {
         
         sfcCanvas.save();
         sfcCanvas.translate(x1, y1);
-        sfcCanvas.rotate(angle+180);
+        sfcCanvas.rotate(-angle+90);        /// * vertical to path
         
         Rect r = new Rect();                ///< boundig box
         sfcPaint.getTextBounds(txt, 0, txt.length(), r);
@@ -104,7 +100,7 @@ public class AndroidBlip implements Blip {
         
         if (!show) return;                  ///< skip turtle
         
-        drawTurtle(x, y, angle+180, color);
+        drawTurtle(x, y, angle, color);
     }
 
     @Override
@@ -128,7 +124,7 @@ public class AndroidBlip implements Blip {
         eveCanvas.save();
         
         eveCanvas.translate(x1, y1);
-        eveCanvas.rotate(angle);
+        eveCanvas.rotate(-angle);
         
         Path  eve = new Path();
         eve.addCircle(HEAD, 0, SKULL, Path.Direction.CW);
