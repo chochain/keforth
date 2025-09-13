@@ -7,12 +7,16 @@
 ///     Can be reused across different platforms (Desktop Java, Web, etc.)
 ///     You can unit test Engine without any Android context
 ///
-///         Y
-///         |  /
-///         | /
-///         |/alpha
-///         +--------X
-///
+///     +===============+ Cartesian Coordiante
+///     |       Y  /    |
+///     |       | /     |
+///     |       |/alpha |
+///     | ------o-----X | h
+///     |       |       |
+///     |       |       |
+///     |       |       |
+///     +===============+
+///             w
 package com.demo.logo;
 
 import java.util.List;
@@ -24,7 +28,7 @@ public class Engine {
     public static class State {
         public int   w, h;               ///< viewport dimensions
         public float x, y;               ///< current position (relative to center)
-        public float d;                  ///< direction in degrees, 0=East, 90=North
+        public float d;                  ///< direction in degrees, 0=East, -90=North
         public int   pw   = 3;           ///< pen stroke width
         public int   ts   = 20;          ///< default text size
         public int   pen  = 1;           ///< 0: pen-up, 1: pen-down  
@@ -39,8 +43,7 @@ public class Engine {
         }
         
         public void home() {
-            x = y = 0;
-            d = 90;                      /// North
+            x = y = d = 0;              /// center(0,0), due East
         }
         
         @Override
@@ -179,7 +182,7 @@ public class Engine {
         case "ct":                                       /// center turtle
             st.x = st.y = 0;
             add(new OpMove(0, 0, false));       break; 
-        case "hd": st.d = n + 90;               break;   /// set heading
+        case "hd": st.d = n;                    break;   /// set heading (0=East)
         case "fd": xform(n, 0, 0);              break;   /// forward
         case "bk": xform(-n, 0, 0);             break;   /// backward  
         case "rt": xform(0, 0, -n);             break;   /// right turn
@@ -201,7 +204,7 @@ public class Engine {
             add(new OpTextSize(n));             break;
         case "tt":                                       /// text
             String s = v1.substring(1, v1.length()-1);   /// remove quotes
-            add(new OpLabel(s, st.x, st.y, st.d + 90));
+            add(new OpLabel(s, st.x, st.y, st.d));
             break;
         ///< absolute position
         case "xy":                                       /// set position
