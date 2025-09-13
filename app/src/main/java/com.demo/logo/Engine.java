@@ -43,7 +43,8 @@ public class Engine {
         }
         
         public void home() {
-            x = y = d = 0;              /// center(0,0), due East
+            x = y = 0;                   /// center(0,0)
+            d = 90;                      /// due North
         }
         
         @Override
