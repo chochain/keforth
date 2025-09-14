@@ -64,9 +64,10 @@ With the mass market of Android, the rich features from all walks of life can be
     + Multimedia
         * Camera
         * Audio
+        * Text-To-Speach
     + Communication
-        * USB
-        * Bluetooth Low Energy - mesh
+        * USB - [UsbSerial](https://github.com/felHR85/UsbSerial)
+        * Bluetooth - [EasyBle](https://github.com/Ficat/EasyBle)
         * Wifi - service, P2P
         * Telephony
     + Object
@@ -76,7 +77,7 @@ With the mass market of Android, the rich features from all walks of life can be
 
 2. Review - Comparables
 <pre>
-   + OpenBot - Robot control using Android Phone
+   + Robot - [OpenBot](https://github.com/ob-f/OpenBot/blob/master/android/robot/src/main/java/org/openbot/OpenBotApplication.java)
    + Cordova - Google's cross-platform WebView
    + FireBase - Cloud Messaging, Chat API (for remote access)
    + DroidScript - Javascript + Python
