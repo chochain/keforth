@@ -53,7 +53,7 @@ With the mass market of Android, the rich features from all walks of life can be
     x TextView, color coding
     x EditView, auto complete
     x SurfaceView => 2D Logo
-<pre>
+</pre>
 
 1. Review - Android
 <pre>
