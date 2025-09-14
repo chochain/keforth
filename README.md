@@ -49,21 +49,33 @@ With the mass market of Android, the rich features from all walks of life can be
 
 ## TODO
 0. Android project - vanilla
+<pre>
     x TextView, color coding
     x EditView, auto complete
     x SurfaceView => 2D Logo
-    + Sensors
-        - Motion
-        - Position
-        - Environment
-    + Communication
-        - Bluetooth Low Energy - mesh
-        - Wifi - service, P2P
-    + Object
-        - instantiate from string
-        - lookup by hashcode (kept in map)
+<pre>
 
-1. Review
+1. Review - Android
+<pre>
+    + Sensors - SensorManager
+        * Motion:      Accelerometer, Gravity, Linear Acceleration, Gyroscope, Rotation Vector (motion)
+        * Position:    Orientation, Magnetic Field (direction)
+        * Environment: Temperature, Pressure, Light, Proximity (close to ear), Humidity
+    + Multimedia
+        * Camera
+        * Audio
+    + Communication
+        * USB
+        * Bluetooth Low Energy - mesh
+        * Wifi - service, P2P
+        * Telephony
+    + Object
+        * instantiate from string
+        * lookup by hashcode (kept in map)
+</pre>
+
+2. Review - Comparables
+<pre>
    + OpenBot - Robot control using Android Phone
    + Cordova - Google's cross-platform WebView
    + FireBase - Cloud Messaging, Chat API (for remote access)
@@ -71,8 +83,10 @@ With the mass market of Android, the rich features from all walks of life can be
    + Roboto - JRuby + React
    + ButterKnife => ViewBinding, DataBinding vs Jetpack Compose
    + AndroidClock => Forth-base solution
+</pre>
 
-2. Android Project - Jetpack Compose + Material Design
+3. Android Project - Jetpack Compose + Material Design
+<pre>
     + Backdrop => layered
        + Cards => keforth responses
        + Divider
@@ -80,6 +94,7 @@ With the mass market of Android, the rich features from all walks of life can be
        + Chips << cmd input
     + Side Sheets => words (sorted), ss_dump
     + Tooltip => see
+</pre>
 
 ## References
 
