@@ -72,11 +72,16 @@ With the mass market of Android, the rich features from all walks of life can be
         * Telephony
     + Object
         * instantiate from string
+        * invokedynamic (instead of reflection).
+          [First Taste](https://blog.headius.com/2008/09/first-taste-of-invokedynamic.html),
+          [Secret](https://www.infoq.com/articles/Invokedynamic-Javas-secret-weapon/)
+          [Indy](https://stackoverflow.com/questions/6638735/whats-invokedynamic-and-how-do-i-use-it)
         * lookup by hashcode (kept in map)
 </pre>
 
 2. Review - Comparables
 <pre>
+   + JNI - [Example](https://medium.com/@sarafanshul/jni-101-introduction-to-java-native-interface-8a1256ca4d8e)
    + Robot - [OpenBot](https://github.com/ob-f/OpenBot/blob/master/android/robot/src/main/java/org/openbot/OpenBotApplication.java)
    + Cordova - Google's cross-platform WebView
    + FireBase - Cloud Messaging, Chat API (for remote access)
