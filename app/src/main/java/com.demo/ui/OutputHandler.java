@@ -14,12 +14,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class OutputHandler extends OutputStream {
-    private final Scheme   scheme;
+    private final Theme    theme;
     private final TextView out;
     
-    public OutputHandler(AppCompatActivity act) {
-        scheme = new Scheme(act);
-        out    = act.findViewById(R.id.forthOutput);
+    public OutputHandler(AppCompatActivity act, int view_id, int color_cmd) {
+        theme = new Theme(act, color_cmd);
+        out   = act.findViewById(view_id);
     }
     
     @Override
@@ -34,9 +34,9 @@ public class OutputHandler extends OutputStream {
         print(rst);
     }
     
-    public void print(String txt) { post(txt, scheme.fg); }
-    public void log(String cmd)   { post(cmd, scheme.cm); }
-    public void debug(String msg) { post(msg, scheme.cb); }
+    public void print(String txt) { post(txt, theme.fg); }
+    public void log(String cmd)   { post(cmd, theme.cm); }
+    public void debug(String msg) { post(msg, theme.cb); }
     
     private void post(String str, int color) {
         SpannableString s = new SpannableString(str);
@@ -45,14 +45,14 @@ public class OutputHandler extends OutputStream {
         out.post(() -> out.append(s));
     }
     
-    private static class Scheme {
+    private static class Theme {
         public final int fg;
         public final int cm;
         public final int cb;
         
-        public Scheme(AppCompatActivity act) {
+        public Theme(AppCompatActivity act, int color_id) {
             fg = Color.WHITE;
-            cm = act.getResources().getColor(R.color.teal_200);
+            cm = act.getResources().getColor(color_id);
             cb = Color.RED;
         }
     }
