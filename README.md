@@ -82,7 +82,9 @@ With the mass market of Android, the rich features from all walks of life can be
 2. Review - Comparables
 <pre>
    + JNI - [Example](https://medium.com/@sarafanshul/jni-101-introduction-to-java-native-interface-8a1256ca4d8e)
-   + Robot - [OpenBot](https://github.com/ob-f/OpenBot/blob/master/android/robot/src/main/java/org/openbot/OpenBotApplication.java)
+   + Robot
+      * [OpenBot](https://github.com/ob-f/OpenBot/blob/master/android/robot/src/main/java/org/openbot/OpenBotApplication.java)
+      * [Smartphone Robot](https://www.voltpaperscissors.com/diy-smartphone-robot)
    + Cordova - Google's cross-platform WebView
    + FireBase - Cloud Messaging, Chat API (for remote access)
    + DroidScript - Javascript + Python
