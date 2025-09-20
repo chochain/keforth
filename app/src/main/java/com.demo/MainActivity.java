@@ -17,7 +17,7 @@ import com.demo.ui.InputHandler;
 import com.demo.forth.Eforth;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
-    static final String APP_NAME = "keForth v0.6";
+    static final String APP_NAME = "keForth v0.8";
     
     private EditText             ed;
     private FloatingActionButton fab;
@@ -37,13 +37,13 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         initComponents();
         setupEventListeners();
     }
-    
+
     private void initViews() {
         ed    = findViewById(R.id.forthInput);
         fab   = findViewById(R.id.buttonProcess);
         vgrp  = findViewById(R.id.logo);
     }
-    
+
     private void initComponents() {
         out   = new OutputHandler(this);
         forth = new Eforth(APP_NAME, out, this);
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         
         logo  = new Elogo(vgrp);
     }
-    
+
     private void setupEventListeners() {
         ///
         ///> force scroll to bottom of view once updated
