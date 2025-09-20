@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
 
     private void initComponents() {
-        out   = new OutputHandler(this);
+        out   = new OutputHandler(this, R.id.forthOutput, R.color.teal_200);
         forth = new Eforth(APP_NAME, out, this);
         in    = new InputHandler(ed, forth);
         forth.init();
