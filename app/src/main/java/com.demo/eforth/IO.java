@@ -20,7 +20,8 @@ import android.os.Environment;
 ///> console input/output
 ///
 public class IO {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG         = false;
+    private static final int     CHARS_PER_ROW = 54;
     enum OP { CR, BL, EMIT, DOT, UDOT, DOTR, UDOTR, SPCS }
 
     String        name;
@@ -163,7 +164,7 @@ public class IO {
         for (Code w : dict) {
             pstr("  " + w.name);
             sz += w.name.length() + 2;                      /// width control
-            if (sz > 64) { cr(); sz = 0; }
+            if (sz > CHARS_PER_ROW) { cr(); sz = 0; }
         }
         cr();
     }
