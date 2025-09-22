@@ -26,16 +26,13 @@ public class Elogo {
         return logo.to_s() + " n="+logo.nx;
     }
 
-    public void process(String msg) {
-        final String rx = "\\s+(?=(?:[^']*'[^']*')*[^']*$)"; ///< regex single quotes
-        String[] ops = msg.split(rx);                        ///< parse parameters
-        int      n   = ops.length;
-
-        if (n < 1) return;
-
-        String op = ops[0];
-        String v1 = n > 1 ? ops[1] : "0";
-        String v2 = n > 2 ? ops[2] : "0";
+    public void process(String[] ops) {
+        int    n  = ops.length;
+        if (n < 2) return;                                   ///* skip no-op
+        
+        String op = ops[1];
+        String v1 = n > 2 ? ops[2] : "0";
+        String v2 = n > 3 ? ops[3] : "0";
 
         logo.execute(op, v1, v2);
     }
