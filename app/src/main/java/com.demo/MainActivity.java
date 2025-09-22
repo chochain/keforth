@@ -12,9 +12,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.demo.eforth.*;
 import com.demo.logo.*;
-import com.demo.ui.OutputHandler;
-import com.demo.ui.InputHandler;
-import com.demo.forth.Eforth;
+import com.demo.ui.*;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
     static final String APP_NAME = "keForth v0.8";
@@ -83,10 +81,23 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     
     @Override
     public void onPost(String msg) {
+        final String rx = "\\s+(?=(?:[^']*'[^']*')*[^']*$)"; ///< regex single quotes
+        String[] ops = msg.split(rx);                        ///< parse parameters
+        int      n   = ops.length;
+
+        if (n < 1) return;                                   ///< skip blank lines
+        
         out.debug(msg+"\n");
-        out.debug(logo.status()+"\n");
-        logo.process(msg);
-        out.debug(logo.status()+"\n");
+        switch (ops[0]) {
+        case "logo":
+            out.debug(logo.status()+"\n");
+            logo.process(ops);
+            out.debug(logo.status()+"\n");
+            break;
+        default:
+            out.debug("unsupported op="+ops[0]+"\n");
+            break;
+        }
     }
 }
 
