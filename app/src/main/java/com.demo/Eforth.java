@@ -1,8 +1,7 @@
 // ============================================================================
 // ForthProcessor.java - Handles Forth VM operations
-package com.demo.forth;
+package com.demo.eforth;
 
-import com.demo.eforth.*;
 import com.demo.ui.OutputHandler;
 
 public class Eforth {

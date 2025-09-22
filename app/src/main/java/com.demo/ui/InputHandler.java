@@ -6,7 +6,7 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
-import com.demo.forth.Eforth;
+import com.demo.eforth.Eforth;
 
 public class InputHandler {
     private final EditText in;
