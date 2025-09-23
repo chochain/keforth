@@ -85,6 +85,7 @@ With the mass market of Android, the rich features from all walks of life can be
    + Robot
       * [OpenBot](https://github.com/ob-f/OpenBot/blob/master/android/robot/src/main/java/org/openbot/OpenBotApplication.java)
       * [Smartphone Robot](https://www.voltpaperscissors.com/diy-smartphone-robot)
+      * [MIT App Inventor](https://github.com/mit-cml/appinventor-sources)
    + Cordova - Google's cross-platform WebView
    + FireBase - Cloud Messaging, Chat API (for remote access)
    + DroidScript - Javascript + Python
