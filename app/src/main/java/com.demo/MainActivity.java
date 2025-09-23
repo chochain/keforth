@@ -7,6 +7,9 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.ScrollView;
+import android.hardware.SensorManager;
+import android.hardware.Sensor;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -25,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     private OutputHandler        out;
     private Eforth               forth;
     private Elogo                logo;
+    private SensorManager        smgr;
     
     @Override
     protected void onCreate(Bundle state) {
@@ -49,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         forth.init();
         
         logo  = new Elogo(vgrp);
+//        smgr  = (SensorManager)getSystemService(Context.SENSOR_SERVICE);        
+        smgr  = (SensorManager)getSystemService(this.SENSOR_SERVICE);
     }
 
     private void setupEventListeners() {
@@ -94,10 +100,23 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
             logo.process(ops);
             out.debug(logo.status()+"\n");
             break;
+        case "sensors":
+            listSensors();
+            break;
         default:
             out.debug("unsupported op="+ops[0]+"\n");
             break;
         }
+    }
+
+    private void listSensors() {
+        StringBuilder sb = new StringBuilder("sensor list:\n");
+        for (Sensor s : smgr.getSensorList(Sensor.TYPE_ALL)) {
+            sb.append("Name: ").append(s.getName()).append("\n");
+            sb.append("Type: ").append(s.getType()).append("\n");
+            sb.append("Vendor: ").append(s.getVendor()).append("\n\n");
+        }
+        out.debug(sb.toString());
     }
 }
 
