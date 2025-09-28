@@ -30,7 +30,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text=""
-                android:textSize="12sp"
+                android:textSize="24sp"
                 android:padding="12dp"
                 android:textIsSelectable="false"
                 android:fontFamily="monospace"/>
@@ -42,8 +42,8 @@
             android:hint="Forth here..."
             android:inputType="text"
             android:layout_marginBottom="0dp"
+            android:textSize="24sp"
             android:padding="12dp"
-            android:textSize="12sp"
             android:background="@drawable/edittext_border"
             android:fontFamily="monospace"/>
     </LinearLayout>
