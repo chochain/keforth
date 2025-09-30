@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         ///> force scroll to bottom of view once updated
         ///
         ScrollView sv = findViewById(R.id.forthView);
+        
         sv.getViewTreeObserver().addOnGlobalLayoutListener(
             new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
@@ -79,7 +80,9 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                out.debug("fab clicked\n");
+                vgrp.setVisibility(
+                    vgrp.getVisibility()==View.GONE ? View.VISIBLE : View.GONE
+                );
             }
         });
         in.setupKeyListener();
@@ -112,9 +115,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     private void listSensors() {
         StringBuilder sb = new StringBuilder("sensor list:\n");
         for (Sensor s : smgr.getSensorList(Sensor.TYPE_ALL)) {
-            sb.append("Name: ").append(s.getName()).append("\n");
-            sb.append("Type: ").append(s.getType()).append("\n");
-            sb.append("Vendor: ").append(s.getVendor()).append("\n\n");
+            sb.append(s.getVendor()).append(" ").append(s.getName()).append("\n");
         }
         out.debug(sb.toString());
     }
