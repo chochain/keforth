@@ -21,7 +21,7 @@ import android.os.Environment;
 ///
 public class IO {
     private static final boolean DEBUG         = false;
-    private static final int     CHARS_PER_ROW = 64;
+    private static final int     CHARS_PER_ROW = 36;
     enum OP { CR, BL, EMIT, DOT, UDOT, DOTR, UDOTR, SPCS }
 
     String        name;
@@ -119,13 +119,19 @@ public class IO {
     /// File ops
     ///
     String full_path(String d) {
-        return dir0 + "/" + wd + (d==null ? "" : "/"+d);
+        return dir0 + wd + (d==null ? "" : "/"+d);
     }
     void pwd() { pstr(wd.toString()+" "); }
     void dir(String d) {
-        File[] fa = new File(full_path(d)).listFiles();      ///< list from 'current dir'
-        for (int i = 0; i < fa.length; i++) {
-            pstr(fa[i].getName()+"  ");
+        String fd  = full_path(d);
+        File   dir = new File(fd);
+        if (!(dir.exists() && dir.isDirectory())) {
+            pstr("dir "+fd+" exists?\n");
+            return;
+        }
+        pstr("dir="+fd+"\n");
+        for (File f : dir.listFiles()) {                           ///< list from 'current dir'
+            pstr(f.getName()+"  ");
         }
         cr();
     }
