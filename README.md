@@ -48,15 +48,13 @@ With the mass market of Android, the rich features from all walks of life can be
 
 
 ## TODO
-0. Android project - vanilla
-<pre>
-    x TextView, color coding
-    x EditView, auto complete
-    x SurfaceView => 2D Logo
-</pre>
-
 1. Review - Android
 <pre>
+    + Jetpack
+        * Navigation
+        * Paging
+        * Slice
+        * WorkManager
     + Sensors - SensorManager
         * Motion:      Accelerometer, Gravity, Linear Acceleration, Gyroscope, Rotation Vector (motion)
         * Position:    Orientation, Magnetic Field (direction)
