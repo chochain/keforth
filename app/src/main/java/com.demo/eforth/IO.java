@@ -21,7 +21,7 @@ import android.os.Environment;
 ///
 public class IO {
     private static final boolean DEBUG         = false;
-    private static final int     CHARS_PER_ROW = 36;
+    private static final int     CHARS_PER_ROW = 42;
     enum OP { CR, BL, EMIT, DOT, UDOT, DOTR, UDOTR, SPCS }
 
     String        name;
