@@ -4,57 +4,54 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <FrameLayout
+    <!-- Forth Ops (lowest layer) -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <LinearLayout
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="2dp"
+        android:gravity="top">
+        <!-- Forth Output -->
+        <ScrollView
+            android:id="@+id/forthView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="2dp"
-            android:gravity="top">
-            <!-- Forth Output -->
-            <ScrollView
-                android:id="@+id/forthView"
+            android:layout_height="0dp"
+            android:layout_weight="5"
+            android:fillViewport="true">
+            <TextView
+                android:id="@+id/forthOutput"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="5"
-                android:fillViewport="true">
-                <TextView
-                    android:id="@+id/forthOutput"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:text=""
-                    android:textSize="11sp"
-                    android:padding="4dp"
-                    android:textIsSelectable="false"
-                    android:fontFamily="monospace"
-                    android:gravity="bottom"/>
-            </ScrollView>
-            <!-- Forth input -->
-            <EditText
-                android:id="@+id/forthInput"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Forth here..."
-                android:inputType="text"
-                android:layout_marginBottom="0dp"
+                android:layout_height="match_parent"
+                android:text=""
                 android:textSize="11sp"
-                android:padding="8dp"
-                android:background="@drawable/edittext_border"
-                android:fontFamily="monospace"/>
-        </LinearLayout>
-        <!-- Logo view (overlay) -->
-        <LinearLayout
-            android:id="@+id/logo"
+                android:padding="4dp"
+                android:textIsSelectable="false"
+                android:fontFamily="monospace"
+                android:gravity="bottom"/>
+        </ScrollView>
+        <!-- Forth input -->
+        <EditText
+            android:id="@+id/forthInput"
             android:layout_width="match_parent"
-            android:layout_height="400dp"
-            android:orientation="vertical"
-            android:visibility="gone"
-            android:background="@drawable/logoview_border">
-        </LinearLayout>
-    </FrameLayout>        
-
+            android:layout_height="wrap_content"
+            android:hint="Forth here..."
+            android:inputType="text"
+            android:layout_marginBottom="0dp"
+            android:textSize="11sp"
+            android:padding="8dp"
+            android:background="@drawable/edittext_border"
+            android:fontFamily="monospace"/>
+    </LinearLayout>
+    <!-- Logo view (above Forth layer) -->
+    <LinearLayout
+        android:id="@+id/logo"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:background="@drawable/logoview_border">
+    </LinearLayout>
+    <!-- Button (top most layer) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/buttonProcess"
         android:layout_width="wrap_content"
