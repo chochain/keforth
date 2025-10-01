@@ -4,49 +4,53 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="2dp"
-        android:gravity="top">
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="2dp"
+            android:gravity="top">
+          <ScrollView
+              android:id="@+id/forthView"
+              android:layout_width="match_parent"
+              android:layout_height="0dp"
+              android:layout_weight="5"
+              android:fillViewport="true">
+              <TextView
+                  android:id="@+id/forthOutput"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:text=""
+                  android:textSize="12sp"
+                  android:padding="12dp"
+                  android:textIsSelectable="false"
+                  android:fontFamily="monospace"/>
+          </ScrollView>
+          <EditText
+              android:id="@+id/forthInput"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:hint="Forth here..."
+              android:inputType="text"
+              android:layout_marginBottom="0dp"
+              android:textSize="12sp"
+              android:padding="12dp"
+              android:background="@drawable/edittext_border"
+              android:fontFamily="monospace"/>
+        </LinearLayout>
         <LinearLayout
             android:id="@+id/logo"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="400dp"
             android:layout_weight="5"
             android:orientation="vertical"
-            android:visibility="visible"
+            android:visibility="gone"
             android:background="@drawable/logoview_border">
         </LinearLayout>
-        <ScrollView
-            android:id="@+id/forthView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="5"
-            android:fillViewport="true">
-            <TextView
-                android:id="@+id/forthOutput"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text=""
-                android:textSize="12sp"
-                android:padding="12dp"
-                android:textIsSelectable="false"
-                android:fontFamily="monospace"/>
-        </ScrollView>
-        <EditText
-            android:id="@+id/forthInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Forth here..."
-            android:inputType="text"
-            android:layout_marginBottom="0dp"
-            android:textSize="12sp"
-            android:padding="12dp"
-            android:background="@drawable/edittext_border"
-            android:fontFamily="monospace"/>
-    </LinearLayout>
+    </FrameLayout>        
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/buttonProcess"
