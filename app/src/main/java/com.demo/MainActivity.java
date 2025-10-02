@@ -4,13 +4,14 @@ package com.demo;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
-import android.widget.ScrollView;
 import android.hardware.SensorManager;
 import android.hardware.Sensor;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.widget.NestedScrollView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import com.demo.eforth.*;
@@ -61,22 +62,22 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         ///
         ///> force scroll to bottom of view once updated
         ///
-        ScrollView sv = findViewById(R.id.forthView);
-        
+        NestedScrollView sv = findViewById(R.id.forthView);
+    
         sv.getViewTreeObserver().addOnGlobalLayoutListener(
             new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
-                    sv.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                sv.fullScroll(ScrollView.FOCUS_DOWN);
-                                ed.requestFocus();
-                            }
-                        });
+                    sv.post(new Runnable() {                     ///< update UI, thread-safe way
+                        @Override
+                        public void run() {
+                            sv.fullScroll(View.FOCUS_DOWN);
+                            ed.requestFocus();
+                        }
+                    });
                 }
             });
-        
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
