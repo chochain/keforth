@@ -1,5 +1,7 @@
-// ============================================================================
-// ForthOutputHandler.java - Manages output display and colors
+///
+/// @file
+/// @brief - Manages output display and colors
+///
 package com.demo.ui;
 
 import android.graphics.Color;

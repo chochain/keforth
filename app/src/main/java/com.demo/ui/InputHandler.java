@@ -1,5 +1,7 @@
-// ============================================================================
-// InputHandler.java - Manages user input and keyboard events
+///
+/// @file
+/// @brief - Manages user input and keyboard events
+///
 package com.demo.ui;
 
 import android.text.TextUtils;
