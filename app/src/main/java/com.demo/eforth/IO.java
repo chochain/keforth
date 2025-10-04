@@ -6,8 +6,10 @@ package com.demo.eforth;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.FileInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.lang.Exception;
 import java.lang.String;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -29,15 +31,14 @@ public class IO {
     Scanner       tok = null;                               ///< tokenizer (from in Scanner)
     OutputStream  out = null;                               ///< Stream Output
     String        pad;                                      ///< tmp storage
-    String        dir0= null;                               ///< root directory
+//    String        dir0= null;                               ///< root directory
     StringBuffer  wd  = null;                               ///< working directory
 
     public IO(String n, InputStream i, OutputStream o) {
         name = n;                                           ///< name of the system (for mstat)
         ins.add(new Scanner(i));                            ///< stackup input streams
         out  = o;
-        dir0 = Environment.getExternalStorageDirectory().toString();  ///< device public storage root
-        wd   = new StringBuffer();
+        wd   = new StringBuffer();                          ///< working directory
     }
     ///
     ///> IO internal
@@ -118,19 +119,16 @@ public class IO {
     ///
     /// File ops
     ///
-    String full_path(String d) {
-        return dir0 + wd + (d==null ? "" : "/"+d);
-    }
-    void pwd() { pstr(wd.toString()+" "); }
-    void dir(String d) {
-        String fd  = full_path(d);
-        File   dir = new File(fd);
+    void pwd() { pstr(wd.toString()+"/"); }
+    void dir(String d) {                                     ///< display directory
+        String fd  = wd.toString() + "/" + (d==null ? "" : d);
+        File   dir = new File(fd);                           ///< directory on full_path
         if (!(dir.exists() && dir.isDirectory())) {
             pstr("dir "+fd+" exists?\n");
             return;
         }
         pstr("dir="+fd+"\n");
-        for (File f : dir.listFiles()) {                           ///< list from 'current dir'
+        for (File f : dir.listFiles()) {                     ///< list from 'current dir'
             pstr(f.getName()+"  ");
         }
         cr();
@@ -141,23 +139,33 @@ public class IO {
         else if (!d.equals(".")) wd.append("/"+d);
     }
     int load_depth() { return ins.size() - 1; }             /// * depth or recursive loading
-    int load(String fn, BooleanSupplier outer) {
-        Scanner tok0    = tok;                              ///< backup tokenizer
-        String  full_fn = full_path(fn);
+    int load(InputStream st, BooleanSupplier outer) {
+        Scanner tok0 = tok;                                 ///< backup tokenizer
         int i = 0;
-        try (Scanner sc = new Scanner(new File(full_fn))) { ///< auto close scanner
+        try (Scanner sc = new Scanner(st)) {                ///< auto-close scanner
             ins.add(sc);                                    /// * switch input stream
             while (readline()) {                            /// * load from file now
                 i++;
                 if (!outer.getAsBoolean()) break;           /// * pass to outer interpreter
             }
         }
-        catch (IOException e) { err(e); }                   /// * just in case 
+        catch (Exception e) { err(e); }                     /// * just in case 
         finally {
             ins.drop();                                     /// * restore input stream
         }
         tok = tok0;
         return i;                                           /// return line loaded
+    }
+    int load(String fn, BooleanSupplier outer) {
+         InputStream st;
+        try {
+            st = new FileInputStream(fn);
+            return load(st, outer);
+        }
+        catch (IOException e) {
+            err(e);
+            return 0;
+        }
     }
     ///
     ///> Debug ops
