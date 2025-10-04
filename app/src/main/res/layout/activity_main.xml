@@ -54,6 +54,15 @@
       android:layout_gravity="bottom"
       android:background="@drawable/edittext_border"/>
   <!-- Logo view (above Forth layer) -->
+  <ProgressBar
+      android:id="@+id/progress"
+      style="@android:style/Widget.ProgressBar.Horizontal"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:padding="6dp"
+      android:layout_gravity="bottom"
+      android:visibility="gone"
+      android:progress="25"/>
   <LinearLayout
       android:id="@+id/logo"
       android:layout_width="match_parent"
@@ -62,6 +71,7 @@
       android:visibility="gone"
       android:background="@drawable/logoview_border">
   </LinearLayout>
+      
   <!-- Button (top most layer) -->
   <com.google.android.material.floatingactionbutton.FloatingActionButton
       android:id="@+id/buttonProcess"
