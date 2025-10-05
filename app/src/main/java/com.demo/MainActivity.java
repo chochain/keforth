@@ -28,16 +28,16 @@ import com.demo.ui.*;
 public class MainActivity extends AppCompatActivity implements JavaCallback {
     static final String APP_NAME = "keForth v0.8";
     
-    private EditText             ed;
-    private FloatingActionButton fab;
-    private ViewGroup            vgrp;
-    private ProgressBar          pb;
+    private EditText             ed;             ///< Forth input
+    private FloatingActionButton fab;            ///< action button, show Logo panel
+    private ViewGroup            vgrp;           ///< Logo panel
+    private ProgressBar          pb;             ///< progress bar (loading Forth script)
 
-    private InputHandler         in;
-    private OutputHandler        out;
-    private Eforth               forth;
-    private Elogo                logo;
-    private SensorManager        smgr;
+    private InputHandler         in;             ///< Input component
+    private OutputHandler        out;            ///< Output component
+    private Eforth               forth;          ///< Forth processor (thread)
+    private Elogo                logo;           ///< Logo processor (thread)
+    private SensorManager        smgr;           ///< Sensor listing
     
     @Override
     protected void onCreate(Bundle state) {
@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         initViews();
         initComponents();
         setupEventListeners();
+
+        forth.start();                           /// * in a separate thread
     }
 
     private void initViews() {
@@ -60,7 +62,6 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         out   = new OutputHandler(this, R.id.forthOutput, R.color.teal_200);
         forth = new Eforth(APP_NAME, out, this);
         in    = new InputHandler(ed, forth);
-        forth.init();
         
         logo  = new Elogo(vgrp);
 //        smgr  = (SensorManager)getSystemService(Context.SENSOR_SERVICE);        
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
     
     @Override
-    public void onPost(String msg) {
+    public void onPost(String msg) {                         ///< eForth-Java API callback
         final String rx = "\\s+(?=(?:[^']*'[^']*')*[^']*$)"; ///< regex single quotes
         String[] ops = msg.split(rx);                        ///< parse parameters
         int      n   = ops.length;
@@ -126,14 +127,41 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         }
     }
 
-    private static final int DIR_ACCESS_REQUEST_CODE = 13;
+    private static final int OP_DIR_ACCESS     = 10;
+    private static final int OP_CONSOLE_UPDATE = 11;
     
     @Override
     public void onActivityResult(int req, int rst, Intent data) {
         super.onActivityResult(req, rst, data);
-        /// The ACTION_OPEN_DOCUMENT intent sent => request code OPEN_DIRECTORY_REQUEST_CODE
-        if (req != DIR_ACCESS_REQUEST_CODE) return;
-        if (rst != Activity.RESULT_OK) {
+        /// The ACTION_OPEN_DOCUMENT intent sent => request code OP_DIR_ACCESS
+        switch (req) {
+        case OP_DIR_ACCESS:
+            loadFile(rst, data); break;
+        case OP_CONSOLE_UPDATE:
+        default: /* do nothing */ break;
+        }
+    }
+
+    private void findFile(String uri) {
+        Intent nt = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        
+        nt.addCategory(Intent.CATEGORY_OPENABLE);
+        nt.setType("*/*");
+        
+//        String[] mimeTypes = new String[]{"application/x-binary, application/octet-stream"};
+//        String[] mimeTypes = new String[]{"application/gpx+xml","application/vnd.google-earth.kmz"};
+//        nt.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        
+        if (uri != null) nt.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri);
+        if (nt.resolveActivity(getPackageManager()) == null) {
+            out.debug("resolve ACTION_OPEN_DOCUMENT failed\n");
+            return;
+        }
+        startActivityForResult(Intent.createChooser(nt, "Choose file"), OP_DIR_ACCESS);
+    }
+    
+    private void loadFile(int rst, Intent data) {
+        if (rst != AppCompatActivity.RESULT_OK) {
             out.debug("findFile cancelled\n");
             return;
         }
@@ -158,24 +186,6 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
                     pb.setVisibility(View.GONE);
                 }
             }).execute(uri);
-    }
-    
-    public void findFile(String uri) {
-        Intent nt = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        
-        nt.addCategory(Intent.CATEGORY_OPENABLE);
-        nt.setType("*/*");
-        
-//        String[] mimeTypes = new String[]{"application/x-binary, application/octet-stream"};
-//        String[] mimeTypes = new String[]{"application/gpx+xml","application/vnd.google-earth.kmz"};
-//        nt.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-        
-        if (uri != null) nt.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri);
-        if (nt.resolveActivity(getPackageManager()) == null) {
-            out.debug("resolve ACTION_OPEN_DOCUMENT failed\n");
-            return;
-        }
-        startActivityForResult(Intent.createChooser(nt, "Choose file"), DIR_ACCESS_REQUEST_CODE);
     }
     
     private void listSensors() {
