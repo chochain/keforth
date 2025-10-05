@@ -29,9 +29,9 @@ public class VM {
     ///
     ///> functional interfaces
     ///
-    public VM(IO io, JavaCallback cb) {
+    public VM(IO io, JavaCallback api) {
         this.io       = io;
-        this.java_api = cb;
+        this.java_api = api;
         dict = Dict.get_instance();
         dict_init();
         Code b = new Code(_dolit, "lit", 10);            ///< use dict[0] as base store
