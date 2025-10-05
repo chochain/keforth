@@ -17,7 +17,6 @@ public class InputHandler {
     public InputHandler(EditText in, Eforth forth) {
         this.in    = in;
         this.forth = forth;
-
     }
     
     public void setupKeyListener() {
@@ -40,7 +39,7 @@ public class InputHandler {
         
         if (TextUtils.isEmpty(cmd)) return;
         
-        forth.process(cmd);
+        forth.process(cmd);                /// * enqueue forth.Looper
         clearInput();
     }
     
