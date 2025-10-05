@@ -4,24 +4,25 @@
 ///
 package com.demo.ui;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 import android.graphics.Color;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.widget.TextView;
-import androidx.appcompat.app.AppCompatActivity;
+import android.app.Activity;
 
 import com.demo.R;
-import java.io.IOException;
-import java.io.OutputStream;
 
 public class OutputHandler extends OutputStream {
-    private final Theme    theme;
-    private final TextView out;
+    private final TextView                out;
+    private final Theme                   theme;
     
-    public OutputHandler(AppCompatActivity act, int view_id, int color_cmd) {
-        theme = new Theme(act, color_cmd);
+    public OutputHandler(Activity act, int view_id, int color_cmd) {
         out   = act.findViewById(view_id);
+        theme = new Theme(act, color_cmd);
     }
     
     @Override
@@ -44,7 +45,7 @@ public class OutputHandler extends OutputStream {
         SpannableString s = new SpannableString(str);
         s.setSpan(new ForegroundColorSpan(color),
                   0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        out.post(() -> out.append(s));
+        out.post(() -> out.append(s));                 /// * enqueue Main.Looper
     }
     
     private static class Theme {
@@ -52,7 +53,7 @@ public class OutputHandler extends OutputStream {
         public final int cm;
         public final int cb;
         
-        public Theme(AppCompatActivity act, int color_id) {
+        public Theme(Activity act, int color_id) {
             fg = Color.WHITE;
             cm = act.getResources().getColor(color_id);
             cb = Color.RED;
