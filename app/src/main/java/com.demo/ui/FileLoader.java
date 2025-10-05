@@ -2,10 +2,14 @@
 /// @file
 /// @brief - load file from content resolver into app cache directory
 ///
+package com.demo.ui;
+
 import java.lang.ref.WeakReference;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 
@@ -22,10 +26,11 @@ public class FileLoader extends AsyncTask<Uri, Void, String> {
     public AsyncResponse           callback = null;
 
     public interface AsyncResponse {
+        void fileLineRead(String cmd);
         void fileLoadFinish(String result);
     }
 
-    FileLoader(Context ctx , AsyncResponse cb) {
+    public FileLoader(Context ctx , AsyncResponse cb) {
         ref      = new WeakReference<>(ctx);
         callback = cb;
     }
@@ -72,20 +77,21 @@ public class FileLoader extends AsyncTask<Uri, Void, String> {
     }
 
     private int copyTo(InputStream ins, OutputStream out) {
-        byte[] buf = new byte[1024];
-        int    tot = 0;
-        int    len;
-        try {
-            while ((len = ins.read(buf)) > 0) {
-                out.write(buf, 0, len);
-                tot += len;
+        int len = 0;
+        try (BufferedReader r = new BufferedReader(new InputStreamReader(ins, "UTF-8"))) {
+            String line;
+            while ((line = r.readLine()) != null) {
+                callback.fileLineRead(line);
+                out.write(line.getBytes());
+                len += line.length();
             }
             out.flush();
             out.close();
             ins.close();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
         }
-        return tot;
+        return len;
     }
 }
