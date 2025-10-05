@@ -6,7 +6,7 @@ android {
 	compileSdk 29
 
 	defaultConfig {
-		applicationId "com.demo"
+		applicationId "com.keforth"
 		minSdk 26
 		targetSdk 29
 		versionCode 1

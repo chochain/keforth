@@ -1,5 +1,6 @@
 // MainActivity.java - Refactored main activity
-package com.demo;
+package com.keforth;
+
 /// layout
 import android.os.Bundle;
 import android.view.View;
@@ -21,9 +22,9 @@ import android.provider.DocumentsContract;
 import android.hardware.SensorManager;
 import android.hardware.Sensor;
 /// keForth
-import com.demo.eforth.*;
-import com.demo.logo.*;
-import com.demo.ui.*;
+import com.keforth.eforth.*;
+import com.keforth.logo.*;
+import com.keforth.ui.*;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
     static final String APP_NAME = "keForth v0.8";

@@ -2,14 +2,14 @@
 /// @file
 /// @brief - handles messages to/from Forth VM thread
 ///
-package com.demo.eforth;
+package com.keforth.eforth;
 
 import java.lang.Thread;
 import android.os.Looper;
 import android.os.Handler;
 import android.os.Message;
 
-import com.demo.ui.OutputHandler;
+import com.keforth.ui.OutputHandler;
 
 public class Eforth extends Thread {
     public static final int MSG_TYPE_STR = 1;

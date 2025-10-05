@@ -2,7 +2,7 @@
 /// @file 
 /// @brief - Virtual Machine class
 ///
-package com.demo.eforth;
+package com.keforth.eforth;
 
 import java.util.Stack;
 import java.util.Random;

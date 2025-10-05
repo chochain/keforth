@@ -2,13 +2,14 @@
 /// @file
 /// @brief - Manages user input and keyboard events
 ///
-package com.demo.ui;
+package com.keforth.ui;
 
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
-import com.demo.eforth.Eforth;
+
+import com.keforth.eforth.Eforth;
 
 public class InputHandler {
     private final EditText in;

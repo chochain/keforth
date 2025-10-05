@@ -2,7 +2,7 @@
 /// @file
 /// @brief - Logo command processor
 ///
-package com.demo.logo;
+package com.keforth.logo;
 
 import android.view.ViewGroup;
 import android.widget.LinearLayout.LayoutParams;

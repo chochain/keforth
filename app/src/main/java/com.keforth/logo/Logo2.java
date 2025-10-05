@@ -13,14 +13,14 @@
 /// * Multiple Backends: Easy to add SVG export, printing, or other renderers
 /// * State Management: Clear separation between logical state and visual state
 ///
-package com.demo.logo;
+package com.keforth.logo;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.view.View;
 
-import com.demo.ui.OutputHandler;
+import com.keforth.ui.OutputHandler;
     
 public class Logo2 extends View {
     private Bitmap        sfc;                     ///< bitmap for path surface

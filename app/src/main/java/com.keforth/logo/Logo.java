@@ -2,7 +2,7 @@
 /// @file
 /// @brief - Logo on Android SurfaceView
 ///
-package com.demo.logo;
+package com.keforth.logo;
 
 import android.content.Context;
 import android.graphics.Canvas;

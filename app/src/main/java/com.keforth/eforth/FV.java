@@ -2,7 +2,7 @@
 /// @file 
 /// @brief - generic List class - extended ArrayList
 ///
-package com.demo.eforth;
+package com.keforth.eforth;
 
 import java.util.ArrayList;
 

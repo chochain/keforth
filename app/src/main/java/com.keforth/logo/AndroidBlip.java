@@ -12,7 +12,7 @@
 ///     |  \
 ///     Y
 ///
-package com.demo.logo;
+package com.keforth.logo;
 
 import android.graphics.*;
 

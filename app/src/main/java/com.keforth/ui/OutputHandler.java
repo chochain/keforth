@@ -2,7 +2,7 @@
 /// @file
 /// @brief - Manages output display and colors
 ///
-package com.demo.ui;
+package com.keforth.ui;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -14,7 +14,7 @@ import android.text.style.ForegroundColorSpan;
 import android.widget.TextView;
 import android.app.Activity;
 
-import com.demo.R;
+import com.keforth.R;
 
 public class OutputHandler extends OutputStream {
     private final TextView                out;
