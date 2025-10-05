@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewTreeObserver;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 /// JetPack
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.NestedScrollView;
@@ -30,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     private EditText             ed;
     private FloatingActionButton fab;
     private ViewGroup            vgrp;
+    private ProgressBar          pb;
 
     private InputHandler         in;
     private OutputHandler        out;
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         ed    = findViewById(R.id.forthInput);
         fab   = findViewById(R.id.buttonProcess);
         vgrp  = findViewById(R.id.logo);
+        pb    = findViewById(R.id.progress);
     }
 
     private void initComponents() {
@@ -104,12 +107,12 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
 
         if (n < 1) return;                                   ///< skip blank lines
         
-        out.debug(msg+"\n");
+//        out.debug(msg+"\n");
         switch (ops[0]) {                                    ///< Java command dispatcher
         case "logo":
-            out.debug(logo.status()+"\n");
+//            out.debug(logo.status()+"\n");
             logo.process(ops);
-            out.debug(logo.status()+"\n");
+//            out.debug(logo.status()+"\n");
             break;
         case "sensors":
             listSensors();
@@ -141,17 +144,20 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         /// The document URI selected returned as intent
         Uri uri = data.getData();
         out.debug("uri="+uri+"\n");
-/*
-        mProgressBar.setVisibility(View.VISIBLE);
+
+        pb.setVisibility(View.VISIBLE);
         new FileLoader(this,
             new FileLoader.AsyncResponse() {
                 @Override
-                public void fileLoadFinish(String result) {
-                    processFile(new File(result));
-                    mProgressBar.setVisibility(View.GONE);
+                public void fileLineRead(String cmd) {
+//                    out.log(cmd+"\n");
+                    forth.process(cmd);
+                }
+                @Override
+                public void fileLoadFinish(String fname) {
+                    pb.setVisibility(View.GONE);
                 }
             }).execute(uri);
-*/            
     }
     
     public void findFile(String uri) {
