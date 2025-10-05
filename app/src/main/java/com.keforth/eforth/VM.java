@@ -6,6 +6,7 @@ package com.keforth.eforth;
 
 import java.util.Stack;
 import java.util.Random;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -239,18 +240,26 @@ public class VM {
             int i = ss.pop(), n = ss.remove(ss.size()-i-1);
             ss.push(n);
         });
-        CODE("nip",   c -> ss.remove(ss.size()-2)                          );
-        CODE("?dup",  c -> { if (ss.peek()!=0) ss.push(ss.peek()); }       );
+        CODE("nip",   c -> ss.remove(ss.size()-2)           );
+        CODE("?dup",  c -> {
+            if (ss.peek()!=0) ss.push(ss.peek());
+        });
         /// @}
         /// @defgroup Data Stack ops - double
         /// @{
-        CODE("2dup",  c -> ss.addAll(ss.subList(ss.size()-2, ss.size()))   );
-        CODE("2drop", c -> { ss.pop(); ss.pop(); }                         );
+        CODE("2dup",  c -> {
+            ss.push(ss.get(ss.size()-2));
+            ss.push(ss.get(ss.size()-2));
+        });
+        CODE("2drop", c -> { ss.pop(); ss.pop(); }         );
         CODE("2swap", c -> {
             ss.push(ss.remove(ss.size()-4));
             ss.push(ss.remove(ss.size()-4));
         });
-        CODE("2over", c -> ss.addAll(ss.subList(ss.size()-4, ss.size()-2)) );
+        CODE("2over", c -> {
+            ss.push(ss.get(ss.size()-4));
+            ss.push(ss.get(ss.size()-4));
+        });
         /// @}
         /// @defgroup Return Stack ops
         /// @{
