@@ -7,8 +7,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewTreeObserver;
+import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.util.TypedValue;
 /// JetPack
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.NestedScrollView;
@@ -28,7 +30,8 @@ import com.keforth.ui.*;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
     static final String APP_NAME = "keForth v0.8";
-    
+
+    private TextView             con;
     private EditText             ed;             ///< Forth input
     private FloatingActionButton fab;            ///< action button, show Logo panel
     private ViewGroup            vgrp;           ///< Logo panel
@@ -53,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
 
     private void initViews() {
+        con   = findViewById(R.id.forthOutput);
         ed    = findViewById(R.id.forthInput);
         fab   = findViewById(R.id.buttonProcess);
         vgrp  = findViewById(R.id.logo);
@@ -60,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
 
     private void initComponents() {
-        out   = new OutputHandler(this, R.id.forthOutput, R.color.teal_200);
+        out   = new OutputHandler(this, con, R.color.teal_200);
         forth = new Eforth(APP_NAME, out, this);
         in    = new InputHandler(ed, forth);
         
@@ -118,6 +122,12 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
             break;
         case "sensors":
             listSensors();
+            break;
+        case "font":
+            int sz;
+            try { sz = Integer.parseInt(ops[1]); }
+            catch (NumberFormatException e) { sz = 12; }       /// default 12sp
+            con.setTextSize(TypedValue.COMPLEX_UNIT_SP, sz);
             break;
         case "load":
             findFile(n > 1 ? ops[1] : null);
