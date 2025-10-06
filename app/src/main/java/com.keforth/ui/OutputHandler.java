@@ -17,11 +17,11 @@ import android.app.Activity;
 import com.keforth.R;
 
 public class OutputHandler extends OutputStream {
-    private final TextView                out;
-    private final Theme                   theme;
+    private final TextView out;
+    private final Theme    theme;
     
-    public OutputHandler(Activity act, int view_id, int color_cmd) {
-        out   = act.findViewById(view_id);
+    public OutputHandler(Activity act, TextView tv, int color_cmd) {
+        out   = tv;
         theme = new Theme(act, color_cmd);
     }
     
