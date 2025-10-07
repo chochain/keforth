@@ -64,9 +64,11 @@ With the mass market of Android, the rich features from all walks of life can be
         * Audio
         * Text-To-Speach
     + Communication
-        * USB - [UsbSerial](https://github.com/felHR85/UsbSerial)
+        * MQTT - [Mosquitto example](https://highvoltages.co/iot-internet-of-things/mqtt-broker-on-android/), [Paho example](https://medium.com/@basitmukhtar210/connecting-to-an-mqtt-server-on-android-using-eclipse-paho-client-6f5ee42c7191)
         * Bluetooth - [EasyBle](https://github.com/Ficat/EasyBle)
+        * USB - [UsbSerial](https://github.com/felHR85/UsbSerial)
         * Wifi - service, P2P
+        * WireGuard - [Client Setup](https://serversideup.net/blog/how-to-configure-a-wireguard-android-vpn-client/)
         * Telephony
     + Object
         * instantiate from string
