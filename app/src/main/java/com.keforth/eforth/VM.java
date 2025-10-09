@@ -124,22 +124,8 @@ public class VM {
     void ALU(BiFunction<Integer, Integer, Integer> m) { 
         int n = ss.pop(); ss.push(m.apply(ss.pop(), n)); 
     }
-    ///
-    ///> MMU macros
-    ///
-    int  GETV(int i_w) { return dict.get(i_w & 0x7fff).get_var(i_w >> 16); }
-    void SETV(int i_w, int n) {
-        dict.get(i_w & 0x7fff).set_var(i_w >> 16, n);
-        if (i_w==0) base = n;                                      /// * also update base
-    }
-    int IDX() {                                                    ///< calculate String index
-        return ((dict.tail().pf.size() - 1) << 16) | dict.tail().token;
-    }
-    String STR(int i_w) {
-        return i_w >= 0
-            ? dict.get(i_w & 0x7fff).pf.get(i_w >> 16).str
-            : io.pad();
-    }
+    void   SETV(int i_w, int n)  { dict.setv(i_w, n); if (i_w==0) base=n; }
+    String STR(int i_w)          { return i_w >= 0 ? dict.gets(i_w) : io.pad(); }
     ///
     ///> built-in words and macros
     ///
@@ -311,7 +297,7 @@ public class VM {
             if (compile) {
                 Code w = new Code(_dostr, "s\"", s);
                 ADD_W(w);                                  /// literal=s
-                w.token = IDX();
+                w.token = dict.idx();
             }
             else { ss.push(-1); ss.push(s.length()); }     /// use pad
         });
@@ -422,13 +408,13 @@ public class VM {
             dict.add(word());
             Code w  = new Code(_dovar, "var", 0);
             ADD_W(w);
-            w.token = IDX();
+            w.token = dict.idx();
         });
         CODE("constant", c -> {                                    /// n --
             dict.add(word());
             Code w = new Code(_dolit, "lit", ss.pop());
             ADD_W(w);
-            w.token = IDX();
+            w.token = dict.idx();
         });
         CODE("postpone", c -> {
             Code w = tick(); if (w!=null) ADD_W(w);
@@ -440,7 +426,7 @@ public class VM {
             dict.add(word());
             Code w = new Code(_dovar, "var", 0);
             ADD_W(w);
-            w.token = IDX();
+            w.token = dict.idx();
             w.qf.drop();
         });
         IMMD("does>", c -> {                                       /// n --
@@ -467,15 +453,16 @@ public class VM {
         ///   so a variable (array with 1 element) can be access as usual
         ///
         /// @{
-        CODE("@",  c -> ss.push(GETV(ss.pop()))           );       /// w -- n
+        CODE("@",  c -> ss.push(dict.getv(ss.pop()))      );       /// w -- n
         CODE("!",  c -> {                                          /// n w --
-            int i_w = ss.pop(); SETV(i_w, ss.pop());
-        });
-        CODE("+!", c -> {                                          /// n w --
-            int  i_w = ss.pop(), n = GETV(i_w) + ss.pop();
+            int i_w = ss.pop(), n = ss.pop();
             SETV(i_w, n);
         });
-        CODE("?",  c -> io.dot(IO.OP.DOT, GETV(ss.pop())) );       /// w --
+        CODE("+!", c -> {                                          /// n w --
+            int  i_w = ss.pop(), n = dict.getv(i_w) + ss.pop();
+            SETV(i_w, n);
+        });
+        CODE("?",  c -> io.dot(IO.OP.DOT, dict.getv(ss.pop())) );  /// w --
         CODE(",",  c -> dict.tail().comma(ss.pop())       );       /// n -- 
         CODE("cells",c -> { /* backward compatible */ }   );       /// --
         CODE("allot",c -> {                                        /// n --
@@ -506,7 +493,10 @@ public class VM {
             try { Thread.sleep(ss.pop()); } 
             catch (Exception e) { io.err(e); }
         });
-        CODE("java",  c -> java_api.onPost(serialize())            );
+        CODE("java",  c -> {
+            int len = ss.pop(), i_w = ss.pop();                   /// strlen, not used
+            java_api.onPost(io.serialize(STR(i_w), dict, ss));
+        });
         /// @defgroup Debug ops
         /// @{
         CODE("here",  c -> ss.push(Code.fence)                     );
@@ -527,44 +517,5 @@ public class VM {
             int t = dict.find("boot", compile).token + 1;
             dict.forget(t);
         });
-    }
-    public String serialize() {
-        StringBuffer n = new StringBuffer();
-        Function<Character, String> t2s = (Character c) -> {
-            n.setLength(0);  // Clear StringBuilder (equivalent to n.str(""))
-            
-            switch (c) {
-            case 'd': n.append(ss.pop().toString());                break;
-            case 'f': n.append((float)ss.pop());                    break;
-            case 'x': n.append("0x").append(ss.pop().toString(16)); break;
-            case 's':
-                int len = ss.pop(), i_w = ss.pop();
-                n.append("\""+STR(i_w)+"\"");                       break;
-            case 'p':
-                int p1 = ss.pop(), p2 = ss.pop();
-                n.append("p ").append(p1).append(' ').append(p2);   break;
-            default: n.append(c).append('?');                       break;
-            }
-            return n.toString();
-        };
-        int len = ss.pop(), i_w = ss.pop();           /// strlen, not used
-        StringBuffer pad = new StringBuffer(STR(i_w));
-        /// Process format specifiers from back to front
-        /// Find % from back until not found
-        for (int i = pad.lastIndexOf("%"); 
-             i != -1; i = (i > 0) ? pad.lastIndexOf("%", i - 1) : -1) {
-            if (i > 0 && pad.charAt(i - 1) == '%') {  /// handle %%
-                pad.delete(i - 1, i);                 /// Drop one %
-                i--;                                  /// Adjust index after deletion
-                continue;
-            }
-            /// Single % followed by format character
-            if (i + 1 < pad.length()) {
-                String x = t2s.apply(pad.charAt(i + 1));
-                pad.replace(i, i + 2, x);
-            }
-        }
-        /// Pass to JavaScript call handler (equivalent to js_call)
-        return pad.toString();
     }
 }
