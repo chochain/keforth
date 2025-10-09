@@ -77,6 +77,8 @@ With the mass market of Android, the rich features from all walks of life can be
           [Secret](https://www.infoq.com/articles/Invokedynamic-Javas-secret-weapon/)
           [Indy](https://stackoverflow.com/questions/6638735/whats-invokedynamic-and-how-do-i-use-it)
         * lookup by hashcode (kept in map)
+    + AI
+        * [MediaPipe Guestures](https://github.com/google-ai-edge/mediapipe-samples/tree/main/examples/gesture_recognizer/android)
 </pre>
 
 2. Review - Comparables
