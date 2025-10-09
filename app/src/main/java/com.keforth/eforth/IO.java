@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.function.Function;
 
 import android.os.Environment;
 ///
@@ -202,5 +203,43 @@ public class IO {
         }
         if (c.str != null)  pstr(" \\ =\""+c.str+"\" ");
         if (dp == 0) pstr("\n; ");
+    }
+    public String serialize(String fmt, Dict dict, Stack<Integer> ss) {
+        Function<Character, String> t2s = (Character c) -> {
+            StringBuffer n = new StringBuffer();
+            n.setLength(0);  // Clear StringBuilder (equivalent to n.str(""))
+            
+            switch (c) {
+            case 'd': n.append(ss.pop().toString());                break;
+            case 'f': n.append((float)ss.pop());                    break;
+            case 'x': n.append("0x").append(ss.pop().toString(16)); break;
+            case 's':
+                int len = ss.pop(), i_w = ss.pop();
+                n.append("\""+dict.gets(i_w)+"\"");                 break;
+            case 'p':
+                int p1 = ss.pop(), p2 = ss.pop();
+                n.append("p ").append(p1).append(' ').append(p2);   break;
+            default: n.append(c).append('?');                       break;
+            }
+            return n.toString();
+        };
+        StringBuffer pad = new StringBuffer(fmt);
+        /// Process format specifiers from back to front
+        /// Find % from back until not found
+        for (int i = pad.lastIndexOf("%"); 
+             i != -1; i = (i > 0) ? pad.lastIndexOf("%", i - 1) : -1) {
+            if (i > 0 && pad.charAt(i - 1) == '%') {  /// handle %%
+                pad.delete(i - 1, i);                 /// Drop one %
+                i--;                                  /// Adjust index after deletion
+                continue;
+            }
+            /// Single % followed by format character
+            if (i + 1 < pad.length()) {
+                String x = t2s.apply(pad.charAt(i + 1));
+                pad.replace(i, i + 2, x);
+            }
+        }
+        /// Pass to JavaScript call handler (equivalent to js_call)
+        return pad.toString();
     }
 }
