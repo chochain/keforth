@@ -4,9 +4,10 @@
 ///
 package com.keforth.eforth;
 
+import static java.lang.Math.*;
+
 import java.util.Stack;
 import java.util.Random;
-import java.util.List;
 import java.util.function.Function;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -180,13 +181,13 @@ public class VM {
         CODE("and",   c -> ALU((a,b) -> a & b)       );
         CODE("or",    c -> ALU((a,b) -> a | b)       );
         CODE("xor",   c -> ALU((a,b) -> a ^ b)       );
-        CODE("abs",   c -> ALU(a -> Math.abs(a))     );
+        CODE("abs",   c -> ALU(a -> abs(a))          );
         CODE("negate",c -> ALU(a -> -a)              );
         CODE("invert",c -> ALU(a -> ~UINT(a))        );
         CODE("rshift",c -> ALU((a,b) -> a >>> b)     );
         CODE("lshift",c -> ALU((a,b) -> a << b)      );
-        CODE("max",   c -> ALU((a,b) -> Math.max(a,b)));
-        CODE("min",   c -> ALU((a,b) -> Math.min(a,b)));
+        CODE("max",   c -> ALU((a,b) -> max(a,b))    );
+        CODE("min",   c -> ALU((a,b) -> min(a,b))    );
         CODE("2*",    c -> ALU(a -> a *= 2)          );
         CODE("2/",    c -> ALU(a -> a /= 2)          );
         CODE("1+",    c -> ALU(a -> a += 1)          );
@@ -480,11 +481,11 @@ public class VM {
         IMMD("cd",    c -> io.cd(io.next_token())                  );
         IMMD("pwd",   c -> io.pwd()                                );
         IMMD("include",                                            /// include an OS file
-             c -> io.load(io.next_token(), ()->{ return outer(); })
+             c -> io.load(io.next_token(), this::outer)
         );
         CODE("included",c -> {                                     /// include a file (programmable)
              ss.pop();
-             io.load(STR(ss.pop()), ()->{ return outer(); });
+             io.load(STR(ss.pop()), this::outer);
         });
         CODE("ok",    c -> io.mstat()                              );
         CODE("clock", c -> ss.push((int)System.currentTimeMillis()));
@@ -494,7 +495,7 @@ public class VM {
             catch (Exception e) { io.err(e); }
         });
         CODE("java",  c -> {
-            int len = ss.pop(), i_w = ss.pop();                   /// strlen, not used
+            int len = ss.pop(), i_w = ss.pop();                    /// strlen, not used
             java_api.onPost(io.serialize(STR(i_w), dict, ss));
         });
         /// @defgroup Debug ops
@@ -511,7 +512,7 @@ public class VM {
         CODE("forget", c -> {
             Code m = dict.find("boot", compile);
             Code w = tick(); if (w==null) return;
-            dict.forget(Math.max(w.token, m.token + 1));
+            dict.forget(max(w.token, m.token + 1));
         });
         CODE("boot",   c -> {
             int t = dict.find("boot", compile).token + 1;
