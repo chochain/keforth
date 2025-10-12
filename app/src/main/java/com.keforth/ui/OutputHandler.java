@@ -14,8 +14,6 @@ import android.text.style.ForegroundColorSpan;
 import android.widget.TextView;
 import android.app.Activity;
 
-import com.keforth.R;
-
 public class OutputHandler extends OutputStream {
     private final TextView out;
     private final Theme    theme;
@@ -55,7 +53,7 @@ public class OutputHandler extends OutputStream {
         
         public Theme(Activity act, int color_id) {
             fg = Color.WHITE;
-            cm = act.getResources().getColor(color_id);
+            cm = act.getColor(color_id);
             cb = Color.RED;
         }
     }
