@@ -2,14 +2,17 @@
 /// @file
 /// @brief - handles messages to/from Forth VM thread
 ///
-package com.keforth.eforth;
+package com.keforth;
 
 import java.lang.Thread;
 import android.os.Looper;
 import android.os.Handler;
 import android.os.Message;
 
+import androidx.annotation.NonNull;
+
 import com.keforth.ui.OutputHandler;
+import com.keforth.eforth.*;
 
 public class Eforth extends Thread {
     public static final int MSG_TYPE_STR = 1;
@@ -37,7 +40,7 @@ public class Eforth extends Thread {
         Looper.prepare();
         hndl = new Handler() {
             @Override
-            public void handleMessage(Message msg) {
+            public void handleMessage(@NonNull Message msg) {
                 if (msg.what != MSG_TYPE_STR) return;
                 String cmd = (String)msg.obj;
                 out.log(cmd + "\n");
