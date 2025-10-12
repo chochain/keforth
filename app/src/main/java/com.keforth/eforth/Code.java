@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 public class Code {
     static int fence = 0;                  ///< token index
 
-    String  name  = null;
+    String  name;
     boolean immd  = false;
     int     token = 0;
     int     stage = 0;
