@@ -18,22 +18,21 @@ import java.util.Scanner;
 import java.util.Stack;
 import java.util.function.Function;
 
-import android.os.Environment;
 ///
 ///> console input/output
 ///
 public class IO {
     private static final boolean DEBUG         = false;
     private static final int     CHARS_PER_ROW = 42;
-    enum OP { CR, BL, EMIT, DOT, UDOT, DOTR, UDOTR, SPCS }
+    enum OP { CR, BL, EMIT, DOT, UDOT, DOTR, UDOTR }
 
     String        name;
     FV<Scanner>   ins = new FV<>();                         ///< input scanner stack
     Scanner       tok = null;                               ///< tokenizer (from in Scanner)
-    OutputStream  out = null;                               ///< Stream Output
+    OutputStream  out;                                      ///< Stream Output
     String        pad;                                      ///< tmp storage
 //    String        dir0= null;                               ///< root directory
-    StringBuffer  wd  = null;                               ///< working directory
+    StringBuffer  wd;                                       ///< working directory
 
     public IO(String n, InputStream i, OutputStream o) {
         name = n;                                           ///< name of the system (for mstat)
@@ -125,7 +124,7 @@ public class IO {
         String fd  = wd.toString() + "/" + (d==null ? "" : d);
         File   dir = new File(fd);                           ///< directory on full_path
         if (!(dir.exists() && dir.isDirectory())) {
-            pstr("dir "+fd+" exists?\n");
+            pstr("dir " + fd + " exists?\n");
             return;
         }
         pstr("dir="+fd+"\n");
@@ -137,7 +136,7 @@ public class IO {
     void cd(String d) {
         if (d==null)             wd.setLength(0);
         else if (d.equals("..")) wd.delete(wd.lastIndexOf("/"), wd.length());
-        else if (!d.equals(".")) wd.append("/"+d);
+        else if (!d.equals(".")) wd.append("/").append(d);
     }
     int load_depth() { return ins.size() - 1; }             /// * depth or recursive loading
     int load(InputStream st, BooleanSupplier outer) {
@@ -192,13 +191,13 @@ public class IO {
         };
         tab.accept((dp == 0 ? ": " : "")+c.name+" ");
         c.pf.forEach(w -> see(w, base, dp+1));
-        if (c.p1.size() > 0) {
+        if (!c.p1.isEmpty()) {
             tab.accept("( 1-- )");  c.p1.forEach(w -> see(w, base, dp+1));
         }
-        if (c.p2.size() > 0) {
+        if (!c.p2.isEmpty()) {
             tab.accept("( 2-- )");  c.p2.forEach(w -> see(w, base, dp+1));
         }
-        if (c.qf.size() > 0)  {
+        if (!c.qf.isEmpty())  {
             pstr(" \\ ="); c.qf.forEach(i -> pstr(itoa(i, base)+" "));
         }
         if (c.str != null)  pstr(" \\ =\""+c.str+"\" ");
@@ -206,7 +205,7 @@ public class IO {
     }
     public String serialize(String fmt, Dict dict, Stack<Integer> ss) {
         Function<Character, String> t2s = (Character c) -> {
-            StringBuffer n = new StringBuffer();
+            StringBuilder n = new StringBuilder();
             n.setLength(0);  // Clear StringBuilder (equivalent to n.str(""))
             
             switch (c) {
@@ -215,7 +214,7 @@ public class IO {
             case 'x': n.append("0x").append(ss.pop().toString(16)); break;
             case 's':
                 int len = ss.pop(), i_w = ss.pop();
-                n.append("\""+dict.gets(i_w)+"\"");                 break;
+                n.append("\"").append(dict.gets(i_w)).append("\""); break;
             case 'p':
                 int p1 = ss.pop(), p2 = ss.pop();
                 n.append("p ").append(p1).append(' ').append(p2);   break;
@@ -223,7 +222,7 @@ public class IO {
             }
             return n.toString();
         };
-        StringBuffer pad = new StringBuffer(fmt);
+        StringBuilder pad = new StringBuilder(fmt);
         /// Process format specifiers from back to front
         /// Find % from back until not found
         for (int i = pad.lastIndexOf("%"); 
