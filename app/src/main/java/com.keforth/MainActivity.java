@@ -2,11 +2,11 @@
 package com.keforth;
 
 /// layout
+import android.annotation.SuppressLint;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.view.ViewTreeObserver;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -16,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.NestedScrollView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 /// file loader
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.DocumentsContract;
@@ -25,7 +24,6 @@ import android.hardware.SensorManager;
 import android.hardware.Sensor;
 /// keForth
 import com.keforth.eforth.*;
-import com.keforth.logo.*;
 import com.keforth.ui.*;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
@@ -70,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         
         logo  = new Elogo(vgrp);
 //        smgr  = (SensorManager)getSystemService(Context.SENSOR_SERVICE);        
-        smgr  = (SensorManager)getSystemService(this.SENSOR_SERVICE);
+        smgr  = (SensorManager)getSystemService(SENSOR_SERVICE);
     }
 
     private void setupEventListeners() {
@@ -80,27 +78,20 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         NestedScrollView sv = findViewById(R.id.forthView);
     
         sv.getViewTreeObserver().addOnGlobalLayoutListener(
-            new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    sv.post(new Runnable() {                     ///< update UI, thread-safe way
-                        @Override
-                        public void run() {
-                            sv.fullScroll(View.FOCUS_DOWN);
-                            ed.requestFocus();
-                        }
-                    });
-                }
-            });
+                () -> sv.post(new Runnable() {
+                    /// < update UI, thread-safe way
+                    @Override
+                    public void run() {
+                        sv.fullScroll(View.FOCUS_DOWN);
+                        ed.requestFocus();
+                    }
+                }));
 
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                vgrp.setAlpha(0.9f);
-                vgrp.setVisibility(
-                    vgrp.getVisibility()==View.GONE ? View.VISIBLE : View.GONE
-                );
-            }
+        fab.setOnClickListener(v -> {
+            vgrp.setAlpha(0.9f);
+            vgrp.setVisibility(
+                vgrp.getVisibility()==View.GONE ? View.VISIBLE : View.GONE
+            );
         });
         in.setupKeyListener();
     }
@@ -153,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         }
     }
 
+    @SuppressLint("InlinedApi")
     private void findFile(String uri) {
         Intent nt = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         
@@ -163,7 +155,9 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
 //        String[] mimeTypes = new String[]{"application/gpx+xml","application/vnd.google-earth.kmz"};
 //        nt.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         
-        if (uri != null) nt.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri);
+        if (uri != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            nt.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri);
+        }
         if (nt.resolveActivity(getPackageManager()) == null) {
             out.debug("resolve ACTION_OPEN_DOCUMENT failed\n");
             return;
