@@ -9,7 +9,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
 
-import com.keforth.eforth.Eforth;
+import com.keforth.Eforth;
 
 public class InputHandler {
     private final EditText in;

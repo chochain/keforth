@@ -31,8 +31,8 @@ final public class Dict extends FV<Code> {
     }
     ///
     ///> find - Forth dictionary search 
-    ///    @param  str  input string to be search against dictionary words
-    ///    @return      Code found; null - if not found
+    ///    @param  n  input string to be search against dictionary words
+    ///    @return    Code found; null - if not found
     ///
     Code find(String n, boolean compile)  {
         for (int i=dict.size()-(compile ? 2 : 1); i>=0; i--) { // search array from tail to head
