@@ -2,10 +2,12 @@
 /// @file
 /// @brief - Logo command processor
 ///
-package com.keforth.logo;
+package com.keforth;
 
 import android.view.ViewGroup;
 import android.widget.LinearLayout.LayoutParams;
+
+import com.keforth.logo.*;
 
 public class Elogo {                                        
     final private Logo2 logo;                                ///< Logo proxy
