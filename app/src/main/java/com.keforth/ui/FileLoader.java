@@ -11,9 +11,8 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
-import android.os.Environment;
 import android.os.AsyncTask;
 import android.content.Context;
 import android.content.ContentResolver;
@@ -21,9 +20,11 @@ import android.net.Uri;
 import android.database.Cursor;
 import android.provider.OpenableColumns;
 
+import androidx.annotation.NonNull;
+
 public class FileLoader extends AsyncTask<Uri, Void, String> {
-    private WeakReference<Context> ref;
-    public AsyncResponse           callback = null;
+    private final WeakReference<Context> ref;
+    public AsyncResponse           callback;
 
     public interface AsyncResponse {
         void fileLineRead(String cmd);
@@ -46,7 +47,7 @@ public class FileLoader extends AsyncTask<Uri, Void, String> {
         super.onPostExecute(rst);
     }
 
-    protected String doInBackground(Uri... uris) {
+    protected String doInBackground(@NonNull Uri... uris) {
         Context         ctx  = ref.get();
         ContentResolver rsvr = ctx.getContentResolver();
 
@@ -60,7 +61,7 @@ public class FileLoader extends AsyncTask<Uri, Void, String> {
             
             cursor.moveToFirst();
             
-            String  fname = cursor.getString(idx);
+            String  fname = cursor.getString(idx).replace("..","_");
             File    cache = ctx.getCacheDir();
             
             InputStream  ins = rsvr.openInputStream(uri);
@@ -78,7 +79,8 @@ public class FileLoader extends AsyncTask<Uri, Void, String> {
 
     private int copyTo(InputStream ins, OutputStream out) {
         int len = 0;
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(ins, "UTF-8"))) {
+        try (BufferedReader r = new BufferedReader(
+                new InputStreamReader(ins, StandardCharsets.UTF_8))) {
             String line;
             while ((line = r.readLine()) != null) {
                 callback.fileLineRead(line);
