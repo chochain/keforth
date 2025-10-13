@@ -116,8 +116,8 @@ public class Engine {
     }
     
     /// The engine state and command generation
-    private State    st;
-    private List<Op> ops = new ArrayList<>();
+    private final State    st;
+    private final List<Op> ops = new ArrayList<>();
     
     public Engine(int w, int h) { st = new State(w, h); }
     
