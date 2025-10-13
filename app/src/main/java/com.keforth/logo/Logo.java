@@ -11,6 +11,8 @@ import android.graphics.Paint;
 import android.view.View;
 import android.util.AttributeSet;
 
+import androidx.annotation.NonNull;
+
 public class Logo extends View {
     private Paint paint;
 
@@ -29,7 +31,7 @@ public class Logo extends View {
         paint.setStyle(Paint.Style.STROKE);
     }
     @Override
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
         // Draw a red line
         canvas.drawLine(50, 50, 200, 200, paint);
