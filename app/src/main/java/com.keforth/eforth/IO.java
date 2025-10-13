@@ -50,7 +50,7 @@ public class IO {
         long    used = tot - rt.freeMemory() / 1024 / 1024; ///< used memory
         long    free = max - used;
         double  pct  = 100.0 * free / max;
-        String  str  = new String().format(
+        String  str  = String.format(
             "\n%s, RAM %3.1f%% free (%d / %d MB)\n", name, pct, free, max);
         pstr(str);
     }
