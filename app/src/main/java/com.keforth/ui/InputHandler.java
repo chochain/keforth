@@ -6,7 +6,6 @@ package com.keforth.ui;
 
 import android.text.TextUtils;
 import android.view.KeyEvent;
-import android.view.View;
 import android.widget.EditText;
 
 import com.keforth.Eforth;
@@ -21,17 +20,14 @@ public class InputHandler {
     }
     
     public void setupKeyListener() {
-        in.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int key, KeyEvent ev) {
-                if (ev.getAction() == KeyEvent.ACTION_DOWN) {
-                    if (key == KeyEvent.KEYCODE_ENTER) {
-                        doForth();
-                        return true;
-                    }
+        in.setOnKeyListener((v, key, ev) -> {
+            if (ev.getAction() == KeyEvent.ACTION_DOWN) {
+                if (key == KeyEvent.KEYCODE_ENTER) {
+                    doForth();
+                    return true;
                 }
-                return false;
             }
+            return false;
         });
     }
     
