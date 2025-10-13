@@ -20,12 +20,12 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.view.View;
 
-import com.keforth.ui.OutputHandler;
-    
+import androidx.annotation.NonNull;
+
+
 public class Logo2 extends View {
     private Bitmap        sfc;                     ///< bitmap for path surface
     private Bitmap        eve;                     ///< bitmap for turtle cursor
-    private OutputHandler out;                     ///< for debug tracing
     private Engine        core;                    ///< Logo logic
     private Blip          blip;                    ///< Renderer
 
@@ -59,7 +59,7 @@ public class Logo2 extends View {
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
+    protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawBitmap(sfc, 0, 0, null);
         canvas.drawBitmap(eve, 0, 0, null);
