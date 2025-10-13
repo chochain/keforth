@@ -17,14 +17,14 @@ package com.keforth.logo;
 import android.graphics.*;
 
 public class AndroidBlip implements Blip {
-    private Paint  sfcPaint,  evePaint;     ///< Paint attributes
-    private Canvas sfcCanvas, eveCanvas;    ///< Logical surfaces
-    private Path   path;                    ///< Collections
-    private float  x0, y0;                  ///< offsets to screen coordinates
+    private final Paint  sfcPaint,  evePaint;     ///< Paint attributes
+    private final Canvas sfcCanvas, eveCanvas;    ///< Logical surfaces
+    private final Path   path;                    ///< Collections
+    private float x0, y0;                         ///< offsets to screen coordinates
     
     public AndroidBlip(Bitmap sfc, Bitmap eve) {
-        sfcCanvas = new Canvas(sfc);        ///< Logo path
-        eveCanvas = new Canvas(eve);        ///< Turtle overlay
+        sfcCanvas = new Canvas(sfc);              ///< Logo path
+        eveCanvas = new Canvas(eve);              ///< Turtle overlay
         sfcPaint  = new Paint(Paint.ANTI_ALIAS_FLAG);
         evePaint  = new Paint(Paint.ANTI_ALIAS_FLAG);
         path      = new Path();
