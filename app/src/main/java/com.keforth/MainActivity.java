@@ -28,6 +28,9 @@ import com.keforth.ui.*;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
     static final String APP_NAME = "keForth v0.8";
+    static {
+        System.loadLibrary("ceforth");
+    }
 
     private TextView             con;
     private EditText             ed;             ///< Forth input
@@ -65,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         out   = new OutputHandler(this, con, R.color.teal_200);
         forth = new Eforth(APP_NAME, out, this);
         in    = new InputHandler(ed, forth);
-        
         logo  = new Elogo(vgrp);
 //        smgr  = (SensorManager)getSystemService(Context.SENSOR_SERVICE);        
         smgr  = (SensorManager)getSystemService(SENSOR_SERVICE);
@@ -78,14 +80,14 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         NestedScrollView sv = findViewById(R.id.forthView);
     
         sv.getViewTreeObserver().addOnGlobalLayoutListener(
-                () -> sv.post(new Runnable() {
-                    /// < update UI, thread-safe way
-                    @Override
-                    public void run() {
-                        sv.fullScroll(View.FOCUS_DOWN);
-                        ed.requestFocus();
-                    }
-                }));
+            () -> sv.post(new Runnable() {
+                /// < update UI, thread-safe way
+                @Override
+                public void run() {
+                    sv.fullScroll(View.FOCUS_DOWN);
+                    ed.requestFocus();
+                }
+            }));
 
         fab.setOnClickListener(v -> {
             vgrp.setAlpha(0.9f);
@@ -97,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
     
     @Override
-    public void onPost(String msg) {                         ///< eForth-Java API callback
+    public void onPost(int tid, String msg) {                ///< eForth-Java API callback
         final String rx = "\\s+(?=(?:[^']*'[^']*')*[^']*$)"; ///< regex single quotes
         String[] ops = msg.split(rx);                        ///< parse parameters
         int      n   = ops.length;
