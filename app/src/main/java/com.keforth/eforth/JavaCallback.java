@@ -5,5 +5,5 @@
 package com.keforth.eforth;
 
 public interface JavaCallback {
-    void onPost(String msg);
+    void onPost(int tid, String msg);
 }
