@@ -343,7 +343,7 @@ public class VM {
         /// @{
         IMMD("begin", c -> { 
             ADD_W(new Code(_begin, "begin"));              /// * branch targer
-            dict.add(new Code(_tmp, ""));                    
+            dict.add(new Code(_tmp, ""));
         });
         IMMD("while", c -> {
             Code b = dict.bran();
@@ -496,7 +496,7 @@ public class VM {
         });
         CODE("java",  c -> {
             int len = ss.pop(), i_w = ss.pop();                    /// strlen, not used
-            java_api.onPost(io.serialize(STR(i_w), dict, ss));
+            java_api.onPost(1, io.serialize(STR(i_w), dict, ss));
         });
         /// @defgroup Debug ops
         /// @{
