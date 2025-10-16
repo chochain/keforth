@@ -27,7 +27,6 @@ void forth_include(const char *fn) {
     // to JNI
 }
 
-static JNIEnv    *gEnv     = nullptr;
 static jobject   gE4Obj    = nullptr;
 static jmethodID gE4PostID = nullptr;
 
@@ -52,12 +51,15 @@ extern "C"
 
     JNIEXPORT void JNICALL
     Java_com_keforth_Eforth_processJNI(JNIEnv *env, jobject thiz, jstring js) {
+        static JNIEnv *gEnv = nullptr;
+
+        // Convert the Java string to a C-style string
         const char *cmd = env->GetStringUTFChars(js, nullptr);
 
         // Check for null if the string conversion fails (e.g., out of memory)
-        if (cmd == nullptr) return;
-
         gEnv = env;
+        if (env==nullptr || cmd==nullptr) return;
+
         forth_vm(cmd, [](int, const char *rst){
             /// send Forth response to Eforth.onPost
             gEnv->CallVoidMethod(

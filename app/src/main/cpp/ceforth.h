@@ -1,15 +1,10 @@
-///
-/// @file
-/// @brief eForth header - C++ vector-based, token-threaded
-///
-///====================================================================
 #ifndef __EFORTH_SRC_CEFORTH_H
 #define __EFORTH_SRC_CEFORTH_H
-#include <iostream>                    /// cin, cout
-#include <iomanip>                     /// setbase
-#include <vector>                      /// vector
-#include <chrono>
-#include "config.h"
+#include <stdio.h>
+#include <stdint.h>     // uintxx_t
+#include <exception>    // try...catch, throw
+#include <string>       // string class
+#include "config.h"     // configuation and cross-platform support
 
 using namespace std;
 
@@ -25,33 +20,57 @@ typedef  condition_variable COND_VAR;
 #define  NOTIFY(cv)         (cv).notify_one()              /** wake up one task   */
 #define  NOTIFY_ALL(cv)     (cv).notify_all();
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
 #ifdef _POSIX_VERSION
-#include <sched.h>                 /// CPU affinity
+#include <sched.h>                    /// CPU affinity
 #endif // _POSIX_VERSION
-#endif // DO_MULTITASK
 
-template<typename T>
-struct FV : public vector<T> {      ///< our super-vector class
-    FV *merge(FV<T> &v) {
-        this->insert(this->end(), v.begin(), v.end()); v.clear(); return this;
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE                    /** Emscripten needs this */
+#endif
+#endif // DO_MULTITASK
+///
+/// array class template (so we don't have dependency on C++ STL)
+/// Note:
+///   * using decorator pattern
+///   * this is similar to vector class but much simplified
+///
+template<class T, int N=0>
+struct List {
+    T   *v;             ///< fixed-size array storage
+    int idx = 0;        ///< current index of array
+    int max = 0;        ///< high watermark for debugging
+
+    List()  {
+        v = N ? new T[N] : 0;                        ///< dynamically allocate array storage
+        if (N && !v) throw "ERR: List allot failed";
     }
-    ~FV() {                         ///< free pointed elements
-        if constexpr(is_pointer<T>::value) {
-            for (T t : *this) if (t != nullptr) { delete t; t = nullptr; }
+    ~List() {
+        if constexpr(is_pointer<T>::value) {         ///< free elements
+            for (int i=0; i<idx; i++) delete v[i];
         }
+        if (v) delete[] v;                           ///< free container
+    }              
+    List &operator=(T *a)   INLINE { v = a; return *this; }
+    T    &operator[](int i) INLINE { return i < 0 ? v[idx + i] : v[i]; }
+
+#if RANGE_CHECK
+    T pop()     INLINE {
+        if (idx>0) return v[--idx];
+        throw "ERR: List empty";
     }
-    void push(T n) { this->push_back(n); }
-    T    pop()     { T n = this->back(); this->pop_back(); return n; }
-    T    &operator[](int i) {
-#if CC_DEBUG
-        return this->at(i < 0 ? (this->size() + i) : i); // with range checked
-#else  // !CC_DEBUG
-        return vector<T>::operator[](i < 0 ? (this->size() + i) : i);
-#endif // CC_DEBUG
+    T push(T t) INLINE {
+        if (idx<N) return v[max=idx++] = t;
+        throw "ERR: List full";
     }
+
+#else  // !RANGE_CHECK
+    T pop()     INLINE { return v[--idx]; }
+    T push(T t) INLINE { return v[idx++] = t; }   ///< deep copy element
+
+#endif // RANGE_CHECK
+    void push(T *a, int n) INLINE { for (int i=0; i<n; i++) push(*(a+i)); }
+    void merge(List& a)    INLINE { for (int i=0; i<a.idx; i++) push(a[i]); }
+    void clear(int i=0)    INLINE { idx=i; }
 };
 ///====================================================================
 ///
@@ -59,18 +78,17 @@ struct FV : public vector<T> {      ///< our super-vector class
 ///
 typedef enum { STOP=0, HOLD, QUERY, NEST } vm_state;
 struct ALIGNAS VM {
-    FV<DU>   ss;                   ///< data stack
-    FV<DU>   rs;                   ///< return stack
-    
-    DU       tos     = -DU1;       ///< cached top of stack
-    IU       id      = 0;          ///< vm id
-    IU       wp      = 0;          ///< word pointer
-    
-    U8       *base   = 0;          ///< numeric radix (a pointer)
-    vm_state state   = STOP;       ///< VM status
-    bool     compile = false;      ///< compiler flag
+    List<DU, E4_SS_SZ> ss;         ///< parameter stack
+    List<DU, E4_RS_SZ> rs;         ///< parameter stack
 
-    string   pad;
+    IU       id      = 0;          ///< vm id
+    IU       ip      = 0;          ///< instruction pointer
+    DU       tos     = -DU1;       ///< top of stack (cached)
+
+    bool     compile = false;      ///< compiler flag
+    vm_state state   = STOP;       ///< VM status
+    IU       base    = 0;          ///< numeric radix (a pointer)
+    
 #if DO_MULTITASK
     static int      NCORE;         ///< number of hardware cores
     
@@ -83,8 +101,7 @@ struct ALIGNAS VM {
     ///
     /// task life cycle methods
     ///
-    void set_state(vm_state st);   ///< set VM state (synchronized)
-    void reset(IU w, vm_state st); ///< reset a VM user variables
+    void reset(IU ip, vm_state st);///< reset a VM user variables
     void join(int tid);            ///< wait for the given task to end
     void stop();                   ///< stop VM
     ///
@@ -99,148 +116,156 @@ struct ALIGNAS VM {
     ///
     void io_lock();                ///< lock IO
     void io_unlock();              ///< unlock IO
-#else  // DO_MULTITASK
-    
-    void set_state(vm_state st) { state = st; }
 #endif // DO_MULTITASK
 };
 ///
-///> data structure for dictionary entry
-///
-struct Code;                       ///< Code class forward declaration
-typedef void (*XT)(VM &vm, Code&); ///< function pointer
+///@name Code flag masking options
+///@{
+#define UDF_ATTR   0x0001   /** user defined word    */
+#define IMM_ATTR   0x0002   /** immediate word       */
+#define EXT_FLAG   0x8000   /** prim/xt/pfa selector */
+#if DO_WASM
+#define MSK_ATTR   ~0x0     /** no masking needed    */
+#else  // !DO_WASM
+#define MSK_ATTR   ~0x3     /** mask udf,imm bits    */
+#endif // DO_WASM
 
-struct Code  {                     ///> Colon words
-    const static U32 IMMD_FLAG = 0x80000000;
-    const char *name;              ///< name of word
-    const char *desc;              ///< reserved
-    XT         xt = NULL;          ///< execution token
-    FV<Code*>  pf;                 ///< parameter field
-    FV<DU>     q;                  ///< parameter field - literal
-    union {                        ///< union to reduce struct size
-        U32 attr = 0;              /// * zero all sub-fields
+#define IS_UDF(w) (dict[w]->attr & UDF_ATTR)
+#define IS_IMM(w) (dict[w]->attr & IMM_ATTR)
+///}
+///@name primitive opcode
+///{
+typedef enum {
+    EXIT=0|EXT_FLAG, NOP, NEXT, LOOP, LIT, VAR, STR, DOTQ, BRAN, ZBRAN,
+    VBRAN, DOES, FOR, DO, KEY, MAX_OP
+} prim_op;
+
+#define USER_AREA  (ALIGN16(MAX_OP & ~EXT_FLAG))
+#define IS_PRIM(w) ((w & EXT_FLAG) && (w < MAX_OP))
+///@}
+///@name Code class
+///@brief - basic struct of dictionary entries
+///
+///  1. name is the pointer to word name string
+///  2. xt   is the pointer to lambda function
+///  3. pfa  takes 16-bit, max 64K range
+///  4. attr[LSB]  : user defined flag (i.e. colon word)
+///  5. attr[LSB+1]: immediate flag
+///
+///  Code class on 64-bit systems (expand pfa to 32-bit possible)
+///  +-------------------+-------------------+
+///  |    *name          |       xt          |
+///  +-------------------+----+----+---------+
+///                      |attr|pfa |xxxxxxxxx|
+///                      +----+----+---------+
+///
+///  Code class on 32-bit systems (memory best utilized)
+///  +---------+---------+
+///  |  *name  |   xt    |
+///  +---------+----+----+
+///            |attr|pfa |
+///            +----+----+
+///
+///  Code class on WASM systems (a bit wasteful but faster)
+///  +---------+---------+----+
+///  |  *name  |   xt    |attr|
+///  +---------+----+----+----+
+///            |pfa |xxxx|
+///            +----+----+
+///@{
+typedef void (*FPTR)(VM&);  ///< function pointer
+struct Code {
+    static UFP XT0;         ///< function pointer base (in registers hopefully)
+    const char *name = 0;   ///< name field
+#if DO_WASM
+    union {                 ///< either a primitive or colon word
+        FPTR xt = 0;        ///< vtable index
+        IU   pfa;           ///< offset to pmem space (16-bit for 64K range)
+    };
+    IU attr;                ///< xt is vtable index so attrs need to be separated
+#else // !DO_WASM
+    union {                 ///< either a primitive or colon word
+        FPTR xt = 0;        ///< lambda pointer (4-byte align, 2 LSBs can be used for attr)
         struct {
-            U32 token   : 24;      ///< dict index, 0=param word
-            U32 xxx     :  3;      ///< reserved
-            U32 is_bran :  1;      ///< branching opcode
-            U32 stage   :  2;      ///< branching state
-            U32 is_str  :  1;      ///< string flag
-            U32 immd    :  1;      ///< immediate flag
+            IU attr;        ///< steal 2 LSBs because xt is 4-byte aligned on 32-bit CPU
+            IU pfa;         ///< offset to pmem space (16-bit for 64K range)
         };
     };
-    Code(const char *s, const char *d, XT fp, U32 a);  ///> primitive
-    Code(const char *s, bool n=true);                  ///> colon, n=new word
-    Code(XT fp) : Code("", "", fp, 0) {}               ///> sub-classes
-    ~Code() { if (!xt) { delete name; delete desc; } } ///> delete name of colon word
-    Code *append(Code *w) { pf.push(w); return this; } ///> add token
-    void nest(VM &vm);                                 ///> inner interpreter
-};
-///
-///> macros to reduce verbosity (but harder to single-step debug)
-///
-#define BASE_NODE   0                /* Code node to keep VM.base */
-#define TOS         (vm.tos)
-#define SS          (vm.ss)
-#define RS          (vm.rs)
-#define BOOL(f)     ((f) ? -1 : 0)
-#define CODE(s, g)  { s, #g, [](VM &vm, Code &c){ g; }, __COUNTER__ }
-#define IMMD(s, g)  { s, #g, [](VM &vm, Code &c){ g; }, __COUNTER__ | Code::IMMD_FLAG }
-#define PUSH(v)     (SS.push(TOS), TOS=((DU)(v)))
-#define POP()       ([&vm](){ DU n = TOS; TOS = SS.pop(); return n; }())
-#define POPI()      UINT(POP())
-///
-///> Primitve object and function forward declarations
-///
-void   _str(VM &vm, Code &c);        ///< dotstr, dostr
-void   _lit(VM &vm, Code &c);        ///< numeric liternal
-void   _var(VM &vm, Code &c);        ///< variable and constant
-void   _tor(VM &vm, Code &c);        ///< >r (for..next)
-void   _tor2(VM &vm, Code &c);       ///< swap >r >r (do..loop)
-void   _if(VM &vm,  Code &c);        ///< if..then, if..else..then
-void   _begin(VM &vm, Code &c);      ///< ..until, ..again, ..while..repeat
-void   _for(VM &vm, Code &c);        ///< for..next, for..aft..then..next
-void   _loop(VM &vm, Code &c);       ///< do..loop
-void   _does(VM &vm, Code &c);       ///< does>
-///
-///> polymorphic constructors
-///
-struct Tmp : Code { Tmp()     : Code((XT)NULL) {} };
-struct Lit : Code { Lit(DU d) : Code(_lit) { q.push(d); } };
-struct Var : Code { Var(DU d) : Code(_var) { q.push(d); } };
-struct Str : Code {
-    Str(const char *s, int tok=0, int len=0) : Code(_str) {
-        name  = (new string(s))->c_str();   /// * hardcopy the string
-        token = (len << 16) | tok;   /// * encode word index and string length
-        is_str= 1;
+#endif // DO_WASM
+    static FPTR XT(IU ix)   INLINE { return (FPTR)(XT0 + (UFP)(ix & MSK_ATTR)); }
+    static void exec(VM &vm, IU ix) INLINE { (*XT(ix))(vm); }
+
+    Code() {}               ///< blank struct (for initilization)
+    Code(const char *n, IU w) : name(n), xt((FPTR)((UFP)w)) {} ///< primitives
+    Code(const char *n, FPTR fp, bool im) : name(n), xt(fp) {  ///< built-in and colon words
+        attr |= im ? IMM_ATTR : 0;
     }
+    IU   xtoff() INLINE { return (IU)(((UFP)xt - XT0) & MSK_ATTR); }  ///< xt offset in code space
+    void call(VM& vm)  INLINE { (*(FPTR)((UFP)xt & MSK_ATTR))(vm); }
 };
-struct Bran : Code {
-    FV<Code*>  p1;                   ///< parameter field - if..else, aft..then
-    FV<Code*>  p2;                   ///< parameter field - then..next
-    Bran(XT fp) : Code(fp) {
-        const char *nm[] = {
-            "if", "begin", "\t", "for", "\t", "do", "does>"
-        };
-        XT xt[] = { _if, _begin, _tor, _for, _tor2, _loop, _does };
-    
-        for (int i=0; i < (int)(sizeof(nm)/sizeof(const char*)); i++) {
-            if ((uintptr_t)xt[i]==(uintptr_t)fp) name = nm[i];
-        }
-        is_str  = 0;
-        is_bran = 1;
+///@}
+///@name Dictionary Compiler macros
+///@note - a lambda without capture can degenerate into a function pointer
+///@{
+#define ADD_CODE(n, g, im) {                     \
+    Code *c = new Code(n, [](VM& vm){ g; }, im); \
+    dict.push(c);                                \
     }
-};
-///
-///> Multitasking support
-///
+#define CODE(n, g) ADD_CODE(n, g, false)
+#define IMMD(n, g) ADD_CODE(n, g, true)
+///@}
+///@name Multitasking support
+///@{
 VM&  vm_get(int id=0);                    ///< get a VM with given id
-void uvar_init();                         ///< initialize user area
+void uvar_init();                         ///< setup user area
 
 #if DO_MULTITASK
-void t_pool_init();
-void t_pool_stop();
-int  task_create(IU w);                   ///< create a VM starting on dict[w]
+void t_pool_init();                       ///< initialize thread pool
+void t_pool_stop();                       ///< stop thread pool
+int  task_create(IU pfa);                 ///< create a VM starting on pfa
 void task_start(int tid);                 ///< start a thread with given task/VM id
-#else  // !DO_MULTITASK
-#define t_pool_init()  {}
-#define t_pool_stop()  {}
-#endif // !DO_MULTITASK
-///
-///> System interface
-///
+#else
+#define t_pool_init()
+#define t_pool_stop()
+#endif // DO_MULTITASK
+///@}
+///@name System interface
+///@{
 void forth_init();
+int  forth_vm(const char *cmd, void(*hook)(int, const char*)=NULL);
 void forth_include(const char *fn);       /// load external Forth script
 void outer(istream &in);                  ///< Forth outer loop
-#if DO_WASM
-#define forth_quit() {}
-#else // !DO_WASM
-#define forth_quit() { vm.state=STOP; }   ///< exit to OS
-#endif // DO_WASM
-///
-///> IO functions
-///
+///@}
+///@name IO functions
+///{@
 typedef enum { RDX=0, CR, DOT, UDOT, EMIT, SPCS } io_op;
 
 void fin_setup(const char *line);
 void fout_setup(void (*hook)(int, const char*));
 
-const Code *find(const char *s);          ///< dictionary scanner forward declare
 const char *scan(char c);                 ///< scan input stream for a given char
-const char *word(char delim=0);           ///< read next idiom from input stream
+const char *word();                       ///< get next idiom
 int  fetch(string &idiom);                ///< read input stream into string
 char key();                               ///< read key from console
-void load(VM &vm, const char *fn);        ///< load external Forth script
+void load(VM &vm, const char* fn);        ///< load external Forth script
 void spaces(int n);                       ///< show spaces
 void dot(io_op op, DU v=DU0);             ///< print literals
 void dotr(int w, DU v, int b, bool u=false); ///< print fixed width literals
 void pstr(const char *str, io_op op=SPCS);///< print string
-///
-///> Debug functions
-///
+///@}
+///@name Debug functions
+///@{
 void ss_dump(VM &vm, bool forced=false);  ///< show data stack content
-void see(const Code &c, int base);        ///< disassemble user defined word
+void see(IU pfa, int base);               ///< disassemble user defined word
 void words(int base);                     ///< list dictionary words
 void dict_dump(int base);                 ///< dump dictionary
-void mem_dump(IU w0, IU w1, int base);    ///< dump memory for a given wordrm addr...addr+sz
+void mem_dump(U32 addr, IU sz, int base); ///< dump memory frm addr...addr+sz
 void mem_stat();                          ///< display memory statistics
-#endif  // __EFORTH_SRC_CEFORTH_H
+///@}
+///@name Javascript interface
+///@{
+#if DO_WASM
+void native_api(VM &vm);
+#endif // DO_WASM
+///@}
+#endif // __EFORTH_SRC_CEFORTH_H
