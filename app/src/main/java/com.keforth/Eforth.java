@@ -83,10 +83,11 @@ public class Eforth extends Thread implements JavaCallback {
 
     @Override
     public void onPost(int tid, String rst) {
- //       if (tid==Eforth.POST_TGT_EFORTH) {
-        out.print(rst);
- //       }
- //       else api.onPost(tid, rst);
+        switch (tid) {
+        case Eforth.POST_TGT_EFORTH: out.print(rst);       break;
+        case Eforth.POST_TGT_MAIN:   api.onPost(tid, rst); break;
+        default: out.debug("onPost: unknown tid="+Integer.toString(tid));
+        }
     }
 }
 
