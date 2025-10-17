@@ -4,6 +4,11 @@
 ///
 package com.keforth.eforth;
 
+import com.keforth.*;
+
 public interface JavaCallback {
-    void onPost(int tid, String msg);
+    public enum PostType {
+        LOG, FORTH, JAVA
+    }
+    void onPost(PostType tid, String msg);
 }
