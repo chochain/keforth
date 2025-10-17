@@ -38,6 +38,10 @@ add_library(android-native-app-glue STATIC
         ${CMAKE_ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c
 )
 
+include_directories(
+        ${CMAKE_ANDROID_NDK}/sources/android/native_app_glue
+)
+
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
 # build script, prebuilt third-party libraries, or Android system libraries.
