@@ -30,7 +30,7 @@ void forth_include(const char *fn) {
 static jobject   gE4Obj    = nullptr;
 static jmethodID gE4PostID = nullptr;
 
-void android_main(struct android_app *app) {
+void eforth_main(struct android_app *app) {
     //sensor_main(app);
     //forth_init();
 }
@@ -38,7 +38,7 @@ void android_main(struct android_app *app) {
 extern "C"
 {
     JNIEXPORT void JNICALL
-    Java_com_keforth_Eforth_forthInit(JNIEnv *env, jobject thiz) {
+    Java_com_keforth_Eforth_jniInit(JNIEnv *env, jobject thiz) {
         forth_init();
 
         if (gE4Obj != nullptr) env->DeleteGlobalRef(gE4Obj);
@@ -51,12 +51,12 @@ extern "C"
     }
 
     JNIEXPORT void JNICALL
-    Java_com_keforth_Eforth_forthTeardown(JNIEnv *env, jobject thiz) {
+    Java_com_keforth_Eforth_jniTeardown(JNIEnv *env, jobject thiz) {
         forth_teardown();
     }
 
     JNIEXPORT void JNICALL
-    Java_com_keforth_Eforth_processJNI(JNIEnv *env, jobject thiz, jstring js) {
+    Java_com_keforth_Eforth_jniOuter(JNIEnv *env, jobject thiz, jstring js) {
         static JNIEnv *gEnv = nullptr;
 
         // Convert the Java string to a C-style string
