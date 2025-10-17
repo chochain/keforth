@@ -23,7 +23,7 @@ import java.util.function.Function;
 ///
 public class IO {
     private static final boolean DEBUG         = false;
-    private static final int     CHARS_PER_ROW = 42;
+    private static final int     CHARS_PER_ROW = 40;
     enum OP { CR, BL, EMIT, DOT, UDOT, DOTR, UDOTR }
 
     String        name;
