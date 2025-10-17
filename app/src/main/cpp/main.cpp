@@ -14,7 +14,7 @@ extern void forth_init();
 extern int  forth_vm(const char *cmd, void(*)(int, const char*)=NULL);
 extern void forth_teardown();
 
-const char* APP_VERSION = "eForth v5.0";
+const char* APP_VERSION = "keForth v1.0";
 ///====================================================================
 ///
 ///> Memory statistics - for heap, stack, external memory debugging
@@ -29,6 +29,11 @@ void forth_include(const char *fn) {
 
 static jobject   gE4Obj    = nullptr;
 static jmethodID gE4PostID = nullptr;
+
+void android_main(struct android_app *app) {
+    //sensor_main(app);
+    //forth_init();
+}
 
 extern "C"
 {
