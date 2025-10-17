@@ -1,6 +1,6 @@
 #include <android/sensor.h>
 #include <android/looper.h>
-#include <android_native_app_glue.h> // For android_app struct
+#include "android_native_app_glue.h" // For android_app struct
 
 // Define a unique ID for your looper events
 #define LOOPER_ID_USER 3
@@ -15,11 +15,11 @@ struct Engine {
 
 // Callback function to handle sensor events
 int32_t handleSensorEvent(int fd, int events, void* data) {
-    Engine *eng = (Engine*)data;
+    Engine &eng = *(Engine*)data;
     ASensorEvent ev;
 
     // Process all pending events in the queue
-    while (ASensorEventQueue_getEvents(eng->que, &ev, 1) > 0) {
+    while (ASensorEventQueue_getEvents(eng.que, &ev, 1) > 0) {
         switch (ev.type) {
             case ASENSOR_TYPE_ACCELEROMETER:
                 // Handle accelerometer data
@@ -33,43 +33,42 @@ int32_t handleSensorEvent(int fd, int events, void* data) {
 }
 
 // Initialize sensors
-void initSensors(Engine *eng) {
-    eng->mgr    = ASensorManager_getInstance();
-    eng->sensor = ASensorManager_getDefaultSensor(eng->mgr, ASENSOR_TYPE_ACCELEROMETER);
+void initSensors(Engine &eng) {
+    eng.mgr    = ASensorManager_getInstance();
+    eng.sensor = ASensorManager_getDefaultSensor(eng.mgr, ASENSOR_TYPE_ACCELEROMETER);
 
-    if (!eng->sensor) return;
+    if (!eng.sensor) return;
 	
-	eng->que = ASensorManager_createEventQueue(
-		eng->mgr,
-		eng->app->looper,  // Use the application's main looper
+	eng.que = ASensorManager_createEventQueue(
+		eng.mgr,
+		eng.app->looper,  // Use the application's main looper
 		LOOPER_ID_USER,    // A unique ID for your looper event source
 		handleSensorEvent, // Your callback function
-		eng                // User data passed to the callback
+		eng.app->userData     // User data passed to the callback
         );
 
-	ASensorEventQueue_enableSensor(eng->que, eng->sensor);
+	ASensorEventQueue_enableSensor(eng.que, eng.sensor);
 	// Set desired sensor event rate (e.g., 10000 microseconds for 100Hz)
-	ASensorEventQueue_setEventRate(eng->que, eng->sensor, 10000);
+	ASensorEventQueue_setEventRate(eng.que, eng.sensor, 10000);
 }
 
 // Teardown sensors
-void teardownSensors(Engine *eng) {
-    if (eng->sensor) {
-        ASensorEventQueue_disableSensor(eng->que, eng->sensor);
+void teardownSensors(Engine &eng) {
+    if (eng.sensor) {
+        ASensorEventQueue_disableSensor(eng.que, eng.sensor);
     }
-    if (eng->que) {
-        ASensorManager_destroyEventQueue(eng->mgr, eng->que);
+    if (eng.que) {
+        ASensorManager_destroyEventQueue(eng.mgr, eng.que);
     }
 }
 
 // Example usage within android_main (from android_native_app_glue)
 void android_main(struct android_app *app) {
     Engine eng;
-    memset(&eng, 0, sizeof(eng));
     app->userData = &eng;
     eng.app = app;
 
-    initSensors(&eng);
+    initSensors(eng);
 
     // Main application loop
     int ident;
@@ -77,7 +76,7 @@ void android_main(struct android_app *app) {
     struct android_poll_source* src;
 
     while (true) {
-        ident = ALooper_pollAll(-1, NULL, &events, (void**)&src);
+        ident = ALooper_pollOnce(-1, NULL, &events, (void**)&src);
 
         if (ident == LOOPER_ID_USER && src != NULL) {
             // This case handles your sensor events, as the callback is registered with this ID.
@@ -85,5 +84,5 @@ void android_main(struct android_app *app) {
         }
         // Handle other application events (input, lifecycle, etc.) here if needed
     }
-    teardownSensors(&eng);
+    teardownSensors(eng);
 }
