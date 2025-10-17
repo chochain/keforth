@@ -15,7 +15,7 @@ import androidx.annotation.NonNull;
 
 import com.keforth.eforth.*;
 import com.keforth.ui.OutputHandler;
-import static com.keforth.eforth.JavaCallback.PostType.LOG;
+import com.keforth.eforth.JavaCallback.PostType.*;
 
 public class Eforth extends Thread implements JavaCallback {
     public static final int USE_JNI_FORTH   = 1;
@@ -53,7 +53,7 @@ public class Eforth extends Thread implements JavaCallback {
             @Override public void handleMessage(@NonNull Message msg) {
                 if (msg.what != MSG_TYPE_STR) return;
                 String cmd = (String)msg.obj;
-                onPost(LOG, cmd);
+                onPost(PostType.LOG, cmd);
                 if (USE_JNI_FORTH == 0) {
                     io.rescan(cmd);              /// * update input stream
                     while (io.readline()) {      /// * fetch line-by-line
@@ -71,6 +71,10 @@ public class Eforth extends Thread implements JavaCallback {
         msg.what = MSG_TYPE_STR;
         msg.obj  = cmd;
         hndl.sendMessage(msg);                  /// * send command to MessageQueue
+    }
+
+    public void jniPost(String rst) {
+        api.onPost(PostType.FORTH, rst);
     }
 
     @Override
