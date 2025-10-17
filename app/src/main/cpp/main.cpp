@@ -45,7 +45,8 @@ extern "C"
         gE4Obj = env->NewGlobalRef(thiz);
 
         jclass cb = env->GetObjectClass(gE4Obj);
-        gE4PostID = env->GetMethodID(cb, "onPost", "(ILjava/lang/String;)V");
+        gE4PostID = env->GetMethodID(cb, "jniPost",
+                                     "(Ljava/lang/String;)V");
         env->DeleteLocalRef(cb); // Clean up local reference
     }
 
@@ -68,7 +69,7 @@ extern "C"
         forth_vm(cmd, [](int, const char *rst){
             /// send Forth response to Eforth.onPost
             gEnv->CallVoidMethod(
-                        gE4Obj, gE4PostID, 1, gEnv->NewStringUTF(rst));
+                        gE4Obj, gE4PostID, gEnv->NewStringUTF(rst));
         });
         env->ReleaseStringUTFChars(js, cmd);           /// release js, cmd
     }
