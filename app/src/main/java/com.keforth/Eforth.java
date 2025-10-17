@@ -15,15 +15,14 @@ import androidx.annotation.NonNull;
 
 import com.keforth.eforth.*;
 import com.keforth.ui.OutputHandler;
-import com.keforth.eforth.JavaCallback.PostType.*;
 
 public class Eforth extends Thread implements JavaCallback {
     public static final int USE_JNI_FORTH   = 1;
     public static final int MSG_TYPE_STR    = 1;
 
-    private native void forthInit();
-    private native void processJNI(String cmd);
-    private native void forthTeardown();
+    private native void jniInit();
+    private native void jniOuter(String cmd);
+    private native void jniTeardown();
 
     private static Handler      hndl;
     private static IO           io;
@@ -38,7 +37,7 @@ public class Eforth extends Thread implements JavaCallback {
         this.out  = out;
         this.api  = api;
 
-        if (USE_JNI_FORTH != 0) forthInit();     /// * call JNI eForth constructor
+        if (USE_JNI_FORTH != 0) jniInit();       /// * call JNI eForth constructor
     }
 
     @Override
@@ -60,7 +59,7 @@ public class Eforth extends Thread implements JavaCallback {
                         if (!vm.outer()) break;  /// * call Java Forth outer interpreter
                     }
                 }
-                else processJNI(cmd);            /// * call JNI Forth outer interpreter
+                else jniOuter(cmd);              /// * call JNI Forth outer interpreter
             }
         };
         Looper.loop();
