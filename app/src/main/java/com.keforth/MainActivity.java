@@ -1,4 +1,7 @@
-// MainActivity.java - Refactored main activity
+///
+/// @file
+/// @brief - Refactored main activity
+///
 package com.keforth;
 
 /// layout
@@ -99,7 +102,15 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
     
     @Override
-    public void onPost(int tid, String msg) {                ///< eForth-Java API callback
+    public void onPost(PostType tid, String msg) {                ///< eForth-Java API callback
+        switch (tid) {
+            case LOG:    out.log(msg+"\n");      break;
+            case FORTH:  out.print(msg);         break;
+            case JAVA:   handleJavaAPI(msg);     break;
+        }
+    }
+
+    private void handleJavaAPI(String msg) {
         final String rx = "\\s+(?=(?:[^']*'[^']*')*[^']*$)"; ///< regex single quotes
         String[] ops = msg.split(rx);                        ///< parse parameters
         int      n   = ops.length;
@@ -185,7 +196,6 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
             new FileLoader.AsyncResponse() {
                 @Override
                 public void fileLineRead(String cmd) {
-//                    out.log(cmd+"\n");
                     forth.process(cmd);
                 }
                 @Override
