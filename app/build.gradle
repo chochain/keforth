@@ -14,10 +14,10 @@ android {
 		externalNativeBuild {
 			cmake {
 				cppFlags '-std=c++17', '-O3', '-Wall',
-						'-fomit-frame-pointer',
-						'-fno-stack-check', '-fno-stack-protector',
-						'-ffast-math',
-						'-funroll-loops'
+					'-fomit-frame-pointer',
+					'-fno-stack-check', '-fno-stack-protector',
+					'-ffast-math',
+					'-funroll-loops'
 			}
 		}
 	}
