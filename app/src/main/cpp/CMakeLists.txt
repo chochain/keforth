@@ -31,6 +31,8 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         ceforth.cpp
         ceforth_sys.cpp
         ceforth_task.cpp
+        sensor.cpp
+        android_native_app_glue.c
 )
 
 # Specifies libraries CMake should link to your target library. You
@@ -38,5 +40,6 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
 # build script, prebuilt third-party libraries, or Android system libraries.
 target_link_libraries(${CMAKE_PROJECT_NAME} -Wl,-z,max-page-size=16384
     # List libraries link to the target library
-    android
-    log)
+        android
+        log
+)
