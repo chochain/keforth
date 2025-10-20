@@ -13,6 +13,13 @@ using namespace std;
 extern void forth_init();
 extern int  forth_vm(const char *cmd, void(*)(int, const char*)=NULL);
 extern void forth_teardown();
+#if 1 || DO_SENSOR
+void sensor_engine_start(struct android_app *app);
+void sensor_enable(int type_id, int peroid);
+void sensor_disable(int type_id);
+#else
+void sensor_engine_start(struct android_app *app) {}
+#endif // 1 || DO_SENSOR
 
 const char* APP_VERSION = "keForth v1.0";
 ///====================================================================
@@ -27,27 +34,33 @@ void forth_include(const char *fn) {
     // to JNI
 }
 
-static jobject   gE4Obj    = nullptr;
-static jmethodID gE4PostID = nullptr;
+static jobject   gForthObj     = nullptr;
+static jmethodID gForthPostID  = nullptr;
+static jmethodID gSensorPostID = nullptr;
 
 void eforth_main(struct android_app *app) {
-    //sensor_main(app);
-    //forth_init();
+    // forth_init();
+}
+
+void android_main(struct android_app *app) {
+    eforth_main(app);
+    sensor_engine_start(app);
 }
 
 extern "C"
 {
     JNIEXPORT void JNICALL
     Java_com_keforth_Eforth_jniInit(JNIEnv *env, jobject thiz) {
+        if (gForthObj != nullptr) env->DeleteGlobalRef(gForthObj);
+        gForthObj = env->NewGlobalRef(thiz);
+        jclass cb = env->GetObjectClass(gForthObj);
+
+        gForthPostID  = env->GetMethodID(cb, "jniPost", "(Ljava/lang/String;)V");
+        gSensorPostID = env->GetMethodID(cb, "jniSensor", "([I)V");
+
+        env->DeleteLocalRef(cb);
+
         forth_init();
-
-        if (gE4Obj != nullptr) env->DeleteGlobalRef(gE4Obj);
-        gE4Obj = env->NewGlobalRef(thiz);
-
-        jclass cb = env->GetObjectClass(gE4Obj);
-        gE4PostID = env->GetMethodID(cb, "jniPost",
-                                     "(Ljava/lang/String;)V");
-        env->DeleteLocalRef(cb); // Clean up local reference
     }
 
     JNIEXPORT void JNICALL
@@ -69,7 +82,7 @@ extern "C"
         forth_vm(cmd, [](int, const char *rst){
             /// send Forth response to Eforth.onPost
             gEnv->CallVoidMethod(
-                        gE4Obj, gE4PostID, gEnv->NewStringUTF(rst));
+                        gForthObj, gForthPostID, gEnv->NewStringUTF(rst));
         });
         env->ReleaseStringUTFChars(js, cmd);           /// release js, cmd
     }
