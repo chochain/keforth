@@ -1,89 +1,76 @@
+#include <queue>
+#include <map>
+
 #include <android/sensor.h>
 #include <android/looper.h>
 #include "android_native_app_glue.h"         /// For android_app struct
 
-// Define a unique ID for your looper events
-#define LOOPER_ID_USER 3
-#define TRIGGER_PERIOD 1000000               /// 1 second in nanoseconds
+/// Define a unique ID for your looper events
+#define LOOPER_ID_USER  4
+#define TRIGGER_PERIOD  1000000               /// 1 second in nanoseconds
 
 // Structure to hold application state and sensor-related objects
-struct Engine {
-    struct android_app  *app;
-    const ASensor       *sensor[4];
-    ASensorManager      *mgr;
-    ASensorEventQueue   *que;
+struct SensorEngine {
+    struct android_app            *app;
+    ASensorManager                *mgr;
+    ASensorEventQueue             *que;
+    std::map<int, const ASensor*> sensor;
+    std::queue<int>               *fque;
 };
 
-// Callback function to handle sensor events
-int32_t handleSensorEvent(int fd, int events, void* data) {
-    Engine &eng = *(Engine*)data;
+/// Callback function to handle sensor events
+int _sensor_event_handler(int fd, int events, void *data) {
+    SensorEngine &eng = *(SensorEngine *)data;
     ASensorEvent ev;
 
-    // Process all pending events in the queue
+    /// Process all pending events in the queue
     while (ASensorEventQueue_getEvents(eng.que, &ev, 1) > 0) {
-        switch (ev.type) {
-            case ASENSOR_TYPE_ACCELEROMETER:       break;
-            case ASENSOR_TYPE_AMBIENT_TEMPERATURE: break;
-            case ASENSOR_TYPE_PRESSURE:            break;
-            case ASENSOR_TYPE_RELATIVE_HUMIDITY:   break;
-            default: /* do nothing */ break;
-        }
+        int v = ((int) (ev.data[0] * 100.0) << 8) | (int) ev.type;
+        eng.fque->push(v);
     }
-    return 1; // Continue receiving callbacks
+    return 1; /// Continue receiving callbacks
 }
 
-// Initialize sensors
-void initSensors(Engine &eng) {
+void _sensor_setup(SensorEngine &eng) {
     eng.mgr = ASensorManager_getInstance();
-	eng.que = ASensorManager_createEventQueue(
-		eng.mgr,
-		eng.app->looper,            /// Use the application's main looper
-		LOOPER_ID_USER,         /// A unique ID for your looper event source
-		handleSensorEvent,  /// Your callback function
-		eng.app->userData     /// User data passed to the callback
-        );
-
-    eng.sensor[0] = ASensorManager_getDefaultSensor(eng.mgr, ASENSOR_TYPE_ACCELEROMETER);
-    eng.sensor[1] = ASensorManager_getDefaultSensor(eng.mgr, ASENSOR_TYPE_AMBIENT_TEMPERATURE);
-    eng.sensor[2] = ASensorManager_getDefaultSensor(eng.mgr, ASENSOR_TYPE_PRESSURE);
-    eng.sensor[3] = ASensorManager_getDefaultSensor(eng.mgr, ASENSOR_TYPE_RELATIVE_HUMIDITY);
-
-    for (const ASensor *s : eng.sensor) {
-        if (s == nullptr) continue;
-        ASensorEventQueue_enableSensor(eng.que, s);
-        ASensorEventQueue_setEventRate(eng.que, s, TRIGGER_PERIOD);  // 1Hz
-    }
+    eng.que = ASensorManager_createEventQueue(
+            eng.mgr,
+            eng.app->looper,        /// Use the application's main looper
+            LOOPER_ID_USER,         /// A unique ID for your looper event source
+            _sensor_event_handler,  /// Your callback function
+            eng.app->userData       /// User data passed to the callback
+    );
 }
 
-// Teardown sensors
-void teardownSensors(Engine &eng) {
-    for (const ASensor *s : eng.sensor) {
-        if (s == nullptr) continue;
-        ASensorEventQueue_disableSensor(eng.que, s);
+void _sensor_teardown(SensorEngine &eng) {
+    for (auto kv: eng.sensor) {
+        ASensorEventQueue_disableSensor(eng.que, kv.second);
     }
     if (eng.que) {
         ASensorManager_destroyEventQueue(eng.mgr, eng.que);
     }
 }
 
-// Example usage within android_main (from android_native_app_glue)
-void android_main(struct android_app *app) {
+SensorEngine gEng;
+std::queue<int> fque;
+
+void sensor_engine_start(struct android_app *app) {
     auto looper = ALooper_forThread();   /// get thread looper
     if (looper == NULL) {
         looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     }
-    Engine eng;
-    app->userData = &eng;
-    eng.app = app;
+    gEng.app  = app;
+    gEng.fque = &fque;
+    gEng.app->userData = &gEng;
 
-    initSensors(eng);
+    _sensor_setup(gEng);
 
     // Main application loop
     while (true) {
         void *data;
-        int  ev;
-        int  id = ALooper_pollOnce(               /// sleep till event arrives
-                TRIGGER_PERIOD>>1, NULL, &ev, (void**)&data);
+        int ev;
+        int id = ALooper_pollOnce(               /// sleep till event arrives
+                TRIGGER_PERIOD >> 1, NULL, &ev, (void **) &data);
 
         if (id == LOOPER_ID_USER && data != NULL) {
             // This case handles your sensor events, as the callback is registered with this ID.
@@ -91,5 +78,21 @@ void android_main(struct android_app *app) {
         }
         // Handle other application events (input, lifecycle, etc.) here if needed
     }
-    teardownSensors(eng);
+    ALooper_release(looper);
+
+    _sensor_teardown(gEng);
+}
+
+void sensor_enable(int type_id, int period) {
+    const ASensor *s = gEng.sensor[type_id];
+    if (s == nullptr) {
+        s = gEng.sensor[type_id] =
+            ASensorManager_getDefaultSensor(gEng.mgr, type_id);
+    }
+    ASensorEventQueue_enableSensor(gEng.que, s);
+    ASensorEventQueue_setEventRate(gEng.que, s, period);
+}
+
+void sensor_disable(int type_id) {
+    ASensorEventQueue_disableSensor(gEng.que, gEng.sensor[type_id]);
 }
