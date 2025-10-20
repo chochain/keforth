@@ -636,6 +636,17 @@ void forth_core(VM& vm, const char *idiom) {     ///> aka QUERY
     }
     else PUSH(n);                        ///> or, add value onto data stack
 }
+
+void timer_isr(int period) {
+    auto time = millis() + period;
+    while (true) {
+        if (millis() >= time) {
+            /// do your thing
+            time += period;               /// * next trigger time
+        }
+        yield();                          /// * yield to other thread (if any)
+    }
+}
 ///====================================================================
 ///
 /// Forth VM external command processor
@@ -660,6 +671,9 @@ void forth_init() {
     }
     dict_compile();                      ///> compile dictionary
     dict_validate();                     ///< collect XT0, and check xtoff range
+
+    std::thread tmr0(timer_isr, 1000); /// fake timer interrupt (with thread)
+    tmr0.detach();
 }
 
 void forth_teardown() {
