@@ -59,6 +59,7 @@
 List<Code*, E4_DICT_SZ> dict;      ///< dictionary
 List<U8,    E4_PMEM_SZ> pmem;      ///< parameter memory (for colon definitions)
 U8  *MEM0;                         ///< base of parameter memory block
+U32 timer_period = 1000;           ///< timer interrupt period, 0: disabled
 ///
 ///> Macros to abstract dict and pmem physical implementation
 ///  Note:
@@ -510,7 +511,15 @@ void dict_compile() {  ///< compile built-in words into dictionary
     CODE("bcast", vm.bcast(POPI()));                         /// ( v1 v2 .. vn -- )
     CODE("pull",  IU t = POPI(); vm.pull(t, POPI()));        /// ( tid n -- v1 v2 .. vn )
     /// @}
-#endif // DO_MULTITASK    
+#endif // DO_MULTITASK
+#if __ANDROID__
+    CODE("timer", timer_enable(POPI()));                     /// ( t -- ) t: period, 0=disable
+    CODE("tmisr", DU n = POPI(); tmisr_set(POPI(), n));       /// ( xt i -- ) on timer interrupt call xt every n ms
+    CODE("sensor_setup",                                     /// ( n t -- ) n:Android Sensor TypeID sensor, t: period, 0=disable
+         IU t = POPI(); sensor_setup(POPI(), t));
+    CODE("sensor",                                           /// ( a n -- ) a: memory add, num of entries
+         DU n = POP(); sensor_read((int*)MEM(POPI()), (int)n));
+#endif // DO_SENSOR
     /// @defgroup Debug ops
     /// @{
     CODE("abort", TOS = -DU1; SS.clear(); RS.clear());       /// clear ss, rs
@@ -587,6 +596,11 @@ void dict_validate() {
     }
 }
 #endif // DO_WASM
+#if __ANDROID__
+void ISR_CALL(void *vm, int word_id) {
+    CALL(*(VM*)vm, (IU)word_id);
+}
+#endif // __ANDROID__
 ///====================================================================
 ///
 ///> ForthVM - Outer interpreter
@@ -637,16 +651,6 @@ void forth_core(VM& vm, const char *idiom) {     ///> aka QUERY
     else PUSH(n);                        ///> or, add value onto data stack
 }
 
-void timer_isr(int period) {
-    auto time = millis() + period;
-    while (true) {
-        if (millis() >= time) {
-            /// do your thing
-            time += period;               /// * next trigger time
-        }
-        yield();                          /// * yield to other thread (if any)
-    }
-}
 ///====================================================================
 ///
 /// Forth VM external command processor
@@ -671,9 +675,6 @@ void forth_init() {
     }
     dict_compile();                      ///> compile dictionary
     dict_validate();                     ///< collect XT0, and check xtoff range
-
-    std::thread tmr0(timer_isr, 1000); /// fake timer interrupt (with thread)
-    tmr0.detach();
 }
 
 void forth_teardown() {
