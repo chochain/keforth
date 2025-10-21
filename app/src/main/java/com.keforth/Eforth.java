@@ -19,10 +19,12 @@ import com.keforth.ui.OutputHandler;
 public class Eforth extends Thread implements JavaCallback {
     public static final int USE_JNI_FORTH   = 1;
     public static final int MSG_TYPE_STR    = 1;
+    public static final int MSG_TYPE_TIMER  = 2;
 
     private native void jniInit();
     private native void jniOuter(String cmd);
     private native void jniTeardown();
+    private native void jniTick();
 
     private static Handler      hndl;
     private static IO           io;
@@ -31,11 +33,13 @@ public class Eforth extends Thread implements JavaCallback {
     private final String        name;
     private final OutputHandler out;
     private final JavaCallback  api;
+    private int   timer;                         /// * timer interrupt period, in ms
     
     public Eforth(String name, OutputHandler out, JavaCallback api) {
-        this.name = name;
-        this.out  = out;
-        this.api  = api;
+        this.name  = name;
+        this.out   = out;
+        this.api   = api;
+        this.timer = 1000;
 
         if (USE_JNI_FORTH != 0) jniInit();       /// * call JNI eForth constructor
     }
@@ -50,16 +54,21 @@ public class Eforth extends Thread implements JavaCallback {
         Looper.prepare();                        /// * create thread MessageQueue
         hndl = new Handler(Objects.requireNonNull(Looper.myLooper())) {
             @Override public void handleMessage(@NonNull Message msg) {
+                if (msg.what == MSG_TYPE_TIMER) {
+                    sendEmptyMessageDelayed(MSG_TYPE_TIMER, timer);  /// next trigger
+                    out.debug("tick\n");
+                    jniTick();
+                }
                 if (msg.what != MSG_TYPE_STR) return;
-                String cmd = (String)msg.obj;
+
+                String cmd = (String) msg.obj;   /// * handle Forth command
                 onPost(PostType.LOG, cmd);
                 if (USE_JNI_FORTH == 0) {
                     io.rescan(cmd);              /// * update input stream
                     while (io.readline()) {      /// * fetch line-by-line
                         if (!vm.outer()) break;  /// * call Java Forth outer interpreter
                     }
-                }
-                else jniOuter(cmd);              /// * call JNI Forth outer interpreter
+                } else jniOuter(cmd);            /// * call JNI Forth outer interpreter
             }
         };
         Looper.loop();
@@ -72,8 +81,18 @@ public class Eforth extends Thread implements JavaCallback {
         hndl.sendMessage(msg);                  /// * send command to MessageQueue
     }
 
-    public void jniPost(String rst) {
+    public void onNativeForth(String rst) {
         api.onPost(PostType.FORTH, rst);
+    }
+
+    public void onNativeTimer(int period) {
+        out.debug("setting timer="+period+"\n");
+        this.timer = period;
+        if (period > 0) {
+            hndl.sendEmptyMessageDelayed(MSG_TYPE_TIMER, period);
+        } else {
+            hndl.removeMessages(MSG_TYPE_TIMER);
+        }
     }
 
     @Override
