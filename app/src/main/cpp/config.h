@@ -79,7 +79,6 @@ typedef int32_t         DU;
 ///@name Inline & Alignment macros
 ///@{
 #include <cstring>
-#pragma GCC optimize("align-functions=4")    // we need fn alignment
 #define INLINE          __attribute__((always_inline))
 #define ALIGN2(sz)      ((sz) + (-(sz) & 0x1))
 #define ALIGN4(sz)      ((sz) + (-(sz) & 0x3))
