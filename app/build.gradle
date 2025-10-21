@@ -13,7 +13,7 @@ android {
 		versionName '1.0'
 		externalNativeBuild {
 			cmake {
-				cppFlags '-std=c++17', '-O3', '-Wall',
+				cppFlags '-std=c++17', '-O3', '-Wall', '-falign-functions=4',
 					'-fomit-frame-pointer',
 					'-fno-stack-check', '-fno-stack-protector',
 					'-ffast-math',
