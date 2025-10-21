@@ -1,6 +1,5 @@
-#include <queue>
 #include <map>
-
+#include <array>
 #include <android/sensor.h>
 #include <android/looper.h>
 #include "android_native_app_glue.h"         /// For android_app struct
@@ -14,8 +13,8 @@ struct SensorEngine {
     struct android_app            *app;
     ASensorManager                *mgr;
     ASensorEventQueue             *que;
-    std::map<int, const ASensor*> sensor;
-    std::queue<int>               *fque;
+    std::map<int, const ASensor*> sensor;     /// * map type_id => *sensor
+    std::array<int, 48>           value;      /// * value[type_id]
 };
 
 /// Callback function to handle sensor events
@@ -25,8 +24,7 @@ int _sensor_event_handler(int fd, int events, void *data) {
 
     /// Process all pending events in the queue
     while (ASensorEventQueue_getEvents(eng.que, &ev, 1) > 0) {
-        int v = ((int) (ev.data[0] * 100.0) << 8) | (int) ev.type;
-        eng.fque->push(v);
+        eng.value[ev.type] = (int) (ev.data[0] * 1000.0);
     }
     return 1; /// Continue receiving callbacks
 }
@@ -52,15 +50,13 @@ void _sensor_teardown(SensorEngine &eng) {
 }
 
 SensorEngine gEng;
-std::queue<int> fque;
 
 void sensor_engine_start(struct android_app *app) {
     auto looper = ALooper_forThread();   /// get thread looper
     if (looper == NULL) {
         looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     }
-    gEng.app  = app;
-    gEng.fque = &fque;
+    gEng.app           = app;
     gEng.app->userData = &gEng;
 
     _sensor_setup(gEng);
@@ -83,8 +79,14 @@ void sensor_engine_start(struct android_app *app) {
     _sensor_teardown(gEng);
 }
 
-void sensor_enable(int type_id, int period) {
+void sensor_setup(int type_id, int period) {
     const ASensor *s = gEng.sensor[type_id];
+    if (period==0) {
+        if (s != nullptr) {
+            ASensorEventQueue_disableSensor(gEng.que, s);
+        }
+        return;
+    }
     if (s == nullptr) {
         s = gEng.sensor[type_id] =
             ASensorManager_getDefaultSensor(gEng.mgr, type_id);
@@ -93,6 +95,10 @@ void sensor_enable(int type_id, int period) {
     ASensorEventQueue_setEventRate(gEng.que, s, period);
 }
 
-void sensor_disable(int type_id) {
-    ASensorEventQueue_disableSensor(gEng.que, gEng.sensor[type_id]);
+void sensor_read(int *data, int len) {
+    int i = 0;
+    for (auto kv: gEng.sensor) {
+        if (i >= len) break;
+        data[i++] = gEng.value[kv.first];
+    }
 }
