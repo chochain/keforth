@@ -78,6 +78,7 @@ U32 timer_period = 1000;           ///< timer interrupt period, 0: disabled
 #define IGET(ip)  (*(IU*)MEM(ip))          /**< instruction fetch from pmem+ip offset   */
 #define CELL(a)   (*(DU*)&pmem[a])         /**< fetch a cell from parameter memory      */
 #define SETJMP(a) (*(IU*)&pmem[a] = HERE)  /**< address offset for branching opcodes    */
+#define ISR()     if (!vm.isr) tmisr_service(&vm)
 ///@}
 ///@name Primitive words (to simplify compiler), see nest() for details
 ///@{
@@ -217,6 +218,7 @@ void s_quote(VM &vm, prim_op op) {
 
 void nest(VM& vm) {
     vm.state = NEST;                                 /// * activate VM
+    ISR();
     while (IP) {
         IU ix = IGET(IP);                            ///< fetched opcode, hopefully in register
 //        VM_HDR(&vm, ":%4x", ix);
@@ -231,6 +233,7 @@ void nest(VM& vm) {
              else {                                  /// * yes, loop done!
                  RS.pop();                           /// * pop off loop counter
                  IP += sizeof(IU);                   /// * next instr.
+                 ISR();
              });
         CASE(LOOP,
              if (GT(RS[-2], RS[-1] += DU1)) {        ///> loop done?
@@ -239,6 +242,7 @@ void nest(VM& vm) {
              else {                                  /// * yes, done
                  RS.pop(); RS.pop();                 /// * pop off counters
                  IP += sizeof(IU);                   /// * next instr.
+                 ISR();
              });
         CASE(LIT,
              SS.push(TOS);
@@ -513,12 +517,15 @@ void dict_compile() {  ///< compile built-in words into dictionary
     /// @}
 #endif // DO_MULTITASK
 #if __ANDROID__
+    /// @defgroup Interrupt Service ops
+    /// @}
     CODE("timer", timer_enable(POPI()));                     /// ( t -- ) t: period, 0=disable
     CODE("tmisr", DU n = POPI(); tmisr_set(POPI(), n));       /// ( xt i -- ) on timer interrupt call xt every n ms
-    CODE("sensor_setup",                                     /// ( n t -- ) n:Android Sensor TypeID sensor, t: period, 0=disable
+    CODE("sensor",                                           /// ( n t -- ) n:Android Sensor TypeID sensor, t: period, 0=disable
          IU t = POPI(); sensor_setup(POPI(), t));
-    CODE("sensor",                                           /// ( a n -- ) a: memory add, num of entries
+    CODE("in",                                               /// ( a n -- ) a: memory add, num of entries
          DU n = POP(); sensor_read((int*)MEM(POPI()), (int)n));
+    /// @}
 #endif // DO_SENSOR
     /// @defgroup Debug ops
     /// @{
@@ -597,8 +604,11 @@ void dict_validate() {
 }
 #endif // DO_WASM
 #if __ANDROID__
-void ISR_CALL(void *vm, int word_id) {
-    CALL(*(VM*)vm, (IU)word_id);
+void ISR_CALL(void *pvm, int word_id) {
+    VM &vm = *(VM*)pvm;
+    vm.isr = true;
+    CALL(vm, (IU)word_id);
+    vm.isr = false;
 }
 #endif // __ANDROID__
 ///====================================================================

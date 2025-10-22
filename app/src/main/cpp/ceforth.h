@@ -86,6 +86,7 @@ struct ALIGNAS VM {
     DU       tos     = -DU1;       ///< top of stack (cached)
 
     bool     compile = false;      ///< compiler flag
+    bool     isr     = false;      ///< interrupt service flag
     vm_state state   = STOP;       ///< VM status
     IU       base    = 0;          ///< numeric radix (a pointer)
 
@@ -231,7 +232,7 @@ void task_start(int tid);                 ///< start a thread with given task/VM
 #if __ANDROID__
 void timer_enable(int period);           ///< enable timer trigger every period ms
 void tmisr_set(int word_id, int period); ///< timer ISR; exec word[w] every period ms
-void tmisr_service();                    ///< serve timer triggers
+void tmisr_service(void *vm);            ///< serve timer triggers
 
 void sensor_setup(int type_id, int period); ///< enable Android Sensor fetched at period ms
 void sensor_read(int *data, int len);    ///<
