@@ -16,10 +16,10 @@ extern int  forth_vm(const char *cmd, void(*)(int, const char*)=NULL);
 extern void forth_teardown();
 
 extern void sensor_engine_start(struct android_app *app);
-extern void sensor_setup(int type_id, int slot_id, int peroid);
+extern void sensor_setup(int type_id, int peroid);
 extern void sensor_read(int *data, int len);
 
-extern void ISR_CALL(void *vm, int word_id);
+extern void ISR_CALL(void *pvm, int word_id);
 
 const char* APP_VERSION = "keForth v1.0";
 ///====================================================================
@@ -35,11 +35,12 @@ void forth_include(const char *fn) {
     // to JNI
 }
 
-JNIEnv    *gEnv        = nullptr;
-jobject   gForthObj    = nullptr;
-jmethodID gForthPostID = nullptr;
-jmethodID gTimerPostID = nullptr;
-int       gPeriod      = 0;
+JNIEnv    *gEnv        = nullptr;            ///< JNI environment
+jobject   gForthObj    = nullptr;            ///< Eforth Activity object
+jmethodID gTimerPostID = nullptr;            ///< onNativeTimer(enable)
+jmethodID gForthPostID = nullptr;            ///< onNativeForth(rst)
+
+int       gPeriod      = 1000;               ///< default timer period (in ms)
 
 std::map<int, std::pair<int, int>> gISR;     /// timer ISR map w -> <cnt, max>
 
@@ -47,19 +48,20 @@ void android_main(struct android_app *app) {
     sensor_engine_start(app);
 }
 
-void timer_enable(int period) {
+void timer_enable(int enable) {
     if (gEnv == nullptr) return;
-    gPeriod = period;
-    gEnv->CallVoidMethod(gForthObj, gTimerPostID, period);
+    gEnv->CallVoidMethod(gForthObj, gTimerPostID, enable);
 }
 
 void tmisr_set(int word_id, int period) {
-    if (period == 0 || gISR.find(word_id) != gISR.end()) {
+    if (period == 0) {
         gISR.erase(word_id);
-        if (period==0) return;
+        return;
     }
-    int ntick = 1 + (period == gPeriod ? 0 : period / gPeriod);
-    gISR[word_id] = std::pair<int, int>(0, ntick);    /// TODO: thread-safe?
+    int ntic = 1 + (period > gPeriod ? period / gPeriod : 0);
+    if (gISR.find(word_id) == gISR.end()) { /// new entry, TODO: thread-safe?
+        gISR[word_id] = std::pair<int, int>(0, ntic);
+    } else gISR[word_id].second = ntic;
 }
 
 void tmisr_service(void *vm) {
@@ -75,9 +77,9 @@ void tmisr_service(void *vm) {
 extern "C"
 {
     JNIEXPORT void JNICALL
-    Java_com_keforth_Eforth_jniTick(JNIEnv *env, jobject thiz) {
+    Java_com_keforth_MainActivity_jniTick(JNIEnv *env, jobject thiz) {
         for (auto kv : gISR) {
-            kv.second.first += 1;
+            kv.second.first += 1;            /// increment counter, TODO: thread-safe?
         }
     }
 
@@ -87,8 +89,9 @@ extern "C"
         gForthObj = env->NewGlobalRef(thiz);
         jclass cb = env->GetObjectClass(gForthObj);
 
-        gForthPostID = env->GetMethodID(cb, "onNativeForth", "(Ljava/lang/String;)V");
         gTimerPostID = env->GetMethodID(cb, "onNativeTimer", "(I)V");
+        gForthPostID = env->GetMethodID(cb, "onNativeForth", "(Ljava/lang/String;)V");
+
         env->DeleteLocalRef(cb);
 
         forth_init();
@@ -105,9 +108,9 @@ extern "C"
         const char *cmd = env->GetStringUTFChars(js, nullptr);
 
         // Check for null if the string conversion fails (e.g., out of memory)
-        gEnv = env;
         if (env==nullptr || cmd==nullptr) return;
 
+        gEnv = env;
         forth_vm(cmd, [](int, const char *rst){
             /// send Forth response to Eforth.onNativeForth
             gEnv->CallVoidMethod(
