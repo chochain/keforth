@@ -8,7 +8,7 @@ import com.keforth.*;
 
 public interface JavaCallback {
     public enum PostType {
-        LOG, FORTH, JAVA
+        LOG, FORTH, JAVA, TIMER
     }
     void onPost(PostType tid, String msg);
 }
