@@ -19,12 +19,9 @@ import com.keforth.ui.OutputHandler;
 public class Eforth extends Thread implements JavaCallback {
     public static final int USE_JNI_FORTH   = 1;
     public static final int MSG_TYPE_STR    = 1;
-    public static final int MSG_TYPE_TIMER  = 2;
-
     private native void jniInit();
     private native void jniOuter(String cmd);
     private native void jniTeardown();
-    private native void jniTick();
 
     private static Handler      hndl;
     private static IO           io;
@@ -54,13 +51,7 @@ public class Eforth extends Thread implements JavaCallback {
         Looper.prepare();                        /// * create thread MessageQueue
         hndl = new Handler(Objects.requireNonNull(Looper.myLooper())) {
             @Override public void handleMessage(@NonNull Message msg) {
-                if (msg.what == MSG_TYPE_TIMER) {
-                    sendEmptyMessageDelayed(MSG_TYPE_TIMER, timer);  /// next trigger
-                    out.debug("tick\n");
-                    jniTick();
-                }
                 if (msg.what != MSG_TYPE_STR) return;
-
                 String cmd = (String) msg.obj;   /// * handle Forth command
                 onPost(PostType.LOG, cmd);
                 if (USE_JNI_FORTH == 0) {
@@ -81,18 +72,12 @@ public class Eforth extends Thread implements JavaCallback {
         hndl.sendMessage(msg);                  /// * send command to MessageQueue
     }
 
-    public void onNativeForth(String rst) {
-        api.onPost(PostType.FORTH, rst);
+    public void onNativeTimer(int enable) {
+        api.onPost(PostType.TIMER, enable!=0 ? "start" : "stop");
     }
 
-    public void onNativeTimer(int period) {
-        out.debug("setting timer="+period+"\n");
-        this.timer = period;
-        if (period > 0) {
-            hndl.sendEmptyMessageDelayed(MSG_TYPE_TIMER, period);
-        } else {
-            hndl.removeMessages(MSG_TYPE_TIMER);
-        }
+    public void onNativeForth(String rst) {
+        api.onPost(PostType.FORTH, rst);
     }
 
     @Override
