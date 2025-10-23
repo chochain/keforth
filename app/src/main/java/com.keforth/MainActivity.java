@@ -36,7 +36,8 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     static {
         System.loadLibrary("ceforth");
     }
-    private native void jniTick();
+    private native void jniInit(int period);     ///< initialize JNI timer
+    private native int  jniTick();               ///< timer ISR handler
 
     private TextView             con;
     private EditText             ed;             ///< Forth input
@@ -61,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         initComponents();
         setupEventListeners();
 
+        jniInit(TIMER_WAIT);                     /// * set JNI Timer period (in ms)
+
         forth.start();                           /// * in a separate thread
     }
 
@@ -84,8 +87,8 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         timer = new Runnable() {                 /// * repeating task for timer
             @Override
             public void run() {
-                out.debug(".");
                 thndl.postDelayed(this, TIMER_WAIT);
+                if (jniTick() == 0) forth.process("tick");
             }
         };
     }
