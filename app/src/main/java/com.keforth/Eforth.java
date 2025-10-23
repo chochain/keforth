@@ -19,6 +19,7 @@ import com.keforth.ui.OutputHandler;
 public class Eforth extends Thread implements JavaCallback {
     public static final int USE_JNI_FORTH   = 1;
     public static final int MSG_TYPE_STR    = 1;
+    public static final int MSG_TYPE_TIMER  = 2;
     private native void jniInit();
     private native void jniOuter(String cmd);
     private native void jniTeardown();
@@ -53,7 +54,9 @@ public class Eforth extends Thread implements JavaCallback {
             @Override public void handleMessage(@NonNull Message msg) {
                 if (msg.what != MSG_TYPE_STR) return;
                 String cmd = (String) msg.obj;   /// * handle Forth command
-                onPost(PostType.LOG, cmd);
+                if (!cmd.equals("tick")) {
+                    onPost(PostType.LOG, cmd);   /// * echo
+                }
                 if (USE_JNI_FORTH == 0) {
                     io.rescan(cmd);              /// * update input stream
                     while (io.readline()) {      /// * fetch line-by-line
@@ -81,7 +84,7 @@ public class Eforth extends Thread implements JavaCallback {
     }
 
     @Override
-    public void onPost(PostType tid, String rst) {
+    public void onPost(PostType tid, String rst) {  /// * proxy to main (UI) thread
         api.onPost(tid, rst);
     }
 }
