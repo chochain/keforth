@@ -232,10 +232,12 @@ void task_start(int tid);                 ///< start a thread with given task/VM
 #if __ANDROID__
 void timer_enable(int period);           ///< enable timer trigger every period ms
 void tmisr_set(int word_id, int period); ///< timer ISR; exec word[w] every period ms
-void tmisr_service(void *vm);            ///< serve timer triggers
 
 void sensor_setup(int type_id, int period); ///< enable Android Sensor fetched at period ms
 void sensor_read(int *data, int len);    ///<
+
+void isr_serv(void *vm);                 ///< serve timer triggers
+void isr_dump();
 #else  // __ANDROID
 void tmisr_service()
 #endif // __ANDROID__

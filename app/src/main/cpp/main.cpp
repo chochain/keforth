@@ -40,7 +40,7 @@ jobject   gForthObj    = nullptr;            ///< Eforth Activity object
 jmethodID gTimerPostID = nullptr;            ///< onNativeTimer(enable)
 jmethodID gForthPostID = nullptr;            ///< onNativeForth(rst)
 
-int       gPeriod      = 1000;               ///< default timer period (in ms)
+int       gPeriod      = 100;                ///< default timer period (in ms)
 int       gForthRun    = 0;                  ///< ISR semaphore
 
 std::map<int, std::pair<int, int>> gISR;     ///< timer ISR map w -> <cnt, max>
@@ -81,6 +81,11 @@ void isr_serv(void *vm) {
 
 extern "C"
 {
+    JNIEXPORT void JNICALL
+    Java_com_keforth_MainActivity_jniInit(JNIEnv *env, jobject thiz, jint period) {
+        gPeriod = period;
+    }
+
     JNIEXPORT jint JNICALL
     Java_com_keforth_MainActivity_jniTick(JNIEnv *env, jobject thiz) {
         std::lock_guard<std::mutex> lock(gISRmtx);          /// * in main-thread, protect ISR
