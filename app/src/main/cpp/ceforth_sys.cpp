@@ -325,11 +325,17 @@ void native_api(VM &vm) {                  ///> ( n addr u -- )
     js_call(pad.c_str());    /// * call Emscripten js function
 }
 #endif // DO_WASM
+
+#if __ANDROID__
 #include <map>
 extern std::map<int, std::pair<int, int>> gISR;
 
 void isr_dump() {
     for (auto &[w, v] : gISR) {
-        fout << "w=" << w << " cnt=" << v.first << " max=" << v.second << ENDL;
+        fout << dict[w]->name
+             << " w=" << w
+             << " cnt=" << v.first
+             << " max=" << v.second << ENDL;
     }
 }
+#endif // __ANDROID__
