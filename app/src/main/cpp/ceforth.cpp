@@ -59,7 +59,6 @@
 List<Code*, E4_DICT_SZ> dict;      ///< dictionary
 List<U8,    E4_PMEM_SZ> pmem;      ///< parameter memory (for colon definitions)
 U8  *MEM0;                         ///< base of parameter memory block
-U32 timer_period = 1000;           ///< timer interrupt period, 0: disabled
 ///
 ///> Macros to abstract dict and pmem physical implementation
 ///  Note:
@@ -78,7 +77,6 @@ U32 timer_period = 1000;           ///< timer interrupt period, 0: disabled
 #define IGET(ip)  (*(IU*)MEM(ip))          /**< instruction fetch from pmem+ip offset   */
 #define CELL(a)   (*(DU*)&pmem[a])         /**< fetch a cell from parameter memory      */
 #define SETJMP(a) (*(IU*)&pmem[a] = HERE)  /**< address offset for branching opcodes    */
-#define ISR()     if (!vm.isr) tmisr_service(&vm)
 ///@}
 ///@name Primitive words (to simplify compiler), see nest() for details
 ///@{
@@ -215,6 +213,7 @@ void s_quote(VM &vm, prim_op op) {
 #define CASE(op, g)  case op : { g; } break
 #define OTHER(g)     default : { g; } break
 #define UNNEST()     (IP=UINT(RS.pop()))
+#define ISR()        if (!vm.isr) isr_serv(&vm)
 
 void nest(VM& vm) {
     vm.state = NEST;                                 /// * activate VM
@@ -292,6 +291,14 @@ void CALL(VM& vm, IU w) {
     }
     else dict[w]->call(vm);            /// built-in word
 }
+#if __ANDROID__
+void ISR_CALL(void *pvm, int word_id) {
+    VM &vm = *(VM*)pvm;
+    vm.isr = true;                     /// * prevent recursive calls
+    CALL(vm, (IU)word_id);
+    vm.isr = false;
+}
+#endif // __ANDROID__
 ///====================================================================
 ///
 ///> eForth dictionary assembler
@@ -525,6 +532,8 @@ void dict_compile() {  ///< compile built-in words into dictionary
          IU t = POPI(); sensor_setup(POPI(), t));
     CODE("in",                                               /// ( a n -- ) a: memory add, num of entries
          DU n = POP(); sensor_read((int*)MEM(POPI()), (int)n));
+    CODE("tick",  isr_serv(&vm));                            /// ( -- ))
+    CODE("isr",   isr_dump());
     /// @}
 #endif // DO_SENSOR
     /// @defgroup Debug ops
@@ -603,14 +612,6 @@ void dict_validate() {
     }
 }
 #endif // DO_WASM
-#if __ANDROID__
-void ISR_CALL(void *pvm, int word_id) {
-    VM &vm = *(VM*)pvm;
-    vm.isr = true;
-    CALL(vm, (IU)word_id);
-    vm.isr = false;
-}
-#endif // __ANDROID__
 ///====================================================================
 ///
 ///> ForthVM - Outer interpreter
