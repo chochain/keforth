@@ -41,8 +41,10 @@ jmethodID gTimerPostID = nullptr;            ///< onNativeTimer(enable)
 jmethodID gForthPostID = nullptr;            ///< onNativeForth(rst)
 
 int       gPeriod      = 1000;               ///< default timer period (in ms)
+int       gForthRun    = 0;                  ///< ISR semaphore
 
-std::map<int, std::pair<int, int>> gISR;     /// timer ISR map w -> <cnt, max>
+std::map<int, std::pair<int, int>> gISR;     ///< timer ISR map w -> <cnt, max>
+std::mutex                         gISRmtx;  ///< timer mutex
 
 void android_main(struct android_app *app) {
     sensor_engine_start(app);
@@ -58,17 +60,20 @@ void tmisr_set(int word_id, int period) {
         gISR.erase(word_id);
         return;
     }
-    int ntic = 1 + (period > gPeriod ? period / gPeriod : 0);
-    if (gISR.find(word_id) == gISR.end()) { /// new entry, TODO: thread-safe?
+    int ntic = 1 + (period >= gPeriod ? (period-1) / gPeriod : 0);
+    ///
+    ///> update or create new ISR entry
+    ///> only Eforth thread update ISR map, so should be thread-safe
+    ///
+    if (gISR.find(word_id) == gISR.end()) {                  /// * check word in map
         gISR[word_id] = std::pair<int, int>(0, ntic);
     } else gISR[word_id].second = ntic;
 }
 
-void tmisr_service(void *vm) {
-    for (auto kv : gISR) {
-        auto &v = kv.second;
+void isr_serv(void *vm) {
+    for (auto &[w, v] : gISR) {
         if (v.first >= v.second) {
-            ISR_CALL(vm, kv.first);
+            ISR_CALL(vm, w);
             v.first = 0;
         }
     }
@@ -76,11 +81,13 @@ void tmisr_service(void *vm) {
 
 extern "C"
 {
-    JNIEXPORT void JNICALL
+    JNIEXPORT jint JNICALL
     Java_com_keforth_MainActivity_jniTick(JNIEnv *env, jobject thiz) {
-        for (auto kv : gISR) {
-            kv.second.first += 1;            /// increment counter, TODO: thread-safe?
+        std::lock_guard<std::mutex> lock(gISRmtx);          /// * in main-thread, protect ISR
+        for (auto &[w, v] : gISR) {
+            v.first += 1;                                     /// * increment counter
         }
+        return gForthRun;
     }
 
     JNIEXPORT void JNICALL
@@ -110,6 +117,7 @@ extern "C"
         // Check for null if the string conversion fails (e.g., out of memory)
         if (env==nullptr || cmd==nullptr) return;
 
+        gForthRun++;
         gEnv = env;
         forth_vm(cmd, [](int, const char *rst){
             /// send Forth response to Eforth.onNativeForth
@@ -117,5 +125,6 @@ extern "C"
                         gForthObj, gForthPostID, gEnv->NewStringUTF(rst));
         });
         env->ReleaseStringUTFChars(js, cmd);           /// release js, cmd
+        gForthRun--;
     }
 }
