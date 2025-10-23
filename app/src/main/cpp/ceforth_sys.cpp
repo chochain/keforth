@@ -325,3 +325,11 @@ void native_api(VM &vm) {                  ///> ( n addr u -- )
     js_call(pad.c_str());    /// * call Emscripten js function
 }
 #endif // DO_WASM
+#include <map>
+extern std::map<int, std::pair<int, int>> gISR;
+
+void isr_dump() {
+    for (auto &[w, v] : gISR) {
+        fout << "w=" << w << " cnt=" << v.first << " max=" << v.second << ENDL;
+    }
+}
