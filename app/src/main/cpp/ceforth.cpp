@@ -159,7 +159,7 @@ void add_var(IU op, DU v=DU0) {     ///< add a varirable header
 int def_word(const char* name) {    ///< display if redefined
     if (name[0]=='\0') {            /// * missing name?
         pstr(" name?", CR); return 0;
-    }  
+    }
     if (find(name)) {               /// * word redefined?
         pstr(name); pstr(" reDef? ", CR);
     }
@@ -213,11 +213,10 @@ void s_quote(VM &vm, prim_op op) {
 #define CASE(op, g)  case op : { g; } break
 #define OTHER(g)     default : { g; } break
 #define UNNEST()     (IP=UINT(RS.pop()))
-#define ISR()        if (!vm.isr) isr_serv(&vm)
+#define ISR(vm)      if (!vm.isr) isr_serv(vm)
 
 void nest(VM& vm) {
     vm.state = NEST;                                 /// * activate VM
-    ISR();
     while (IP) {
         IU ix = IGET(IP);                            ///< fetched opcode, hopefully in register
 //        VM_HDR(&vm, ":%4x", ix);
@@ -232,7 +231,7 @@ void nest(VM& vm) {
              else {                                  /// * yes, loop done!
                  RS.pop();                           /// * pop off loop counter
                  IP += sizeof(IU);                   /// * next instr.
-                 ISR();
+                 ISR(vm);
              });
         CASE(LOOP,
              if (GT(RS[-2], RS[-1] += DU1)) {        ///> loop done?
@@ -241,7 +240,7 @@ void nest(VM& vm) {
              else {                                  /// * yes, done
                  RS.pop(); RS.pop();                 /// * pop off counters
                  IP += sizeof(IU);                   /// * next instr.
-                 ISR();
+                 ISR(vm);
              });
         CASE(LIT,
              SS.push(TOS);
@@ -291,14 +290,6 @@ void CALL(VM& vm, IU w) {
     }
     else dict[w]->call(vm);            /// built-in word
 }
-#if __ANDROID__
-void ISR_CALL(void *pvm, int word_id) {
-    VM &vm = *(VM*)pvm;
-    vm.isr = true;                     /// * prevent recursive calls
-    CALL(vm, (IU)word_id);
-    vm.isr = false;
-}
-#endif // __ANDROID__
 ///====================================================================
 ///
 ///> eForth dictionary assembler
@@ -505,7 +496,7 @@ void dict_compile() {  ///< compile built-in words into dictionary
          for (int i = 0; i < n; i+=sizeof(DU)) add_du(DU0)); /// zero padding
     CODE("th",    IU i = POPI(); TOS += i * sizeof(DU));     /// w i -- w'
     /// @}
-#if DO_MULTITASK    
+#if DO_MULTITASK
     /// @defgroup Multitasking ops
     /// @}
     CODE("task",                                             /// w -- task_id
@@ -521,21 +512,24 @@ void dict_compile() {  ///< compile built-in words into dictionary
     CODE("recv",  vm.recv());                                /// ( -- v1 v2 .. vn ) waiting for values passed by sender
     CODE("bcast", vm.bcast(POPI()));                         /// ( v1 v2 .. vn -- )
     CODE("pull",  IU t = POPI(); vm.pull(t, POPI()));        /// ( tid n -- v1 v2 .. vn )
+    /// @{
+#else
+    /// @defgroup Interrupt Service ops
+    /// @{
+    CODE("timer", timer_enable(POPI()));                     /// ( f -- )
+    CODE("tmisr", U32 n = POPI(); tmisr_add(n, POPI()));     /// ( token period -- )
+    CODE(".isr",  isr_dump());                               /// ( -- ) list all timer ISR
     /// @}
 #endif // DO_MULTITASK
 #if __ANDROID__
     /// @defgroup Interrupt Service ops
-    /// @}
-    CODE("timer", timer_enable(POPI()));                     /// ( t -- ) t: period, 0=disable
-    CODE("tmisr", DU n = POPI(); tmisr_set(POPI(), n));       /// ( xt i -- ) on timer interrupt call xt every n ms
-    CODE("sensor",                                           /// ( n t -- ) n:Android Sensor TypeID sensor, t: period, 0=disable
+    /// @{
+    CODE("sense",                                           /// ( n t -- ) n:Android Sensor TypeID sensor, t: period, 0=disable
          IU t = POPI(); sensor_setup(POPI(), t));
-    CODE("in",                                               /// ( a n -- ) a: memory add, num of entries
+    CODE("sensor",                                          /// ( a n -- ) a: memory add, num of entries
          DU n = POP(); sensor_read((int*)MEM(POPI()), (int)n));
-    CODE("tick",  isr_serv(&vm));                            /// ( -- ))
-    CODE("isr",   isr_dump());
     /// @}
-#endif // DO_SENSOR
+#endif // __ANDROID__
     /// @defgroup Debug ops
     /// @{
     CODE("abort", TOS = -DU1; SS.clear(); RS.clear());       /// clear ss, rs
@@ -580,7 +574,7 @@ void dict_compile() {  ///< compile built-in words into dictionary
     CODE("ms",    delay(POPI()));
 #if DO_WASM
     CODE("JS",    native_api(vm));                          /// Javascript interface
-#else    
+#else
     CODE("bye",   vm.state=STOP);
 #endif // DO_WASM
     /// @}
@@ -661,7 +655,6 @@ void forth_core(VM& vm, const char *idiom) {     ///> aka QUERY
     }
     else PUSH(n);                        ///> or, add value onto data stack
 }
-
 ///====================================================================
 ///
 /// Forth VM external command processor
@@ -694,14 +687,19 @@ void forth_teardown() {
 
 int forth_vm(const char *line, void(*hook)(int, const char*)) {
     VM &vm = vm_get(0);                                     ///< get main thread
+    if (line==NULL) {
+        isr_serv(vm);                                       /// * service interrupt when input idling
+        delay(10);                                          /// * wait 10ms, TODO: hardcoded
+        return 0;
+    }
     fout_setup(hook);
     fin_setup(line);                                        /// * refresh buffer if not resuming
-    
+
     string idiom;
     while (fetch(idiom)) {                                  /// * parse a word
         forth_core(vm, idiom.c_str());                      /// * outer interpreter
     }
     if (!vm.compile) ss_dump(vm);
-    
+
     return vm.state==STOP;
 }
