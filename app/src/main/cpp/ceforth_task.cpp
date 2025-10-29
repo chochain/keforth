@@ -4,11 +4,76 @@
 ///
 #include "ceforth.h"
 
+extern List<Code*> dict;           /// dictionary
 extern List<U8, 0> pmem;           ///< parameter memory block
 extern U8          *MEM0;          ///< base pointer of pmem
 
 #if !DO_MULTITASK
+#include <atomic>
+#include <queue>
+#include <map>
+#define TIMER_WAIT 100
+
 VM _vm0;                           ///< singleton, no VM pooling
+///
+/// Timer interrupt
+///
+std::thread      _timer;           ///< timer thread (period = TIMER_WAIT)
+std::atomic<int> _quit    = 0;     ///< timer thread stop flag
+std::atomic<int> _ticking = 0;     ///< timer enable/disable flag
+std::queue<int>  _que;             ///< timer event queue
+std::map<int, std::pair<std::atomic<int>, int>> _isr;
+
+void isr_serv(VM &vm) {
+	while (!_que.empty()) {
+		int w = _que.front(); _que.pop();
+		vm.isr = true;
+        vm.rs.push(DU0);
+        vm.ip = dict[w]->pfa;
+        nest(vm);
+		vm.isr = false;
+	}
+}
+
+void _tick() {
+    for (auto &[w, v] : _isr) {
+        v.first += 1;
+		if (v.first >= v.second) {
+			_que.push(w);
+			v.first = 0;
+		}
+    }
+}
+
+void t_pool_init() {
+    _timer = std::thread([]() {
+        while(!_quit) {
+            delay(TIMER_WAIT);
+            if (_ticking) _tick();
+        }    
+    });
+}
+
+void t_pool_stop() {
+    _quit = 1;
+    _timer.join();
+}
+
+void timer_enable(int f) {
+    _ticking = f;
+}
+
+void tmisr_add(int period, int w) {
+    int na = _isr.find(w)==_isr.end();
+    if (period==0) {
+        if (!na) _isr.erase(w);     /// * remove ISR entry
+        return;
+    }
+    int tic = period > TIMER_WAIT ? period / TIMER_WAIT : 1;
+    if (na) _isr[w] = std::pair<int, int>(0, tic);
+    else    _isr[w].second = tic;
+}
+
 VM& vm_get(int id) { return _vm0; }/// * return the singleton
 void uvar_init() {
     U8 *b = &pmem[pmem.idx++];     ///< *base
@@ -28,7 +93,6 @@ VM& vm_get(int id) {
 }
 
 extern void add_du(DU v);          ///< add data unit to pmem
-extern void nest(VM &vm);          ///< Forth inner loop
 ///
 ///> VM messaging and IO control variables
 ///
@@ -65,7 +129,7 @@ void _event_loop(int rank) {
             NOTIFY(_cv_evt);                      /// * notify one
         }
         VM_LOG(vm, ">> started on T%d", rank);
-        vm->rs.push(DU0);                         /// exit token
+        vm->rs.push(DU0);                         /// exit nest
         nest(*vm);
         VM_LOG(vm, ">> finished on T%d", rank);
 
