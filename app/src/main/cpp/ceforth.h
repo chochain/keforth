@@ -85,11 +85,11 @@ struct ALIGNAS VM {
     IU       ip      = 0;          ///< instruction pointer
     DU       tos     = -DU1;       ///< top of stack (cached)
 
-    bool     compile = false;      ///< compiler flag
-    bool     isr     = false;      ///< interrupt service flag
     vm_state state   = STOP;       ///< VM status
     IU       base    = 0;          ///< numeric radix (a pointer)
-
+    bool     compile = false;      ///< compiler flag
+    bool     isr     = false;      ///< interrupt servicing flag
+    
 #if DO_MULTITASK
     static int      NCORE;         ///< number of hardware cores
     
@@ -220,26 +220,21 @@ struct Code {
 VM&  vm_get(int id=0);                    ///< get a VM with given id
 void uvar_init();                         ///< setup user area
 
-#if DO_MULTITASK
 void t_pool_init();                       ///< initialize thread pool
 void t_pool_stop();                       ///< stop thread pool
+
+#if DO_MULTITASK
 int  task_create(IU pfa);                 ///< create a VM starting on pfa
 void task_start(int tid);                 ///< start a thread with given task/VM id
 #else
-#define t_pool_init()
-#define t_pool_stop()
+void timer_enable(int f);                 ///< 1:enable, 0:disable timer
+void tmisr_add(int period, int w);        ///< add dict[w] as ISR
+void isr_dump();                          ///< dump ISR list
+void isr_serv(VM &vm);
 #endif // DO_MULTITASK
 #if __ANDROID__
-void timer_enable(int period);           ///< enable timer trigger every period ms
-void tmisr_set(int word_id, int period); ///< timer ISR; exec word[w] every period ms
-
-void sensor_setup(int type_id, int period); ///< enable Android Sensor fetched at period ms
-void sensor_read(int *data, int len);    ///<
-
-void isr_serv(void *vm);                 ///< serve timer triggers
-void isr_dump();
-#else  // __ANDROID
-void tmisr_service()
+void sensor_add(int type_id, int period); ///< enable Android Sensor fetched at period ms
+void sensor_read(int *data, int len);     ///< fetch sensors data
 #endif // __ANDROID__
 ///@}
 ///@name System interface
@@ -248,6 +243,7 @@ void forth_init();
 int  forth_vm(const char *cmd, void(*hook)(int, const char*)=NULL);
 void forth_include(const char *fn);       /// load external Forth script
 void outer(istream &in);                  ///< Forth outer loop
+void nest(VM &vm);
 ///@}
 ///@name IO functions
 ///{@
