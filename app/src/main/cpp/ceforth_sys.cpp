@@ -239,6 +239,18 @@ void mem_dump(U32 p0, IU sz, int base) {
     }
     fout << setbase(base) << setfill(' ');
 }
+#if !DO_MULTITASK
+#include <map>
+#include <atomic>
+extern std::map<int, std::pair<std::atomic<int>, int>> _isr;
+void isr_dump() {
+    for (auto &[w, v] : _isr) {
+        fout << "[" << w << "] " << dict[w]->name
+             << " cnt=" <<  v.first
+             << " max=" << v.second << ENDL;
+    }
+}
+#endif // !DO_MULTITASK
 ///====================================================================
 ///
 ///> System statistics - for heap, stack, external memory debugging
@@ -325,17 +337,3 @@ void native_api(VM &vm) {                  ///> ( n addr u -- )
     js_call(pad.c_str());    /// * call Emscripten js function
 }
 #endif // DO_WASM
-
-#if __ANDROID__
-#include <map>
-extern std::map<int, std::pair<int, int>> gISR;
-
-void isr_dump() {
-    for (auto &[w, v] : gISR) {
-        fout << dict[w]->name
-             << " w=" << w
-             << " cnt=" << v.first
-             << " max=" << v.second << ENDL;
-    }
-}
-#endif // __ANDROID__
