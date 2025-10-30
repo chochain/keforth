@@ -79,7 +79,7 @@ void sensor_engine_start(struct android_app *app) {
     _sensor_teardown(gEng);
 }
 
-void sensor_setup(int type_id, int period) {
+void sensor_add(int type_id, int period) {
     const ASensor *s = gEng.sensor[type_id];
     if (period==0) {
         if (s != nullptr) {
