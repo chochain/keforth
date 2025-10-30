@@ -11,6 +11,7 @@
 #define USE_FLOAT       0               /**< support floating point */
 #define DO_MULTITASK    0               /**< multitasking/pthread   */
 #define DO_WASM         __EMSCRIPTEN__  /**< for WASM output        */
+#define SIM_TIMER_INTR  (!DO_MULTITASK) /**< fake timer interrupt   */
 ///@}
 ///@name Memory block configuation
 ///@{
