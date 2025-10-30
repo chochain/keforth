@@ -9,22 +9,25 @@ extern List<U8, 0> pmem;           ///< parameter memory block
 extern U8          *MEM0;          ///< base pointer of pmem
 
 #if !DO_MULTITASK
+VM _vm0;                           ///< singleton, no VM pooling
+
+#if SIM_TIMER_INTR
 #include <atomic>
 #include <queue>
 #include <map>
-#define TIMER_WAIT 100
-
-VM _vm0;                           ///< singleton, no VM pooling
+#define TIMER_WAIT 10              /** timer wakes up every 10ms */
 ///
 /// Timer interrupt
 ///
+std::map<IU, std::pair<std::atomic<U32>, U32>> isr;
+
 std::thread      _timer;           ///< timer thread (period = TIMER_WAIT)
 std::atomic<int> _quit    = 0;     ///< timer thread stop flag
 std::atomic<int> _ticking = 0;     ///< timer enable/disable flag
 std::queue<int>  _que;             ///< timer event queue
-std::map<int, std::pair<std::atomic<int>, int>> _isr;
 
 void isr_serv(VM &vm) {
+    if (vm.isr) return;            /// * no recursive interrupt
 	while (!_que.empty()) {
 		int w = _que.front(); _que.pop();
 		vm.isr = true;
@@ -36,11 +39,11 @@ void isr_serv(VM &vm) {
 }
 
 void _tick() {
-    for (auto &[w, v] : _isr) {
-        v.first += 1;
-		if (v.first >= v.second) {
+    auto t = millis();
+    for (auto &[w, v] : isr) {
+		if (v.first < t) {
 			_que.push(w);
-			v.first = 0;
+			v.first += v.second;
 		}
     }
 }
@@ -60,6 +63,10 @@ void t_pool_stop() {
 }
 
 void timer_enable(int f) {
+    auto t = millis();
+    for (auto &[w, v] : isr) {
+        v.first = t + v.second;
+    }
     _ticking = f;
 }
 
@@ -69,10 +76,10 @@ void tmisr_add(int period, int w) {
         if (!na) _isr.erase(w);     /// * remove ISR entry
         return;
     }
-    int tic = period > TIMER_WAIT ? period / TIMER_WAIT : 1;
-    if (na) _isr[w] = std::pair<int, int>(0, tic);
-    else    _isr[w].second = tic;
+    if (na) _isr[w] = std::pair<U32, U32>(0, period);
+    else    _isr[w].second = period;
 }
+#endif // SIM_TIMER_INTR
 
 VM& vm_get(int id) { return _vm0; }/// * return the singleton
 void uvar_init() {
