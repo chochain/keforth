@@ -239,18 +239,17 @@ void mem_dump(U32 p0, IU sz, int base) {
     }
     fout << setbase(base) << setfill(' ');
 }
-#if !DO_MULTITASK
+#if SIM_TIMER_INTR
 #include <map>
 #include <atomic>
-extern std::map<int, std::pair<std::atomic<int>, int>> _isr;
+extern std::map<IU, std::pair<std::atomic<U32>, U32>> isr;
 void isr_dump() {
     for (auto &[w, v] : _isr) {
         fout << "[" << w << "] " << dict[w]->name
-             << " cnt=" <<  v.first
-             << " max=" << v.second << ENDL;
+             << " period=" << v.second << "ms" << ENDL;
     }
 }
-#endif // !DO_MULTITASK
+#endif // !SIM_TIMER_INTR
 ///====================================================================
 ///
 ///> System statistics - for heap, stack, external memory debugging
