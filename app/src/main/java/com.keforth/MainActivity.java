@@ -32,13 +32,9 @@ import com.keforth.ui.*;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
     static final String APP_NAME   = "keForth v1.0";
-    static final int    TIMER_WAIT = 1000;
     static {
         System.loadLibrary("ceforth");
     }
-    private native void jniInit(int period);     ///< initialize JNI timer
-    private native int  jniTick();               ///< timer ISR handler
-
     private TextView             con;
     private EditText             ed;             ///< Forth input
     private FloatingActionButton fab;            ///< action button, show Logo panel
@@ -50,8 +46,6 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     private Eforth               forth;          ///< Forth processor (thread)
     private Elogo                logo;           ///< Logo processor (thread)
     private SensorManager        smgr;           ///< Sensor listing
-    private Handler              thndl;          ///< Timer handler
-    private Runnable             timer;          ///< Timer looper
 
     @Override
     protected void onCreate(Bundle state) {
@@ -61,8 +55,6 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         initViews();
         initComponents();
         setupEventListeners();
-
-        jniInit(TIMER_WAIT);                     /// * set JNI Timer period (in ms)
 
         forth.start();                           /// * in a separate thread
     }
@@ -82,15 +74,6 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         logo  = new Elogo(vgrp);
 //        smgr  = (SensorManager)getSystemService(Context.SENSOR_SERVICE);        
         smgr  = (SensorManager)getSystemService(SENSOR_SERVICE);
-
-        thndl = new Handler();                   /// * timer task handler
-        timer = new Runnable() {                 /// * repeating task for timer
-            @Override
-            public void run() {
-                thndl.postDelayed(this, TIMER_WAIT);
-                if (jniTick() == 0) forth.process("tick");
-            }
-        };
     }
 
     private void setupEventListeners() {
@@ -124,11 +107,6 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
             case LOG:    out.log(msg+"\n");      break;
             case FORTH:  out.print(msg);         break;
             case JAVA:   handleJavaAPI(msg);     break;
-            case TIMER:
-                out.debug(msg + " timer\n");
-                if (msg.equals("start")) thndl.postDelayed(timer, TIMER_WAIT);
-                else                     thndl.removeCallbacks(timer);
-                break;
             default:     out.debug("unsupported tid="+tid+"\n");
         }
     }
@@ -165,7 +143,6 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         }
     }
 
-    private static final int OP_TIMER          = 10;
     private static final int OP_DIR_ACCESS     = 11;
     private static final int OP_CONSOLE_UPDATE = 12;
 
