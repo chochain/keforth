@@ -226,16 +226,17 @@ void t_pool_stop();                       ///< stop thread pool
 #if DO_MULTITASK
 int  task_create(IU pfa);                 ///< create a VM starting on pfa
 void task_start(int tid);                 ///< start a thread with given task/VM id
-#else
+#endif // DO_MULTITASK
+
+#if SIM_TIMER_INTR
 void timer_enable(int f);                 ///< 1:enable, 0:disable timer
 void tmisr_add(int period, int w);        ///< add dict[w] as ISR
 void isr_dump();                          ///< dump ISR list
 void isr_serv(VM &vm);
-#endif // DO_MULTITASK
-#if __ANDROID__
-void sensor_add(int type_id, int period); ///< enable Android Sensor fetched at period ms
-void sensor_read(int *data, int len);     ///< fetch sensors data
-#endif // __ANDROID__
+#else  // !SIM_TIMER_INTR
+#define isr_serv(vm)
+#endif // SIM_TIMER_INTR
+
 ///@}
 ///@name System interface
 ///@{
@@ -261,6 +262,12 @@ void spaces(int n);                       ///< show spaces
 void dot(io_op op, DU v=DU0);             ///< print literals
 void dotr(int w, DU v, int b, bool u=false); ///< print fixed width literals
 void pstr(const char *str, io_op op=SPCS);///< print string
+
+#if __ANDROID__
+void sensor_add(int type_id, int period); ///< enable Android Sensor fetched at period ms
+void sensor_read(int *data, int len);     ///< fetch sensors data
+#endif // __ANDROID__
+
 ///@}
 ///@name Debug functions
 ///@{
