@@ -19,7 +19,6 @@ import com.keforth.ui.OutputHandler;
 public class Eforth extends Thread implements JavaCallback {
     public static final int USE_JNI_FORTH   = 1;
     public static final int MSG_TYPE_STR    = 1;
-    public static final int MSG_TYPE_TIMER  = 2;
     private native void jniInit();
     private native void jniOuter(String cmd);
     private native void jniTeardown();
@@ -31,13 +30,11 @@ public class Eforth extends Thread implements JavaCallback {
     private final String        name;
     private final OutputHandler out;
     private final JavaCallback  api;
-    private int   timer;                         /// * timer interrupt period, in ms
     
     public Eforth(String name, OutputHandler out, JavaCallback api) {
         this.name  = name;
         this.out   = out;
         this.api   = api;
-        this.timer = 1000;
 
         if (USE_JNI_FORTH != 0) jniInit();       /// * call JNI eForth constructor
     }
@@ -54,9 +51,6 @@ public class Eforth extends Thread implements JavaCallback {
             @Override public void handleMessage(@NonNull Message msg) {
                 if (msg.what != MSG_TYPE_STR) return;
                 String cmd = (String) msg.obj;   /// * handle Forth command
-                if (!cmd.equals("tick")) {
-                    onPost(PostType.LOG, cmd);   /// * echo
-                }
                 if (USE_JNI_FORTH == 0) {
                     io.rescan(cmd);              /// * update input stream
                     while (io.readline()) {      /// * fetch line-by-line
@@ -73,10 +67,6 @@ public class Eforth extends Thread implements JavaCallback {
         msg.what = MSG_TYPE_STR;
         msg.obj  = cmd;
         hndl.sendMessage(msg);                  /// * send command to MessageQueue
-    }
-
-    public void onNativeTimer(int enable) {
-        api.onPost(PostType.TIMER, enable!=0 ? "start" : "stop");
     }
 
     public void onNativeForth(String rst) {
