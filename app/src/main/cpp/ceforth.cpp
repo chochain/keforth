@@ -213,7 +213,6 @@ void s_quote(VM &vm, prim_op op) {
 #define CASE(op, g)  case op : { g; } break
 #define OTHER(g)     default : { g; } break
 #define UNNEST()     (IP=UINT(RS.pop()))
-#define ISR(vm)      if (!vm.isr) isr_serv(vm)
 
 void nest(VM& vm) {
     vm.state = NEST;                                 /// * activate VM
@@ -231,7 +230,7 @@ void nest(VM& vm) {
              else {                                  /// * yes, loop done!
                  RS.pop();                           /// * pop off loop counter
                  IP += sizeof(IU);                   /// * next instr.
-                 ISR(vm);
+                 isr_serv(vm);
              });
         CASE(LOOP,
              if (GT(RS[-2], RS[-1] += DU1)) {        ///> loop done?
@@ -240,7 +239,7 @@ void nest(VM& vm) {
              else {                                  /// * yes, done
                  RS.pop(); RS.pop();                 /// * pop off counters
                  IP += sizeof(IU);                   /// * next instr.
-                 ISR(vm);
+                 isr_serv(vm);
              });
         CASE(LIT,
              SS.push(TOS);
@@ -513,16 +512,17 @@ void dict_compile() {  ///< compile built-in words into dictionary
     CODE("bcast", vm.bcast(POPI()));                         /// ( v1 v2 .. vn -- )
     CODE("pull",  IU t = POPI(); vm.pull(t, POPI()));        /// ( tid n -- v1 v2 .. vn )
     /// @{
-#else
-    /// @defgroup Interrupt Service ops
+#endif  // DO_MULTITASK
+#if SIM_TIMER_INTR
+    /// @defgroup Timer Interrupt Service
     /// @{
     CODE("timer", timer_enable(POPI()));                     /// ( f -- )
     CODE("tmisr", U32 n = POPI(); tmisr_add(n, POPI()));     /// ( token period -- )
     CODE(".isr",  isr_dump());                               /// ( -- ) list all timer ISR
     /// @}
-#endif // DO_MULTITASK
+#endif // !SIM_TIMER_INTR
 #if __ANDROID__
-    /// @defgroup Interrupt Service ops
+    /// @defgroup Android Sensor Interface
     /// @{
     CODE("sense",                                           /// ( n t -- ) n:Android Sensor TypeID sensor, t: period, 0=disable
          IU t = POPI(); sensor_setup(POPI(), t));
