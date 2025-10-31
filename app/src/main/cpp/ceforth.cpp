@@ -524,9 +524,9 @@ void dict_compile() {  ///< compile built-in words into dictionary
 #if __ANDROID__
     /// @defgroup Android Sensor Interface
     /// @{
-    CODE("sense",                                           /// ( n t -- ) n:Android Sensor TypeID sensor, t: period, 0=disable
-         IU t = POPI(); sensor_setup(POPI(), t));
-    CODE("sensor",                                          /// ( a n -- ) a: memory add, num of entries
+    CODE("sense",                                            /// ( n t -- ) n:Android Sensor TypeID sensor, t: period, 0=disable
+         IU t = POPI(); sensor_add(POPI(), t));
+    CODE("sensor",                                           /// ( a n -- ) a: memory add, num of entries
          DU n = POP(); sensor_read((int*)MEM(POPI()), (int)n));
     /// @}
 #endif // __ANDROID__
@@ -687,9 +687,9 @@ void forth_teardown() {
 
 int forth_vm(const char *line, void(*hook)(int, const char*)) {
     VM &vm = vm_get(0);                                     ///< get main thread
-    if (line==NULL) {
+    if (line[0]=='\0') {                                      /// * empty string
         isr_serv(vm);                                       /// * service interrupt when input idling
-        delay(10);                                          /// * wait 10ms, TODO: hardcoded
+        delay(10);                                            /// * wait 10ms, TODO: hardcoded
         return 0;
     }
     fout_setup(hook);
