@@ -51,6 +51,7 @@ public class Eforth extends Thread implements JavaCallback {
             @Override public void handleMessage(@NonNull Message msg) {
                 if (msg.what != MSG_TYPE_STR) return;
                 String cmd = (String) msg.obj;   /// * handle Forth command
+                onPost(PostType.LOG, cmd);       /// * send to UI thread
                 if (USE_JNI_FORTH == 0) {
                     io.rescan(cmd);              /// * update input stream
                     while (io.readline()) {      /// * fetch line-by-line
@@ -62,11 +63,15 @@ public class Eforth extends Thread implements JavaCallback {
         Looper.loop();
     }
 
-    public void process(String cmd) {
+    public void process(String cmd) {            ///< Forth VM 
         Message msg = Message.obtain();
         msg.what = MSG_TYPE_STR;
         msg.obj  = cmd;
-        hndl.sendMessage(msg);                  /// * send command to MessageQueue
+        hndl.sendMessage(msg);                   /// * send command to MessageQueue
+    }
+
+    public void onNativeTick() {
+        process("");
     }
 
     public void onNativeForth(String rst) {
