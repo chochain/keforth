@@ -35,6 +35,8 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     static {
         System.loadLibrary("ceforth");
     }
+    private native void jniMainInit();
+
     private TextView             con;
     private EditText             ed;             ///< Forth input
     private FloatingActionButton fab;            ///< action button, show Logo panel
@@ -56,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         initComponents();
         setupEventListeners();
 
+        jniMainInit();
         forth.start();                           /// * in a separate thread
     }
 
@@ -102,13 +105,17 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     }
 
     @Override
-    public void onPost(PostType tid, String msg) {                ///< eForth-Java API callback
+    public void onPost(PostType tid, String msg) {           ///< eForth-Java API callback
         switch (tid) {
             case LOG:    out.log(msg+"\n");      break;
             case FORTH:  out.print(msg);         break;
             case JAVA:   handleJavaAPI(msg);     break;
             default:     out.debug("unsupported tid="+tid+"\n");
         }
+    }
+
+    public void onNativeTick() {                             ///< native ticker callback
+        forth.process("");
     }
 
     private void handleJavaAPI(String msg) {
@@ -131,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         case "font":
             int sz;
             try { sz = Integer.parseInt(ops[1]); }
-            catch (NumberFormatException e) { sz = 12; }       /// default 12sp
+            catch (NumberFormatException e) { sz = 12; }    /// default 12sp
             con.setTextSize(TypedValue.COMPLEX_UNIT_SP, sz);
             break;
         case "load":

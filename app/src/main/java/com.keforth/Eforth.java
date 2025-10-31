@@ -51,7 +51,9 @@ public class Eforth extends Thread implements JavaCallback {
             @Override public void handleMessage(@NonNull Message msg) {
                 if (msg.what != MSG_TYPE_STR) return;
                 String cmd = (String) msg.obj;   /// * handle Forth command
-                onPost(PostType.LOG, cmd);       /// * send to UI thread
+                if (!cmd.isEmpty()) {            /// * echo on UI thread
+                    onPost(PostType.LOG, cmd);
+                }
                 if (USE_JNI_FORTH == 0) {
                     io.rescan(cmd);              /// * update input stream
                     while (io.readline()) {      /// * fetch line-by-line
@@ -70,11 +72,7 @@ public class Eforth extends Thread implements JavaCallback {
         hndl.sendMessage(msg);                   /// * send command to MessageQueue
     }
 
-    public void onNativeTick() {
-        process("");
-    }
-
-    public void onNativeForth(String rst) {
+    public void onNativeForthFeedback(String rst) {
         api.onPost(PostType.FORTH, rst);
     }
 
