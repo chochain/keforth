@@ -31,9 +31,10 @@ void forth_include(const char *fn) {
     // to JNI
 }
 
-JavaVM    *gJVM        = nullptr;            ///<
-jobject   gForthObj    = nullptr;            ///< Eforth Activity object
+JavaVM    *gJVM        = nullptr;            ///< Main JVM
+jobject   gMainObj     = nullptr;            ///< MainActivity object
 jmethodID gTimerTickID = nullptr;            ///< onNativeTick()
+jobject   gForthObj    = nullptr;            ///< Eforth Activity object
 jmethodID gForthPostID = nullptr;            ///< onNativeForth(rst)
 
 void android_main(struct android_app *app) {
@@ -42,23 +43,24 @@ void android_main(struct android_app *app) {
 
 void android_tick() {                        ///< timer callback (called by ceforth_task)
     JNIEnv *env;
-    jint rst = gJVM->AttachCurrentThread(&env, nullptr);
-    if (rst != JNI_OK) {
-        gJVM->DetachCurrentThread();
-        return;
-    }
-
-    env->CallVoidMethod(gForthObj, gTimerTickID);
-
+    gJVM->AttachCurrentThread(&env, nullptr);
+    env->CallVoidMethod(gMainObj, gTimerTickID);
     gJVM->DetachCurrentThread();
 }
 
 extern "C"
 {
-    JNIEXPORT jint JNICALL
-    JNI_OnLoad(JavaVM *vm, void *reserved) {
-        gJVM = vm;
-        return JNI_VERSION_1_6;
+    JNIEXPORT void JNICALL
+    Java_com_keforth_MainActivity_jniMainInit(JNIEnv* env, jobject thiz) {
+        if (gMainObj != nullptr) env->DeleteGlobalRef(gMainObj);
+
+        env->GetJavaVM(&gJVM);                             /// * capture JVM
+        gMainObj = env->NewGlobalRef(thiz);                /// * create global reference
+
+        jclass cb = env->FindClass("com/keforth/MainActivity");
+        gTimerTickID = env->GetMethodID(cb, "onNativeTick", "()V");
+
+        env->DeleteLocalRef(cb);
     }
     
     JNIEXPORT void JNICALL
@@ -67,10 +69,7 @@ extern "C"
 
         gForthObj = env->NewGlobalRef(thiz);
         jclass cb = env->GetObjectClass(gForthObj);
-
-        gTimerTickID = env->GetMethodID(cb, "onNativeTick", "()V");
-        gForthPostID = env->GetMethodID(cb, "onNativeForth", "(Ljava/lang/String;)V");
-
+        gForthPostID = env->GetMethodID(cb, "onNativeForthFeedback", "(Ljava/lang/String;)V");
         env->DeleteLocalRef(cb);
 
         forth_init();
@@ -91,6 +90,7 @@ extern "C"
         if (env==nullptr || cmd==nullptr) return;
 
         gEnv = env;                            /// * capture JNI Environment
+        ///> forth_vm(nullptr) process timer interrupt
         forth_vm(cmd, [](int, const char *rst){
             /// send Forth response to Eforth.onNativeForth
             gEnv->CallVoidMethod(
