@@ -244,7 +244,7 @@ void mem_dump(U32 p0, IU sz, int base) {
 #include <atomic>
 extern std::map<IU, std::pair<std::atomic<U32>, U32>> isr;
 void isr_dump() {
-    for (auto &[w, v] : _isr) {
+    for (auto &[w, v] : isr) {
         fout << "[" << w << "] " << dict[w]->name
              << " period=" << v.second << "ms" << ENDL;
     }
