@@ -38,6 +38,12 @@ void isr_serv(VM &vm) {
 	}
 }
 
+#if __ANDROID__
+extern void android_tick();        ///< native tick handler (in main.cpp)
+#else  // !__ANDROID__
+#define android_tick()
+#endif // __ANDROID__
+
 void _tick() {
     auto t = millis();
     for (auto &[w, v] : isr) {
@@ -46,6 +52,7 @@ void _tick() {
 			v.first += v.second;
 		}
     }
+    android_tick();                /// * call native tick handler (main.cpp)
 }
 
 void t_pool_init() {
@@ -71,13 +78,13 @@ void timer_enable(int f) {
 }
 
 void tmisr_add(int period, int w) {
-    int na = _isr.find(w)==_isr.end();
+    int na = isr.find(w)==isr.end();
     if (period==0) {
-        if (!na) _isr.erase(w);     /// * remove ISR entry
+        if (!na) isr.erase(w);     /// * remove ISR entry
         return;
     }
-    if (na) _isr[w] = std::pair<U32, U32>(0, period);
-    else    _isr[w].second = period;
+    if (na) isr[w] = std::pair<U32, U32>(0, period);
+    else    isr[w].second = period;
 }
 #endif // SIM_TIMER_INTR
 
