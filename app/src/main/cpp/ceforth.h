@@ -1,7 +1,7 @@
 #ifndef __EFORTH_SRC_CEFORTH_H
 #define __EFORTH_SRC_CEFORTH_H
-#include <stdio.h>
-#include <stdint.h>     // uintxx_t
+#include <cstdio>
+#include <cstdint>     // uintxx_t
 #include <exception>    // try...catch, throw
 #include <string>       // string class
 #include "config.h"     // configuation and cross-platform support
@@ -46,9 +46,9 @@ struct List {
     }
     ~List() {
         if constexpr(is_pointer<T>::value) {         ///< free elements
-            for (int i=0; i<idx; i++) delete v[i];
+            for (int i=0; v && i<idx; i++) delete v[i];
         }
-        if (v) delete[] v;                           ///< free container
+        delete[] v;                                  ///< free container
     }              
     List &operator=(T *a)   INLINE { v = a; return *this; }
     T    &operator[](int i) INLINE { return i < 0 ? v[idx + i] : v[i]; }
@@ -241,7 +241,7 @@ void isr_serv(VM &vm);
 ///@name System interface
 ///@{
 void forth_init();
-int  forth_vm(const char *cmd, void(*hook)(int, const char*)=NULL);
+int  forth_vm(const char *cmd, void(*hook)(int, const char*)=nullptr);
 void forth_include(const char *fn);       /// load external Forth script
 void outer(istream &in);                  ///< Forth outer loop
 void nest(VM &vm);
