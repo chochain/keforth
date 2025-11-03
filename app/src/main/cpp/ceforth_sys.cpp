@@ -189,7 +189,7 @@ void to_s(IU w, U8 *ip, int base) {
 }
 void see(IU pfa, int base) {
     U8 *ip = MEM(pfa);                  ///< memory pointer
-    while (1) {
+    while (true) {
         IU w = pfa2didx(*(IU*)ip);      ///< fetch word index by pfa
         if (!w) break;                  ///> loop guard
         
@@ -213,7 +213,7 @@ void words(int base) {
     fout << setbase(10);
     for (int i=0; i<dict.idx; i++) {
         const char *nm = dict[i]->name;
-        const int  len = strlen(nm);
+        const int  len = (int)strlen(nm);
 #if CC_DEBUG > 1
         if (nm[0]) {
 #else  //  CC_DEBUG > 1
@@ -248,8 +248,8 @@ void ss_dump(VM &vm, bool forced) {
         int dec = b==10;
         U32 n   = dec ? UINT(ABS(v)) : UINT(v);  ///< handle negative
         do {                              ///> digit-by-digit
-            U8 d = (U8)MOD(n,b);  n /= b;
-            buf[--i] = d > 9 ? (d-10)+'a' : d+'0';
+            int d = MOD(n,b);  n /= b;
+            buf[--i] = d > 9 ? 'a'+(d-10) : '0'+d;
         } while (n && i);
         if (dec && v < DU0) buf[--i]='-';
         return &buf[i];
@@ -263,7 +263,7 @@ void ss_dump(VM &vm, bool forced) {
 }
 void mem_dump(U32 p0, IU sz, int base) {
     fout << setbase(16) << setfill('0');
-    for (IU i=ALIGN16(p0); i<=ALIGN16(p0+sz); i+=16) {
+    for (int i=ALIGN16(p0); i<=ALIGN16(p0+sz); i+=16) {
         fout << setw(4) << i << ": ";
         for (int j=0; j<16; j++) {
             U8 c = pmem[i+j];
