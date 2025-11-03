@@ -130,8 +130,8 @@ typedef int32_t         DU;
     #define LOGX(v)     Serial.print(v, HEX)
 #else  // !(ARDUINO || ESP32)
     #define LOGS(s)     printf("%s", s)
-    #define LOG(v)      printf("%-ld", (int64_t)(v))
-    #define LOGX(v)     printf("%-lx", (uint64_t)(v))
+    #define LOG(v)      printf("%-ld", static_cast<long>(v))
+    #define LOGX(v)     printf("%-lx", static_cast<long>(v))
 #endif // (ARDUINO || ESP32)
     
 #define LOG_NA()        LOGS("N/A\n")
