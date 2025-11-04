@@ -264,6 +264,7 @@ void dotr(int w, DU v, int b, bool u=false); ///< print fixed width literals
 void pstr(const char *str, io_op op=SPCS);///< print string
 
 #if __ANDROID__
+void android_api(const char *cmd);
 void sensor_add(int type_id, int period); ///< enable Android Sensor fetched at period ms
 void sensor_read(int *data, int len);     ///< fetch sensors data
 #endif // __ANDROID__
