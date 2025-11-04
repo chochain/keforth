@@ -36,6 +36,7 @@ jobject   gMainObj     = nullptr;            ///< MainActivity object
 jmethodID gTimerTickID = nullptr;            ///< onNativeTick()
 jobject   gForthObj    = nullptr;            ///< Eforth Activity object
 jmethodID gForthPostID = nullptr;            ///< onNativeForth(rst)
+jmethodID gJavaCmdID   = nullptr;            ///< handleJavaAPI(cmd)
 
 void android_main(struct android_app *app) {
     sensor_engine_start(app);
@@ -46,6 +47,13 @@ void android_tick() {                        ///< timer callback (called by cefo
     gJVM->AttachCurrentThread(&env, nullptr);
     env->CallVoidMethod(gMainObj, gTimerTickID);
     gJVM->DetachCurrentThread();
+}
+
+void android_api(const char *cmd) {
+    JNIEnv *env;
+    gJVM->GetEnv((void**)&env, JNI_VERSION_1_6);
+    env->CallVoidMethod(
+            gForthObj, gJavaCmdID, env->NewStringUTF(cmd));
 }
 
 extern "C"
@@ -70,6 +78,7 @@ extern "C"
         gForthObj = env->NewGlobalRef(thiz);
         jclass cb = env->GetObjectClass(gForthObj);
         gForthPostID = env->GetMethodID(cb, "onNativeForthFeedback", "(Ljava/lang/String;)V");
+        gJavaCmdID   = env->GetMethodID(cb, "onNativeJavaCmd", "(Ljava/lang/String;)V");
         env->DeleteLocalRef(cb);
 
         forth_init();
@@ -92,7 +101,7 @@ extern "C"
         gEnv = env;                            /// * capture JNI Environment
         ///> forth_vm(nullptr) process timer interrupt
         forth_vm(cmd, [](int, const char *rst){
-            /// send Forth response to Eforth.onNativeForth
+            /// send Forth response to Eforth.onNativeForthFeedback
             gEnv->CallVoidMethod(
                 gForthObj, gForthPostID, gEnv->NewStringUTF(rst));
         });
