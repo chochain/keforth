@@ -76,6 +76,10 @@ public class Eforth extends Thread implements JavaCallback {
         api.onPost(PostType.FORTH, rst);
     }
 
+    public void onNativeJavaCmd(String cmd) {    /// * proxy to main (UI) thread
+        api.onPost(PostType.JAVA, cmd);
+    }
+
     @Override
     public void onPost(PostType tid, String rst) {  /// * proxy to main (UI) thread
         api.onPost(tid, rst);
