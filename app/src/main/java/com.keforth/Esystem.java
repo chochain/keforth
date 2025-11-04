@@ -20,7 +20,7 @@ import android.hardware.SensorManager;
 import android.hardware.Sensor;
 
 import androidx.appcompat.app.AppCompatActivity;
-import com.keforth.eforth.JavaCallback.PostType;
+import com.keforth.JavaCallback.PostType;
 import com.keforth.ui.*;
 
 public class Esystem {
