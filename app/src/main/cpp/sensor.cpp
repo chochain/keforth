@@ -13,6 +13,7 @@ struct SensorEngine {
     struct android_app            *app;
     ASensorManager                *mgr;
     ASensorEventQueue             *que;
+    bool                          run;
     std::map<int, const ASensor*> sensor;     /// * map type_id => *sensor
     std::array<int, 48>           value;      /// * value[type_id]
 };
@@ -38,6 +39,7 @@ void _sensor_setup(SensorEngine &eng) {
             _sensor_event_handler,  /// Your callback function
             eng.app->userData       /// User data passed to the callback
     );
+    eng.run = true;
 }
 
 void _sensor_teardown(SensorEngine &eng) {
@@ -62,7 +64,7 @@ void sensor_engine_start(struct android_app *app) {
     _sensor_setup(gEng);
 
     // Main application loop
-    while (true) {
+    while (gEng.run) {
         void *data;
         int ev;
         int id = ALooper_pollOnce(               /// sleep till event arrives
