@@ -12,7 +12,8 @@ import java.util.function.Function;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import static com.keforth.eforth.JavaCallback.PostType.FORTH;
+import com.keforth.JavaCallback;
+import com.keforth.JavaCallback.PostType;
 
 public class VM {
     Dict         dict;
@@ -498,7 +499,7 @@ public class VM {
         });
         CODE("java",  c -> {
             int len = ss.pop(), i_w = ss.pop();                    /// strlen, not used
-            java_api.onPost(FORTH ,STR(i_w));
+            java_api.onPost(PostType.FORTH ,STR(i_w));
         });
         /// @defgroup Debug ops
         /// @{
