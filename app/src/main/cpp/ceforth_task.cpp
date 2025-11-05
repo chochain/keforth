@@ -28,14 +28,16 @@ std::queue<int>  _que;             ///< timer event queue
 
 void isr_serv(VM &vm) {
     if (vm.isr) return;            /// * no recursive interrupt
-	while (!_que.empty()) {
-		int w = _que.front(); _que.pop();
-		vm.isr = true;
-        vm.rs.push(DU0);
+    while (!_que.empty()) {
+        int w = _que.front(); _que.pop();
+        vm.isr = true;
+        vm.rs.push(vm.ip);         /// * keep IP
+        vm.rs.push(DU0);           /// * setup ISR stackframe
         vm.ip = dict[w]->pfa;
         nest(vm);
-		vm.isr = false;
-	}
+        vm.ip  = vm.rs.pop();      /// * restore IP
+        vm.isr = false;
+    }
 }
 
 #if __ANDROID__
@@ -47,10 +49,10 @@ extern void android_tick();        ///< native tick handler (in main.cpp)
 void _tick() {
     auto t = millis();
     for (auto &[w, v] : isr) {
-		if (v.first < t) {
-			_que.push(w);
-			v.first += v.second;
-		}
+        if (v.first < t) {
+            _que.push(w);
+            v.first += v.second;
+        }
     }
     android_tick();                /// * call native tick handler (main.cpp)
 }
