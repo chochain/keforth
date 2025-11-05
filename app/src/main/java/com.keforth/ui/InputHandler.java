@@ -8,15 +8,15 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.widget.EditText;
 
-import com.keforth.Eforth;
+import com.keforth.JavaCallback;
 
 public class InputHandler {
+    private final JavaCallback main;
     private final EditText in;
-    private final Eforth   forth;
     
-    public InputHandler(EditText in, Eforth forth) {
-        this.in    = in;
-        this.forth = forth;
+    public InputHandler(JavaCallback main, EditText in) {
+        this.main = main;
+        this.in   = in;
     }
     
     public void setupKeyListener() {
@@ -36,7 +36,7 @@ public class InputHandler {
         
         if (TextUtils.isEmpty(cmd)) return;
         
-        forth.process(cmd);                /// * enqueue forth.Looper
+        main.onPost(JavaCallback.PostType.FORTH, cmd);                /// * enqueue forth.Looper
         clearInput();
     }
     
