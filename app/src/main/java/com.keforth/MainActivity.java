@@ -5,29 +5,20 @@
 package com.keforth;
 
 /// layout
-import android.annotation.SuppressLint;
-import android.os.Build;
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.ProgressBar;
-import android.util.TypedValue;
-/// JetPack
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.NestedScrollView;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-/// file loader
-import android.content.Intent;
-import android.net.Uri;
-import android.provider.DocumentsContract;
-/// sensor
-import android.hardware.SensorManager;
-import android.hardware.Sensor;
-/// keForth
-import com.keforth.eforth.*;
+
 import com.keforth.ui.*;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
@@ -40,14 +31,14 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     private TextView             con;
     private EditText             ed;             ///< Forth input
     private FloatingActionButton fab;            ///< action button, show Logo panel
-    private ViewGroup            vgrp;           ///< Logo panel
     private ProgressBar          pb;             ///< progress bar (loading Forth script)
+    private ViewGroup            vgrp;           ///< Logo panel
 
     private InputHandler         in;             ///< Input component
     private OutputHandler        out;            ///< Output component
+    private Esystem              sys;            ///< System/Device interface
     private Eforth               forth;          ///< Forth processor (thread)
     private Elogo                logo;           ///< Logo processor (thread)
-    private SensorManager        smgr;           ///< Sensor listing
 
     @Override
     protected void onCreate(Bundle state) {
@@ -66,17 +57,16 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         con   = findViewById(R.id.forthOutput);
         ed    = findViewById(R.id.forthInput);
         fab   = findViewById(R.id.buttonProcess);
-        vgrp  = findViewById(R.id.logo);
         pb    = findViewById(R.id.progress);
+        vgrp  = findViewById(R.id.logo);
     }
 
     private void initComponents() {
+        in    = new InputHandler(this, ed);
         out   = new OutputHandler(this, con, R.color.teal_200);
-        forth = new Eforth(APP_NAME, out, this);
-        in    = new InputHandler(ed, forth);
+        sys   = new Esystem(this, in, out, pb);
+        forth = new Eforth(this, sys, APP_NAME);
         logo  = new Elogo(vgrp);
-//        smgr  = (SensorManager)getSystemService(Context.SENSOR_SERVICE);        
-        smgr  = (SensorManager)getSystemService(SENSOR_SERVICE);
     }
 
     private void setupEventListeners() {
@@ -107,10 +97,12 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
     @Override
     public void onPost(PostType tid, String msg) {           ///< eForth-Java API callback
         switch (tid) {
-            case LOG:    out.log(msg+"\n");      break;
-            case FORTH:  out.print(msg);         break;
-            case JAVA:   handleJavaAPI(msg);     break;
-            default:     out.debug("unsupported tid="+tid+"\n");
+        case LOG:    out.log(msg);           break;
+        case DEBUG:  out.debug(msg);         break;
+        case PRINT:  out.print(msg);         break;
+        case FORTH:  forth.process(msg);     break;
+        case JAVA:   handleJavaAPI(msg);     break;
+        default:     out.debug("unsupported tid="+tid+"\n");
         }
     }
 
@@ -133,7 +125,8 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
 //            out.debug(logo.status()+"\n");
             break;
         case "sensors":
-            listSensors();
+            out.debug("Device Sensor List\n");
+            out.print(sys.sensorList());
             break;
         case "font":
             int sz;
@@ -142,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
             con.setTextSize(TypedValue.COMPLEX_UNIT_SP, sz);
             break;
         case "load":
-            findFile(n > 1 ? ops[1] : null);
+            if (n > 1) sys.findFile(ops[1]);
             break;
         default:
             out.debug("unsupported op="+ops[0]+"\n");
@@ -150,75 +143,15 @@ public class MainActivity extends AppCompatActivity implements JavaCallback {
         }
     }
 
-    private static final int OP_DIR_ACCESS     = 11;
-    private static final int OP_CONSOLE_UPDATE = 12;
+    private static final int OP_DIR_ACCESS = 11;
 
     @Override
     public void onActivityResult(int req, int rst, Intent data) {
         super.onActivityResult(req, rst, data);
         /// The ACTION_OPEN_DOCUMENT intent sent => request code OP_DIR_ACCESS
-        switch (req) {
-        case OP_DIR_ACCESS:
-            loadFile(rst, data); break;
-        case OP_CONSOLE_UPDATE:
-        default: /* do nothing */ break;
-        }
-    }
+        if (req != OP_DIR_ACCESS) return;
 
-    @SuppressLint("InlinedApi")
-    private void findFile(String uri) {
-        Intent nt = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        
-        nt.addCategory(Intent.CATEGORY_OPENABLE);
-        nt.setType("*/*");
-        
-//        String[] mimeTypes = new String[]{"application/x-binary, application/octet-stream"};
-//        String[] mimeTypes = new String[]{"application/gpx+xml","application/vnd.google-earth.kmz"};
-//        nt.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-        
-        if (uri != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            nt.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri);
-        }
-        if (nt.resolveActivity(getPackageManager()) == null) {
-            out.debug("resolve ACTION_OPEN_DOCUMENT failed\n");
-            return;
-        }
-        startActivityForResult(Intent.createChooser(nt, "Choose file"), OP_DIR_ACCESS);
-    }
-    
-    private void loadFile(int rst, Intent data) {
-        if (rst != AppCompatActivity.RESULT_OK) {
-            out.debug("findFile cancelled\n");
-            return;
-        }
-        if (data == null || data.getData() == null) {
-            out.debug("Uri not found\n");
-            return;
-        }
-        /// The document URI selected returned as intent
-        Uri uri = data.getData();
-        out.debug("uri="+uri+"\n");
-
-        pb.setVisibility(View.VISIBLE);
-        new FileLoader(this,
-            new FileLoader.AsyncResponse() {
-                @Override
-                public void fileLineRead(String cmd) {
-                    forth.process(cmd);
-                }
-                @Override
-                public void fileLoadFinish(String fname) {
-                    pb.setVisibility(View.GONE);
-                }
-            }).execute(uri);
-    }
-    
-    private void listSensors() {
-        StringBuilder sb = new StringBuilder("sensor list:\n");
-        for (Sensor s : smgr.getSensorList(Sensor.TYPE_ALL)) {
-            sb.append(s.getVendor()).append(" ").append(s.getName()).append("\n");
-        }
-        out.debug(sb.toString());
+        sys.loadFile(rst, data);
     }
 }
 
