@@ -31,9 +31,11 @@ void isr_serv(VM &vm) {
 	while (!_que.empty()) {
 		int w = _que.front(); _que.pop();
 		vm.isr = true;
-        vm.rs.push(DU0);
-        vm.ip = dict[w]->pfa;
+        vm.rs.push(vm.ip);       /// * save IP
+        vm.rs.push(DU0);         /// * setup ISR stack frame
+        vm.ip  = dict[w]->pfa;
         nest(vm);
+        vm.ip  = vm.rs.pop();      /// * restore IP
 		vm.isr = false;
 	}
 }
