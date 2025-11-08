@@ -45,9 +45,10 @@ public class Esystem {
     public String sensorList() {
         StringBuilder sb = new StringBuilder();
         for (Sensor s : smgr.getSensorList(Sensor.TYPE_ALL)) {
-            sb.append(s.getType()).append("> [")
-              .append(s.getVendor()).append("] ")
-              .append(s.getName()).append("\n");
+            sb.append(s.getType()).append("> ")
+              .append(s.getName()).append(" [")
+              .append(s.getMinDelay()/1000).append(" ms, R=")
+              .append(s.getMaximumRange()).append("]\n");
         }
         return sb.toString();
     }
