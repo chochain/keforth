@@ -527,9 +527,9 @@ void dict_compile() {  ///< compile built-in words into dictionary
     CODE("sense",                                            /// ( n t -- ) n:Android Sensor TypeID sensor, t: period, 0=disable
          IU t = POPI(); sensor_add(POPI(), t));
     CODE("sensor",                                           /// ( a n -- ) a: memory add, num of entries
-         DU n = POP(); sensor_read((int*)MEM(POPI()), (int)n));
+         IU n = POPI(); sensor_read((int*)MEM(POPI()), n));
     CODE("java",                                             /// ( a n -- ) n: strlen, not used
-         POP(); android_api((const char*)MEM(POP())));  /// * call main::android_api (facade to Main)
+         POP(); android_api((const char*)MEM(POPI()))); /// * call main::android_api (facade to Main)
     /// @}
 #endif // __ANDROID__
     /// @defgroup Debug ops
