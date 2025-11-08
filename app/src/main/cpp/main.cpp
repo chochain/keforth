@@ -16,7 +16,7 @@ extern int  forth_vm(const char *cmd, void(*)(int, const char*)=NULL);
 extern void forth_teardown();
 
 extern void sensor_engine_start(struct android_app *app);
-extern void sensor_setup(int type_id, int peroid);
+extern void sensor_add(int type_id, int peroid);
 extern void sensor_read(int *data, int len);
 ///====================================================================
 ///
@@ -86,7 +86,7 @@ extern "C"
 
     JNIEXPORT void JNICALL
     Java_com_keforth_Eforth_jniTeardown(JNIEnv *env, jobject thiz) {
-        // process fque
+        forth_teardown();
     }
 
     JNIEXPORT void JNICALL
