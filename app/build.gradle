@@ -13,11 +13,13 @@ android {
 		versionName '1.0'
 		externalNativeBuild {
 			cmake {
-				cppFlags '-std=c++17', '-O3', '-Wall', '-falign-functions=4',
+				cppFlags '-std=c++17', '-O3', '-Wall', '-falign-functions=2',
 					'-fomit-frame-pointer',
 					'-fno-stack-check', '-fno-stack-protector',
 					'-ffast-math',
-					'-funroll-loops'
+					'-funroll-loops',
+					'-mllvm -align-all-functions=2',
+				    '-DARM7'
 			}
 		}
 	}
@@ -37,7 +39,15 @@ android {
 			version '3.22.1'
 		}
 	}
-	ndkVersion '27.0.12077973'
+	splits {
+		abi {
+			enable true
+			reset()
+			include 'armeabi-v7a' // Specify the desired ABI
+			universalApk false // Optional: set to true to build a single APK for all ABIs
+		}
+	}
+	ndkVersion '29.0.14206865'
 }
 
 dependencies {
