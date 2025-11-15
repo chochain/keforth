@@ -260,6 +260,7 @@ void ss_dump(VM &vm, bool forced) {
     }
     TOS = SS.pop();
     fout << "ok " << FLUSH;
+    dict_dump(10);
 }
 void mem_dump(U32 p0, IU sz, int base) {
     fout << setbase(16) << setfill('0');
@@ -297,6 +298,14 @@ void isr_dump() {
 ///> System statistics - for heap, stack, external memory debugging
 ///
 void dict_dump(int base) {
+#if ANDROID    
+     ALOG("XT0=%x", Code::XT0);
+     for (int i=0; i<dict.idx; i++) {
+         Code *c = dict[i];
+         ALOG("dict[%d]%x nm=%x xt=%x at=%x %s",
+              i, (UFP)c, (UFP)c->name, (UFP)(c->xt), c->attr, c->name);
+     }
+#else   // !ANDROID
     fout << setbase(16) << setfill('0') << "XT0=" << Code::XT0 << ENDL;
     for (int i=0; i<dict.idx; i++) {
         Code *c = dict[i];
@@ -308,6 +317,7 @@ void dict_dump(int base) {
              << " "       << c->name << ENDL;
     }
     fout << setbase(base) << setfill(' ') << setw(-1);
+#endif  // ANDROID
 }
 ///====================================================================
 ///
