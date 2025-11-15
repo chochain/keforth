@@ -128,7 +128,13 @@ typedef int32_t         DU;
     #define LOGS(s)     Serial.print(F(s))
     #define LOG(v)      Serial.print(v)
     #define LOGX(v)     Serial.print(v, HEX)
-#else  // !(ARDUINO || ESP32)
+#elif ANDROID
+    #include <android/log.h>
+    #define ALOG(...)   __android_log_print(ANDROID_LOG_DEBUG, "debug", __VA_ARGS__)
+    #define LOGS(s)     ALOG("%s", s)
+    #define LOG(v)      ALOG("%-ld", static_cast<long>(v))
+    #define LOGX(v)     ALOG("%-lx", static_cast<long>(v))
+#else // !(ARDUINO || ESP32 || ANDROID)
     #define LOGS(s)     printf("%s", s)
     #define LOG(v)      printf("%-ld", static_cast<long>(v))
     #define LOGX(v)     printf("%-lx", static_cast<long>(v))
@@ -139,8 +145,8 @@ typedef int32_t         DU;
 #define LOG_KX(k, x)    LOGS(k); LOGX(x)
 #define LOG_HDR(f, s)   LOGS(f); LOGS("("); LOGS(s); LOGS(") => ")
 #define LOG_DIC(i)      LOGS("dict["); LOG(i); LOGS("] ");  \
-                        LOGS(dict[i].name); LOGS(" attr="); \
-                        LOGX(dict[i].attr); LOGS("\n")
+                        LOGS(dict[i]->name); LOGS(" attr="); \
+                        LOGX(dict[i]->attr); LOGS("\n")
 #if DO_MULTITASK
 #if CC_DEBUG
 #include <stdarg.h>
