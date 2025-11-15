@@ -125,7 +125,7 @@ struct ALIGNAS VM {
 #define UDF_ATTR   0x0001   /** user defined word    */
 #define IMM_ATTR   0x0002   /** immediate word       */
 #define EXT_FLAG   0x8000   /** prim/xt/pfa selector */
-#if DO_WASM
+#if defined(ARM7) || DO_WASM
 #define MSK_ATTR   ~0x0     /** no masking needed    */
 #else  // !DO_WASM
 #define MSK_ATTR   ~0x3     /** mask udf,imm bits    */
@@ -178,12 +178,12 @@ typedef void (*FPTR)(VM&);  ///< function pointer
 struct Code {
     static UFP XT0;         ///< function pointer base (in registers hopefully)
     const char *name = 0;   ///< name field
-#if DO_WASM
+#if defined(ARM7) || DO_WASM
     union {                 ///< either a primitive or colon word
         FPTR xt = 0;        ///< vtable index
         IU   pfa;           ///< offset to pmem space (16-bit for 64K range)
     };
-    IU attr;                ///< xt is vtable index so attrs need to be separated
+    IU attr = 0;            ///< xt is vtable index so attrs need to be separated
 #else // !DO_WASM
     union {                 ///< either a primitive or colon word
         FPTR xt = 0;        ///< lambda pointer (4-byte align, 2 LSBs can be used for attr)
