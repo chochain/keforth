@@ -279,10 +279,10 @@ void dict_dump(int base);                 ///< dump dictionary
 void mem_dump(U32 addr, IU sz, int base); ///< dump memory frm addr...addr+sz
 void mem_stat();                          ///< display memory statistics
 ///@}
-///@name Javascript interface
+///@name Native interface
 ///@{
-#if DO_WASM
+#if __ANDROID__ || DO_WASM
 void native_api(VM &vm);
-#endif // DO_WASM
+#endif // __ANDROID__ || DO_WASM
 ///@}
 #endif // __EFORTH_SRC_CEFORTH_H
