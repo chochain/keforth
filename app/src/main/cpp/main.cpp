@@ -49,7 +49,7 @@ void android_tick() {                        ///< timer callback (called by cefo
     gJVM->DetachCurrentThread();
 }
 
-void android_api(const char *cmd) {
+void js_call(const char *cmd) {              ///< Java "scripting" API
     JNIEnv *env;
     gJVM->GetEnv((void**)&env, JNI_VERSION_1_6);
     env->CallVoidMethod(
