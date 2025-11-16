@@ -528,8 +528,7 @@ void dict_compile() {  ///< compile built-in words into dictionary
          IU t = POPI(); sensor_add(POPI(), t));
     CODE("sensor",                                           /// ( a n -- ) a: memory add, num of entries
          IU n = POPI(); sensor_read((int*)MEM(POPI()), n));
-    CODE("java",                                             /// ( a n -- ) n: strlen, not used
-         POP(); android_api((const char*)MEM(POPI()))); /// * call main::android_api (facade to Main)
+    CODE("java", native_api(vm));                          /// * android_api (facade to Main)
     /// @}
 #endif // __ANDROID__
     /// @defgroup Debug ops
