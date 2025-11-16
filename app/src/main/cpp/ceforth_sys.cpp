@@ -320,11 +320,11 @@ void dict_dump(int base) {
 #endif  // ANDROID
 }
 ///====================================================================
-///
 ///> Javascript/WASM interface
 ///
-#if DO_WASM
+#if __ANDROID__ || DO_WASM
 #define POP() ({ DU n=TOS; TOS=SS.pop(); n; })
+#if DO_WASM
 EM_JS(void, js_call, (const char *ops), {
         const req = UTF8ToString(ops).split(/\\s+/);
         const wa  = wasmExports;
@@ -347,8 +347,11 @@ EM_JS(void, js_call, (const char *ops), {
         msg.push(Date.now());                   /// * t0 anchor for performance check
         postMessage(['js', msg], tfr);
 });
+#else  // !DO_WASM
+extern void js_call(const char *ops);
+#endif // DO_WASM
 ///
-///> Javascript calling, before passing to js_call()
+///> JNI calling, before passing to main::js_call or WASM
 ///
 ///  String substitude similar to printf
 ///    %d - integer
@@ -385,6 +388,6 @@ void native_api(VM &vm) {                  ///> ( n addr u -- )
         }
         else pad.replace(i, 2, t2s(pad[i+1]));
     }
-    js_call(pad.c_str());    /// * call Emscripten js function
+    js_call(pad.c_str());                  /// * call Emscripten js function
 }
-#endif // DO_WASM
+#endif // __ANDROID__ || DO_WASM
