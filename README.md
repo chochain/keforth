@@ -56,9 +56,24 @@ With the mass market of Android, the rich features from all walks of life can be
         * Slice
         * WorkManager
     + Platform - visualization
-        * Adafruit IO
-        * Blynk
-        * ThingsBoard
+        * [Adafruit IO Dashboard](https://learn.adafruit.com/adafruit-io-basics-dashboards/creating-a-dashboard)
+          - text box (value, multi-line)
+          - screen divider (horizontal, vertical)
+          - image (base64 encoded)
+          - icon (static icon)
+          - indicator (on/off color)
+          - num pad (3x4 keypad)
+          - remote control (NEC)
+          - stream (text feeds)
+          - button (on/off, reset)
+          - gauge (temperature, humidity, value setting)
+          - slider (value setting)
+          - color picker
+          - chart (temperature, slider value)
+          - link (graph in dashboard)
+- battery gague
+* [ThingsBoard Dashboard](https://thingsboard.io/docs/user-guide/dashboards/) - prettier
+        * [Blynk Web Console](https://www.blynk.io/platform/web-console) - better controls
     + Sensors - SensorManager
         * Motion:      Accelerometer, Gravity, Linear Acceleration, Gyroscope, Rotation Vector (motion)
         * Position:    Orientation, Magnetic Field (direction)
