@@ -55,6 +55,10 @@ With the mass market of Android, the rich features from all walks of life can be
         * Paging
         * Slice
         * WorkManager
+    + Platform - visualization
+        * Adafruit IO
+        * Blynk
+        * ThingsBoard
     + Sensors - SensorManager
         * Motion:      Accelerometer, Gravity, Linear Acceleration, Gyroscope, Rotation Vector (motion)
         * Position:    Orientation, Magnetic Field (direction)
