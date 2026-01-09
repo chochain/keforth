@@ -25,7 +25,7 @@
       android:id="@+id/forthView"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:paddingBottom="36dp"
+      android:paddingBottom="@dimen/main_bottom_padding"
       android:gravity="bottom"
       app:layout_behavior="@string/appbar_scrolling_view_behavior">
     <!-- Forth Output -->
@@ -34,8 +34,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:text=""
-        android:textSize="9sp"
-        android:padding="2dp"
+        android:textSize="@dimen/text_size"
+        android:padding="@dimen/text_padding"
         android:textIsSelectable="false"
         android:fontFamily="monospace"
         android:gravity="bottom"/>
@@ -48,8 +48,8 @@
       android:hint="Forth here..."
       android:inputType="text"
       android:layout_marginBottom="0dp"
-      android:textSize="9sp"
-      android:padding="8dp"
+      android:textSize="@dimen/edit_text_size"
+      android:padding="@dimen/edit_text_padding"
       android:fontFamily="monospace"
       android:layout_gravity="bottom"
       android:background="@drawable/edittext_border"/>
@@ -59,14 +59,14 @@
       style="@android:style/Widget.ProgressBar.Horizontal"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:padding="6dp"
+      android:padding="@dimen/progressbar_padding"
       android:layout_gravity="bottom"
       android:visibility="gone"
       android:progress="25"/>
   <LinearLayout
       android:id="@+id/logo"
       android:layout_width="match_parent"
-      android:layout_height="320dp"
+      android:layout_height="@dimen/logo_height"
       android:orientation="vertical"
       android:visibility="gone"
       android:background="@drawable/logoview_border">
@@ -78,7 +78,7 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_gravity="bottom|end"
-      android:layout_margin="16dp"
+      android:layout_margin="@dimen/fab_margin"
       android:src="@drawable/ic_play_arrow"
       app:backgroundTint="@color/colorPrimary"
       app:tint="@android:color/white" />
