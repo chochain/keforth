@@ -55,7 +55,15 @@ With the mass market of Android, the rich features from all walks of life can be
         * Paging
         * Slice
         * WorkManager
-    + Platform - visualization
+    + Communication
+        * MQTT - [Mosquitto example](https://highvoltages.co/iot-internet-of-things/mqtt-broker-on-android/), [Paho example](https://medium.com/@basitmukhtar210/connecting-to-an-mqtt-server-on-android-using-eclipse-paho-client-6f5ee42c7191)
+        * WebRTC - [GetStream.IO](https://getstream.io/resources/projects/webrtc/platforms/android-kotlin/) - s
+        * Bluetooth - [EasyBle](https://github.com/Ficat/EasyBle)
+        * USB - [UsbSerial](https://github.com/felHR85/UsbSerial)
+        * Wifi - service, P2P
+        * WireGuard - [Client Setup](https://serversideup.net/blog/how-to-configure-a-wireguard-android-vpn-client/)
+        * Telephony
+    + UI - visualization
         * [Adafruit IO Dashboard](https://learn.adafruit.com/adafruit-io-basics-dashboards/creating-a-dashboard)
           - text box (value, multi-line)
           - screen divider (horizontal, vertical)
@@ -71,8 +79,8 @@ With the mass market of Android, the rich features from all walks of life can be
           - color picker
           - chart (temperature, slider value)
           - link (graph in dashboard)
-- battery gague
-* [ThingsBoard Dashboard](https://thingsboard.io/docs/user-guide/dashboards/) - prettier
+          - battery gague
+        * [ThingsBoard Dashboard](https://thingsboard.io/docs/user-guide/dashboards/) - prettier
         * [Blynk Web Console](https://www.blynk.io/platform/web-console) - better controls
     + Sensors - SensorManager
         * Motion:      Accelerometer, Gravity, Linear Acceleration, Gyroscope, Rotation Vector (motion)
@@ -81,14 +89,9 @@ With the mass market of Android, the rich features from all walks of life can be
     + Multimedia
         * Camera
         * Audio
+        * [webrtc-in-jetpack-compose](https://github.com/GetStream/webrtc-in-jetpack-compose)
+        * [Stream-Video-Android](https://github.com/getstream/stream-video-android)
         * Text-To-Speach
-    + Communication
-        * MQTT - [Mosquitto example](https://highvoltages.co/iot-internet-of-things/mqtt-broker-on-android/), [Paho example](https://medium.com/@basitmukhtar210/connecting-to-an-mqtt-server-on-android-using-eclipse-paho-client-6f5ee42c7191)
-        * Bluetooth - [EasyBle](https://github.com/Ficat/EasyBle)
-        * USB - [UsbSerial](https://github.com/felHR85/UsbSerial)
-        * Wifi - service, P2P
-        * WireGuard - [Client Setup](https://serversideup.net/blog/how-to-configure-a-wireguard-android-vpn-client/)
-        * Telephony
     + Object
         * instantiate from string
         * invokedynamic (instead of reflection).
