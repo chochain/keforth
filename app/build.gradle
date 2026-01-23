@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-	namespace 'com.keforth'
+	namespace 'com.gnii.keforth'
 	compileSdkVersion 36
 	defaultConfig {
 		applicationId 'com.keforth.MainActivity'
