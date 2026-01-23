@@ -2,7 +2,7 @@
 /// @file
 /// @brief - load file from content resolver into app cache directory
 ///
-package com.keforth.ui;
+package com.gnii.keforth.ui;
 
 import java.lang.ref.WeakReference;
 import java.io.InputStream;

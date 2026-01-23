@@ -2,7 +2,7 @@
 /// @file
 /// @brief - Manages output display and colors
 ///
-package com.keforth.ui;
+package com.gnii.keforth.ui;
 
 import java.io.IOException;
 import java.io.OutputStream;

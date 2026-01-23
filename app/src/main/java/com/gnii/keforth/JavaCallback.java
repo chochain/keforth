@@ -2,7 +2,7 @@
 /// @file 
 /// @brief - Virtual Machine class
 ///
-package com.keforth;
+package com.gnii.keforth;
 
 public interface JavaCallback {
     public enum PostType {

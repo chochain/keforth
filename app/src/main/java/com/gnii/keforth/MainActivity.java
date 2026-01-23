@@ -2,7 +2,7 @@
 /// @file
 /// @brief - Refactored main activity
 ///
-package com.keforth;
+package com.gnii.keforth;
 
 /// layout
 import android.content.Intent;
@@ -19,7 +19,8 @@ import androidx.core.widget.NestedScrollView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import com.keforth.ui.*;
+import com.gnii.keforth.R;
+import com.gnii.keforth.ui.*;
 
 public class MainActivity extends AppCompatActivity implements JavaCallback {
     static final String APP_NAME   = "keForth v1.0";

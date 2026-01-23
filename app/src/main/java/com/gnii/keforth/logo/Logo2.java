@@ -13,7 +13,7 @@
 /// * Multiple Backends: Easy to add SVG export, printing, or other renderers
 /// * State Management: Clear separation between logical state and visual state
 ///
-package com.keforth.logo;
+package com.gnii.keforth.logo;
 
 import android.content.Context;
 import android.graphics.Bitmap;

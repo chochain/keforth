@@ -2,7 +2,7 @@
 /// @file 
 /// @brief - Code class - the core component of eForth
 ///
-package com.keforth.eforth;
+package com.gnii.keforth.eforth;
 
 import java.util.Stack;
 import java.util.function.Consumer;

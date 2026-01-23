@@ -2,7 +2,7 @@
 /// @file
 /// @brief - IO module
 ///
-package com.keforth.eforth;
+package com.gnii.keforth.eforth;
 
 import java.lang.Exception;
 import java.lang.String;

@@ -2,7 +2,7 @@
 /// @file
 /// @brief - handles messages to/from Forth VM thread
 ///
-package com.keforth;
+package com.gnii.keforth;
 
 import java.lang.Thread;
 import java.util.Objects;
@@ -13,8 +13,8 @@ import android.os.Message;
 
 import androidx.annotation.NonNull;
 
-import com.keforth.JavaCallback.PostType;
-import com.keforth.eforth.*;
+import com.gnii.keforth.JavaCallback.PostType;
+import com.gnii.keforth.eforth.*;
 
 public class Eforth extends Thread {
     public static final int USE_JNI_FORTH = 1;

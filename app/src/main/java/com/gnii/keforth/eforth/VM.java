@@ -2,7 +2,7 @@
 /// @file 
 /// @brief - Virtual Machine class
 ///
-package com.keforth.eforth;
+package com.gnii.keforth.eforth;
 
 import static java.lang.Math.*;
 
@@ -12,8 +12,8 @@ import java.util.function.Function;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import com.keforth.JavaCallback;
-import com.keforth.JavaCallback.PostType;
+import com.gnii.keforth.JavaCallback;
+import com.gnii.keforth.JavaCallback.PostType;
 
 public class VM {
     Dict         dict;

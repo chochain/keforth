@@ -2,7 +2,7 @@
 /// @file
 /// @brief - System/Device Interface
 ///
-package com.keforth;
+package com.gnii.keforth;
 
 import static android.content.Context.*;
 
@@ -20,8 +20,8 @@ import android.hardware.SensorManager;
 import android.hardware.Sensor;
 
 import androidx.appcompat.app.AppCompatActivity;
-import com.keforth.JavaCallback.PostType;
-import com.keforth.ui.*;
+import com.gnii.keforth.JavaCallback.PostType;
+import com.gnii.keforth.ui.*;
 
 public class Esystem {
     static final int OP_DIR_ACCESS = 11;

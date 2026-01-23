@@ -9,7 +9,7 @@
 ///    * View interface
 ///    Logo2 does those but bloated the code 2x lines
 ///
-package com.keforth.logo;
+package com.gnii.keforth.logo;
 
 import android.content.Context;
 import android.graphics.*;

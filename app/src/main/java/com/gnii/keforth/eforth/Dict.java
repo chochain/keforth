@@ -2,7 +2,7 @@
 /// @file 
 /// @brief - generic List class - extended ArrayList
 ///
-package com.keforth.eforth;
+package com.gnii.keforth.eforth;
 
 final public class Dict extends FV<Code> {
     static Dict dict = new Dict();

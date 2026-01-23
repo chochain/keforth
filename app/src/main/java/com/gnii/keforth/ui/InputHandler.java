@@ -2,13 +2,13 @@
 /// @file
 /// @brief - Manages user input and keyboard events
 ///
-package com.keforth.ui;
+package com.gnii.keforth.ui;
 
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.widget.EditText;
 
-import com.keforth.JavaCallback;
+import com.gnii.keforth.JavaCallback;
 
 public class InputHandler {
     private final JavaCallback main;

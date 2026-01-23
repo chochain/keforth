@@ -7,7 +7,7 @@
 /// * Makes it easy to support different backends (Canvas, OpenGL, SVG, etc.)
 /// * Commands are simple and focused on drawing primitives
 ///
-package com.keforth.logo;
+package com.gnii.keforth.logo;
 
 public interface Blip {
     void init(int w, int h, int fg, int pw, int ts);       ///< initialize attributes

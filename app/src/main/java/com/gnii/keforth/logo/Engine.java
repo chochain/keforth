@@ -17,7 +17,7 @@
 ///     |       |       |
 ///     +===============+
 ///             w
-package com.keforth.logo;
+package com.gnii.keforth.logo;
 
 import java.util.List;
 import java.util.ArrayList;
