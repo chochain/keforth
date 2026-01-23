@@ -59,20 +59,20 @@ void js_call(const char *cmd) {              ///< Java "scripting" API
 extern "C"
 {
     JNIEXPORT void JNICALL
-    Java_com_keforth_MainActivity_jniMainInit(JNIEnv* env, jobject thiz) {
+    Java_com_gnii_keforth_MainActivity_jniMainInit(JNIEnv* env, jobject thiz) {
         if (gMainObj != nullptr) env->DeleteGlobalRef(gMainObj);
 
         env->GetJavaVM(&gJVM);                             /// * capture JVM
         gMainObj = env->NewGlobalRef(thiz);                /// * create global reference
 
-        jclass cb = env->FindClass("com/keforth/MainActivity");
+        jclass cb = env->FindClass("com/gnii/keforth/MainActivity");
         gTimerTickID = env->GetMethodID(cb, "onNativeTick", "()V");
 
         env->DeleteLocalRef(cb);
     }
     
     JNIEXPORT void JNICALL
-    Java_com_keforth_Eforth_jniInit(JNIEnv *env, jobject thiz) {
+    Java_com_gnii_keforth_Eforth_jniInit(JNIEnv *env, jobject thiz) {
         if (gForthObj != nullptr) env->DeleteGlobalRef(gForthObj);
 
         gForthObj = env->NewGlobalRef(thiz);
@@ -85,12 +85,12 @@ extern "C"
     }
 
     JNIEXPORT void JNICALL
-    Java_com_keforth_Eforth_jniTeardown(JNIEnv *env, jobject thiz) {
+    Java_com_gnii_keforth_Eforth_jniTeardown(JNIEnv *env, jobject thiz) {
         forth_teardown();
     }
 
     JNIEXPORT void JNICALL
-    Java_com_keforth_Eforth_jniOuter(JNIEnv *env, jobject thiz, jstring js) {
+    Java_com_gnii_keforth_Eforth_jniOuter(JNIEnv *env, jobject thiz, jstring js) {
         static JNIEnv *gEnv;
         // Convert the Java string to a C-style string
         const char *cmd = env->GetStringUTFChars(js, nullptr);
